@@ -1,0 +1,2950 @@
+/* ============================================================
+   SPARK 2026
+   style.css
+   ============================================================ */
+
+
+/* ============================================================
+   MODULE 1 — ROOT VARIABLES + RESET
+   ============================================================ */
+
+:root {
+
+    --navy: #0E2A52;
+    --navy-deep: #07182F;
+
+    --blue: #1E88E5;
+    --blue-dark: #1565C0;
+    --blue-light: #42A5F5;
+
+    --gold: #C99A2E;
+    --gold-light: #F3E3BB;
+
+    --purple: #8E2A73;
+    --purple-light: #F8EEF5;
+
+    --robo-blue: #0B3D91;
+    --robo-light: #EAF0FB;
+
+    --bg: #F6F8FC;
+    --surface: #FFFFFF;
+    --surface-alt: #EEF2FA;
+
+    --text: #16213E;
+    --muted: #5B6478;
+
+    --border: #E1E7F2;
+
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
+
+    --shadow-sm:
+        0 3px 14px rgba(14, 42, 82, 0.07);
+
+    --shadow-md:
+        0 14px 36px rgba(14, 42, 82, 0.13);
+
+    --shadow-blue:
+        0 12px 30px rgba(30, 136, 229, 0.28);
+
+    --header-height: 76px;
+
+    --font-display:
+        "Barlow Condensed",
+        sans-serif;
+
+    --font-body:
+        "Inter",
+        sans-serif;
+
+    --font-mono:
+        "IBM Plex Mono",
+        monospace;
+}
+
+
+/* ============================================================
+   RESET
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+
+html {
+    scroll-behavior: smooth;
+}
+
+
+body {
+
+    margin: 0;
+
+    background: var(--bg);
+
+    color: var(--text);
+
+    font-family: var(--font-body);
+
+    font-size: 16px;
+
+    line-height: 1.6;
+
+    -webkit-font-smoothing: antialiased;
+
+    overflow-x: hidden;
+}
+
+
+img {
+
+    max-width: 100%;
+
+    display: block;
+}
+
+
+a {
+
+    color: inherit;
+
+    text-decoration: none;
+}
+
+
+button {
+
+    font-family: inherit;
+
+    cursor: pointer;
+}
+
+
+ul {
+
+    margin: 0;
+
+    padding: 0;
+
+}
+
+
+h1,
+h2,
+h3,
+h4 {
+
+    margin: 0;
+
+    color: var(--navy);
+
+    font-family: var(--font-display);
+
+    font-weight: 700;
+}
+
+
+p {
+
+    margin-top: 0;
+}
+
+
+[hidden] {
+
+    display: none !important;
+}
+
+
+:focus-visible {
+
+    outline: 3px solid var(--blue);
+
+    outline-offset: 3px;
+}
+
+
+/* ============================================================
+   MODULE 2 — COMMON LAYOUT
+   ============================================================ */
+
+.section {
+
+    padding: 100px 24px;
+}
+
+
+.section-alt {
+
+    background: var(--surface-alt);
+}
+
+
+.section-inner {
+
+    width: min(1160px, 100%);
+
+    margin: 0 auto;
+}
+
+
+.eyebrow {
+
+    margin: 0 0 12px;
+
+    color: var(--blue-dark);
+
+    font-family: var(--font-mono);
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    letter-spacing: 0.14em;
+
+    line-height: 1.4;
+
+    text-transform: uppercase;
+}
+
+
+.section-title {
+
+    margin-bottom: 18px;
+
+    color: var(--navy);
+
+    font-size: clamp(34px, 5vw, 48px);
+
+    line-height: 1.05;
+}
+
+
+.section-lead {
+
+    max-width: 720px;
+
+    margin: 0 0 44px;
+
+    color: var(--muted);
+
+    font-size: 17px;
+
+    line-height: 1.75;
+}
+
+
+/* ============================================================
+   MODULE 3 — REVEAL ANIMATION
+   ============================================================ */
+
+.reveal {
+
+    opacity: 0;
+
+    transform: translateY(24px);
+
+    transition:
+        opacity 0.7s ease,
+        transform 0.7s ease;
+}
+
+
+.reveal.is-visible {
+
+    opacity: 1;
+
+    transform: translateY(0);
+}
+
+
+/* ============================================================
+   MODULE 4 — BUTTONS
+   ============================================================ */
+
+.btn {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    min-height: 48px;
+
+    padding: 13px 26px;
+
+    border: 2px solid transparent;
+
+    border-radius: var(--radius-sm);
+
+    font-family: var(--font-display);
+
+    font-size: 17px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.02em;
+
+    line-height: 1;
+
+    text-align: center;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+
+.btn:hover {
+
+    transform: translateY(-2px);
+}
+
+
+.btn-primary {
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--blue),
+            var(--blue-dark)
+        );
+
+    color: white;
+
+    box-shadow: var(--shadow-blue);
+}
+
+
+.btn-primary:hover {
+
+    box-shadow:
+        0 16px 36px rgba(30, 136, 229, 0.38);
+}
+
+
+.btn-secondary {
+
+    background: rgba(255,255,255,0.9);
+
+    border-color: var(--border);
+
+    color: var(--navy);
+
+    box-shadow: var(--shadow-sm);
+}
+
+
+.btn-secondary:hover {
+
+    background: white;
+}
+
+
+.btn-lg {
+
+    min-height: 54px;
+
+    padding: 16px 34px;
+
+    font-size: 19px;
+}
+
+
+.btn-block {
+
+    width: 100%;
+
+    margin-top: 22px;
+}
+
+
+/* ============================================================
+   MODULE 5 — HEADER
+   ============================================================ */
+
+.site-header {
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 1000;
+
+    width: 100%;
+
+    background:
+        rgba(246,248,252,0.92);
+
+    border-bottom: 1px solid var(--border);
+
+    backdrop-filter: blur(12px);
+
+    -webkit-backdrop-filter: blur(12px);
+
+    transition:
+        box-shadow 0.25s ease,
+        background 0.25s ease;
+}
+
+
+.site-header.scrolled {
+
+    background:
+        rgba(255,255,255,0.97);
+
+    box-shadow: var(--shadow-sm);
+}
+
+
+.header-inner {
+
+    width: min(1200px, 100%);
+
+    height: var(--header-height);
+
+    margin: 0 auto;
+
+    padding: 0 24px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 28px;
+}
+
+
+/* ============================================================
+   HEADER BRAND
+   ============================================================ */
+
+.brand {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    margin-right: auto;
+}
+
+
+.header-spark-logo {
+
+    width: 100px;
+
+    height: 100px;
+
+    object-fit: contain;
+}
+
+
+.brand-name {
+
+    color: var(--navy);
+
+    font-family: var(--font-display);
+
+    font-size: 25px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.02em;
+}
+
+
+.brand-name span {
+
+    margin-left: 2px;
+
+    color: var(--blue);
+}
+
+
+/* ============================================================
+   HEADER NAV
+   ============================================================ */
+
+.main-nav {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 30px;
+}
+
+
+.main-nav a {
+
+    position: relative;
+
+    padding: 7px 2px;
+
+    color: var(--navy);
+
+    font-family: var(--font-display);
+
+    font-size: 16px;
+
+    font-weight: 600;
+}
+
+
+.main-nav a::after {
+
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+
+    right: 0;
+
+    bottom: 0;
+
+    height: 2px;
+
+    background: var(--blue);
+
+    transform: scaleX(0);
+
+    transform-origin: left;
+
+    transition: transform 0.25s ease;
+}
+
+
+.main-nav a:hover::after {
+
+    transform: scaleX(1);
+}
+
+
+/* ============================================================
+   HEADER CTA
+   ============================================================ */
+
+.header-cta {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: 44px;
+
+    padding: 11px 22px;
+
+    border-radius: var(--radius-sm);
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--blue),
+            var(--blue-dark)
+        );
+
+    color: white;
+
+    font-family: var(--font-display);
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+    box-shadow: var(--shadow-blue);
+}
+
+
+.header-cta:hover {
+
+    transform: translateY(-2px);
+}
+
+
+/* ============================================================
+   MOBILE TOGGLE
+   ============================================================ */
+
+.nav-toggle {
+
+    display: none;
+
+    width: 42px;
+
+    height: 42px;
+
+    padding: 8px;
+
+    border: 0;
+
+    background: transparent;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 5px;
+}
+
+
+.nav-toggle span {
+
+    display: block;
+
+    width: 25px;
+
+    height: 2px;
+
+    border-radius: 5px;
+
+    background: var(--navy);
+
+    transition:
+        transform 0.25s ease,
+        opacity 0.25s ease;
+}
+
+
+.nav-toggle[aria-expanded="true"]
+span:nth-child(1) {
+
+    transform:
+        translateY(7px)
+        rotate(45deg);
+}
+
+
+.nav-toggle[aria-expanded="true"]
+span:nth-child(2) {
+
+    opacity: 0;
+}
+
+
+.nav-toggle[aria-expanded="true"]
+span:nth-child(3) {
+
+    transform:
+        translateY(-7px)
+        rotate(-45deg);
+}
+
+/* ============================================================
+   MODULE 6 — HOME HERO
+   ============================================================ */
+
+.hero {
+
+    position: relative;
+
+    min-height: calc(100vh - var(--header-height));
+
+    padding: 65px 24px 55px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            rgba(246, 248, 252, 0.15),
+            rgba(246, 248, 252, 0.15)
+        ),
+        url("images/hero-bg.png");
+
+    background-size: cover;
+
+    background-position: center;
+
+    background-repeat: no-repeat;
+
+}
+
+
+/* ============================================================
+   HERO CANVAS
+   ============================================================ */
+
+.hero-canvas {
+
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    z-index: 0;
+
+    pointer-events: none;
+
+    opacity: 0.10;
+
+}
+
+/* ============================================================
+   HERO CONTENT
+   ============================================================ */
+
+.hero-content {
+
+    position: relative;
+
+    z-index: 2;
+
+    width: min(1200px, 100%);
+
+    margin: 0 auto;
+
+    text-align: center;
+}
+
+/* ============================================================
+   SATHYABAMA LOGO
+   ============================================================ */
+
+.hero-college-logo {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    margin-bottom: 16px;
+
+}
+
+.hero-college-logo img {
+
+    width: 300px;
+
+    height: 300px;
+
+    object-fit: contain;
+
+    filter:
+        drop-shadow(
+            0 8px 18px rgba(14,42,82,0.12)
+        );
+
+}
+
+/* ============================================================
+   COLLEGE NAME
+   ============================================================ */
+
+.college-title {
+
+    margin: 0;
+
+    color: var(--navy);
+
+    font-family: var(--font-display);
+
+    font-size:
+        clamp(28px, 4vw, 48px);
+
+    font-weight: 800;
+
+    line-height: 1.05;
+
+    letter-spacing: 0.015em;
+
+    white-space: nowrap;
+}
+
+
+/* ============================================================
+   DEPARTMENT
+   ============================================================ */
+
+.department-title {
+
+    margin:
+        12px 0 22px;
+
+    color: var(--blue-dark);
+
+    font-family: var(--font-display);
+
+    font-size:
+        clamp(17px, 2vw, 23px);
+
+    font-weight: 600;
+
+    letter-spacing: 0.03em;
+}
+
+
+/* ============================================================
+   SPARK LOGO
+   ============================================================ */
+
+.spark-logo-container {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    margin-top: 4px;
+}
+
+
+.spark-logo {
+
+    width: 150px;
+
+    height: 150px;
+
+    object-fit: contain;
+
+    filter:
+        drop-shadow(
+            0 12px 25px rgba(30,136,229,0.22)
+        );
+
+    transition:
+        transform 0.3s ease,
+        filter 0.3s ease;
+}
+
+
+.spark-logo:hover {
+
+    transform:
+        translateY(-5px)
+        scale(1.04);
+
+    filter:
+        drop-shadow(
+            0 18px 32px rgba(30,136,229,0.35)
+        );
+}
+
+/* ============================================================
+   SPARK TITLE
+   ============================================================ */
+
+.spark-title {
+
+    margin: 20px 0 12px;
+
+    font-family:
+        "Montserrat",
+        "Arial",
+        sans-serif;
+
+    font-size: clamp(
+        60px,
+        8vw,
+        105px
+    );
+
+    font-weight: 900;
+
+    line-height: 0.95;
+
+    letter-spacing: 0.025em;
+
+    color: #0b2a52;
+
+    text-align: center;
+
+    text-shadow:
+        0 2px 0 rgba(255, 255, 255, 0.95),
+        0 5px 10px rgba(9, 43, 85, 0.20),
+        0 12px 25px rgba(9, 43, 85, 0.16);
+
+}
+
+
+/* ============================================================
+   2026
+   ============================================================ */
+
+.spark-title span {
+
+    color: #1565C0;
+
+    font-weight: 900;
+
+    text-shadow:
+        0 2px 0 rgba(255, 255, 255, 0.95),
+        0 5px 12px rgba(21, 101, 192, 0.25);
+
+}
+
+/* ============================================================
+   HERO TAGLINE
+   ============================================================ */
+
+.hero-tagline {
+
+    margin:
+        13px 0 0;
+
+    color: var(--muted);
+
+    font-size:
+        clamp(16px, 2vw, 21px);
+
+    font-weight: 600;
+
+    letter-spacing: 0.025em;
+}
+
+
+/* ============================================================
+   HERO ACTIONS
+   ============================================================ */
+
+.hero-actions {
+
+    margin-top: 28px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 14px;
+
+    flex-wrap: wrap;
+}
+
+
+/* ============================================================
+   HERO DATE
+   ============================================================ */
+
+.hero-date {
+
+    margin-top: 20px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    flex-wrap: wrap;
+
+    color: var(--navy);
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+}
+
+
+.hero-date span {
+
+    padding:
+        7px 13px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius: 999px;
+
+    background:
+        rgba(255,255,255,0.75);
+}
+
+
+/* ============================================================
+   MODULE 7 — COUNTDOWN
+   ============================================================ */
+
+.countdown {
+
+    position: relative;
+
+    z-index: 2;
+
+    margin: 38px auto 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 12px;
+
+    flex-wrap: wrap;
+}
+
+
+.countdown-item {
+
+    width: 82px;
+
+    min-height: 82px;
+
+    padding: 10px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 15px;
+
+    background:
+        rgba(14,42,82,0.94);
+
+    box-shadow:
+        0 10px 25px rgba(14,42,82,0.18);
+}
+
+
+.cd-num {
+
+    color: white;
+
+    font-family: var(--font-display);
+
+    font-size: 30px;
+
+    font-weight: 700;
+
+    line-height: 1;
+}
+
+
+.cd-label {
+
+    margin-top: 7px;
+
+    color: var(--gold-light);
+
+    font-family: var(--font-mono);
+
+    font-size: 8px;
+
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+}
+
+
+.countdown-divider {
+
+    color: var(--blue);
+
+    font-family: var(--font-display);
+
+    font-size: 25px;
+
+    font-weight: 700;
+}
+
+
+.countdown-caption {
+
+    position: relative;
+
+    z-index: 2;
+
+    margin: 16px 0 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 12px;
+
+    color: var(--blue-dark);
+
+    font-family: var(--font-mono);
+
+    font-size: 10px;
+
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+}
+
+
+.countdown-caption .line {
+
+    width: 45px;
+
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            var(--blue),
+            transparent
+        );
+}
+
+
+/* ============================================================
+   MODULE 8 — ABOUT
+   ============================================================ */
+
+#about {
+
+    background: var(--surface);
+}
+
+
+.perks-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 16px;
+}
+
+
+.perk {
+
+    min-height: 70px;
+
+    padding: 18px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius: var(--radius-md);
+
+    background: white;
+
+    color: var(--navy);
+
+    font-family: var(--font-display);
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    box-shadow: var(--shadow-sm);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.perk:hover {
+
+    transform: translateY(-3px);
+
+    box-shadow: var(--shadow-md);
+}
+
+
+.perk-icon {
+
+    width: 38px;
+
+    height: 38px;
+
+    flex: 0 0 38px;
+
+    display: grid;
+
+    place-items: center;
+
+    border-radius: 10px;
+
+    background: #EAF2FF;
+
+    font-size: 19px;
+}
+
+
+/* ============================================================
+   MODULE 9 — EVENTS
+   ============================================================ */
+
+.events-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 32px;
+}
+
+
+.event-card {
+
+    position: relative;
+
+    padding: 32px 30px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    border:
+        1px solid var(--border);
+
+    border-radius: var(--radius-lg);
+
+    background: white;
+
+    box-shadow: var(--shadow-sm);
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+
+.event-card:hover {
+
+    transform: translateY(-6px);
+
+    box-shadow: var(--shadow-md);
+}
+
+
+.ec-tag {
+
+    color: var(--muted);
+
+    font-family: var(--font-mono);
+
+    font-size: 10px;
+
+    letter-spacing: 0.1em;
+
+    text-transform: uppercase;
+}
+
+
+.event-card h3 {
+
+    margin: 7px 0 4px;
+
+    color: var(--navy);
+
+    font-size: 36px;
+
+    line-height: 1;
+}
+
+
+.ec-dates {
+
+    margin: 0 0 18px;
+
+    color: var(--muted);
+
+    font-family: var(--font-mono);
+
+    font-size: 12px;
+}
+
+
+.ec-desc {
+
+    margin: 0 0 18px;
+
+    color: var(--muted);
+
+    font-size: 15px;
+
+    line-height: 1.7;
+}
+
+
+.ec-list {
+
+    display: grid;
+
+    gap: 9px;
+
+    list-style: none;
+}
+
+
+.ec-list li {
+
+    position: relative;
+
+    padding-left: 20px;
+
+    color: var(--text);
+
+    font-size: 14px;
+}
+
+
+.ec-list li::before {
+
+    content: "▸";
+
+    position: absolute;
+
+    left: 0;
+
+    color: var(--blue);
+}
+
+
+/* ============================================================
+   TECHFUSION EVENT CARD
+   ============================================================ */
+
+.ec-techfusion {
+
+    border-top:
+        5px solid var(--purple);
+}
+
+
+.ec-techfusion .ec-list li::before {
+
+    color: var(--purple);
+}
+
+
+/* ============================================================
+   ROBOVISIONÄR
+   ============================================================ */
+
+.ec-robovisionar {
+
+    border-top:
+        5px solid var(--robo-blue);
+
+    background:
+        linear-gradient(
+            180deg,
+            var(--robo-light),
+            white 45%
+        );
+}
+
+
+.ec-robovisionar .ec-list li::before {
+
+    color: var(--gold);
+}
+
+
+.ec-robovisionar .btn-primary {
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--robo-blue),
+            var(--navy)
+        );
+}
+
+
+/* ============================================================
+   MODULE 10 — FOOTER
+   ============================================================ */
+
+.site-footer {
+
+    margin-top: 40px;
+
+    padding:
+        60px 24px 24px;
+
+    background: var(--navy-deep);
+
+    color: #C9D3E8;
+}
+
+
+.footer-inner {
+
+    width: min(1160px, 100%);
+
+    margin: 0 auto;
+
+    padding-bottom: 32px;
+
+    display: grid;
+
+    grid-template-columns:
+        1.5fr 1fr 1fr 1fr;
+
+    gap: 34px;
+
+    border-bottom:
+        1px solid rgba(255,255,255,0.1);
+}
+
+
+/* Footer brand */
+
+.footer-brand {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 12px;
+}
+
+
+.footer-spark-logo {
+
+    width: 58px;
+
+    height: 58px;
+
+    object-fit: contain;
+
+    flex-shrink: 0;
+}
+
+
+.footer-brand-name {
+
+    color: white;
+
+    font-family: var(--font-display);
+
+    font-size: 23px;
+
+    font-weight: 800;
+}
+
+
+.footer-brand-name span {
+
+    color: var(--gold);
+}
+
+
+.footer-brand p {
+
+    margin: 7px 0 0;
+
+    color: #8C9AC0;
+
+    font-size: 13px;
+
+    line-height: 1.7;
+}
+
+
+.footer-col h4 {
+
+    margin-bottom: 12px;
+
+    color: white;
+
+    font-size: 17px;
+}
+
+
+.footer-col p {
+
+    margin: 0;
+
+    color: #AAB6D0;
+
+    font-size: 13px;
+
+    line-height: 1.8;
+}
+
+
+.footer-col a:hover {
+
+    color: var(--gold);
+}
+
+
+.footer-fine {
+
+    width: min(1160px, 100%);
+
+    margin: 20px auto 0;
+
+    color: #6E7CA0;
+
+    font-size: 12px;
+
+    text-align: center;
+}
+
+
+.footer-back-button {
+
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+
+    color: #AAB6D0;
+
+    font-size: 13px;
+}
+
+
+.footer-back-button:hover {
+
+    color: var(--gold);
+}
+
+
+/* ============================================================
+   MODULE 11 — TECHFUSION VIEW
+   ============================================================ */
+
+#techfusionView {
+
+    min-height: 100vh;
+
+    background: var(--bg);
+}
+
+
+/* ============================================================
+   TECHFUSION HERO
+   ============================================================ */
+
+.tf-hero {
+
+    padding:
+        60px 24px 70px;
+
+    text-align: center;
+
+    background:
+
+        radial-gradient(
+            700px 350px at 50% 0%,
+            rgba(142,42,115,0.12),
+            transparent 65%
+        ),
+
+        linear-gradient(
+            160deg,
+            var(--purple-light),
+            var(--bg)
+        );
+}
+
+
+.tf-hero-inner {
+
+    width: min(850px, 100%);
+
+    margin: 0 auto;
+}
+
+
+.back-link {
+
+    margin-bottom: 28px;
+
+    padding: 9px 17px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius: 999px;
+
+    background:
+        rgba(255,255,255,0.75);
+
+    color: var(--muted);
+
+    font-family: var(--font-mono);
+
+    font-size: 12px;
+}
+
+
+.back-link:hover {
+
+    background: white;
+
+    color: var(--navy);
+}
+
+
+.tf-hero h1 {
+
+    color: var(--purple);
+
+    font-size:
+        clamp(54px, 9vw, 90px);
+
+    line-height: 0.95;
+}
+
+
+.tf-tagline {
+
+    margin: 12px 0 24px;
+
+    color: var(--muted);
+
+    font-size:
+        clamp(20px, 3vw, 26px);
+
+    font-weight: 600;
+}
+
+
+.hero-meta {
+
+    margin-bottom: 30px;
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 12px;
+
+    flex-wrap: wrap;
+}
+
+
+.meta-chip {
+
+    padding:
+        10px 16px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius: 999px;
+
+    background:
+        rgba(255,255,255,0.8);
+
+    color: var(--navy);
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+}
+
+
+/* ============================================================
+   TECHFUSION EVENT GRID
+   ============================================================ */
+
+.subevents-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 26px;
+}
+
+
+.subevent-card {
+
+    padding: 30px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius: var(--radius-md);
+
+    background: white;
+
+    box-shadow: var(--shadow-sm);
+
+    transition:
+        transform 0.22s ease,
+        box-shadow 0.22s ease;
+}
+
+
+.subevent-card:hover {
+
+    transform: translateY(-5px);
+
+    box-shadow: var(--shadow-md);
+}
+
+
+.se-icon {
+
+    display: block;
+
+    margin-bottom: 8px;
+
+    font-size: 32px;
+}
+
+
+.subevent-card h3 {
+
+    margin: 8px 0 4px;
+
+    color: var(--navy);
+
+    font-size: 30px;
+}
+
+
+.se-sub {
+
+    margin: 0 0 7px;
+
+    color: var(--purple);
+
+    font-family: var(--font-mono);
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    letter-spacing: 0.05em;
+
+    text-transform: uppercase;
+}
+
+
+.se-line {
+
+    margin: 0 0 16px;
+
+    color: var(--muted);
+
+    font-size: 14px;
+
+    font-style: italic;
+}
+
+
+.subevent-card ul {
+
+    display: grid;
+
+    gap: 11px;
+
+    list-style: none;
+}
+
+
+.subevent-card li {
+
+    position: relative;
+
+    padding-left: 19px;
+
+    color: var(--text);
+
+    font-size: 14px;
+
+    line-height: 1.65;
+}
+
+
+.subevent-card li::before {
+
+    content: "—";
+
+    position: absolute;
+
+    left: 0;
+
+    color: var(--gold);
+
+    font-weight: 700;
+}
+
+
+/* ============================================================
+   MODULE 12 — ORGANISERS
+   ============================================================ */
+
+.organisers-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 28px;
+}
+
+
+.org-col {
+
+    padding: 28px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius: var(--radius-md);
+
+    background: white;
+
+    box-shadow: var(--shadow-sm);
+}
+
+
+.org-col h3 {
+
+    margin-bottom: 15px;
+
+    color: var(--navy);
+
+    font-size: 22px;
+}
+
+
+.org-col ul {
+
+    display: grid;
+
+    gap: 0;
+
+    list-style: none;
+}
+
+
+.org-col li {
+
+    padding: 10px 0;
+
+    border-bottom:
+        1px dashed var(--border);
+
+    color: var(--text);
+
+    font-size: 14px;
+
+    line-height: 1.6;
+}
+
+
+.org-col li:last-child {
+
+    border-bottom: 0;
+}
+
+
+.org-col strong {
+
+    color: var(--blue-dark);
+
+}
+
+
+/* ============================================================
+   MODULE 13 — TECHFUSION CTA
+   ============================================================ */
+
+.tf-register-cta {
+
+    width: min(1160px, 100%);
+
+    margin: 0 auto;
+
+    padding: 60px 30px;
+
+    border-radius: var(--radius-lg);
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--navy),
+            var(--navy-deep)
+        );
+
+    color: white;
+
+    text-align: center;
+
+    box-shadow: var(--shadow-md);
+}
+
+
+.tf-register-inner h2 {
+
+    margin-bottom: 12px;
+
+    color: white;
+
+    font-size:
+        clamp(30px, 5vw, 42px);
+}
+
+
+.tf-register-inner > p {
+
+    max-width: 600px;
+
+    margin: 0 auto 26px;
+
+    color: #C9D3E8;
+
+    font-size: 15px;
+}
+
+
+.tf-register-note {
+
+    margin:
+        20px 0 0 !important;
+
+    color:
+        #8C9AC0 !important;
+
+    font-size:
+        13px !important;
+}
+
+
+.tf-register-note a {
+
+    color: var(--gold-light);
+
+    text-decoration: underline;
+}
+
+
+/* ============================================================
+   MODULE 14 — BACK TO TOP
+   ============================================================ */
+
+.back-to-top {
+
+    position: fixed;
+
+    right: 22px;
+
+    bottom: 22px;
+
+    z-index: 900;
+
+    width: 46px;
+
+    height: 46px;
+
+    display: grid;
+
+    place-items: center;
+
+    border: 0;
+
+    border-radius: 50%;
+
+    background: var(--navy);
+
+    color: white;
+
+    font-size: 20px;
+
+    box-shadow: var(--shadow-md);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transform: translateY(12px);
+
+    transition:
+        opacity 0.25s ease,
+        visibility 0.25s ease,
+        transform 0.25s ease;
+}
+
+
+.back-to-top.visible {
+
+    opacity: 1;
+
+    visibility: visible;
+
+    transform: translateY(0);
+}
+
+
+.back-to-top:hover {
+
+    background: var(--blue);
+}
+
+
+/* ============================================================
+   MODULE 15 — TABLET RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+
+    /* Header */
+
+    .main-nav {
+
+        position: absolute;
+
+        top: var(--header-height);
+
+        left: 0;
+
+        right: 0;
+
+        padding: 18px 24px;
+
+        display: flex;
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 14px;
+
+        background: white;
+
+        border-bottom:
+            1px solid var(--border);
+
+        box-shadow: var(--shadow-md);
+
+        opacity: 0;
+
+        visibility: hidden;
+
+        pointer-events: none;
+
+        transform: translateY(-10px);
+
+        transition:
+            opacity 0.25s ease,
+            visibility 0.25s ease,
+            transform 0.25s ease;
+    }
+
+
+    .main-nav.open {
+
+        opacity: 1;
+
+        visibility: visible;
+
+        pointer-events: auto;
+
+        transform: translateY(0);
+    }
+
+
+    .header-cta {
+
+        display: none;
+    }
+
+
+    .nav-toggle {
+
+        display: flex;
+    }
+
+
+    /* About */
+
+    .perks-grid {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+
+    /* Events */
+
+    .events-grid {
+
+        grid-template-columns: 1fr;
+    }
+
+
+    /* TechFusion */
+
+    .subevents-grid {
+
+        grid-template-columns: 1fr;
+    }
+
+
+    .organisers-grid {
+
+        grid-template-columns: 1fr;
+    }
+
+
+    /* Footer */
+
+    .footer-inner {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+}
+
+
+/* ============================================================
+   MODULE 16 — MOBILE
+   ============================================================ */
+
+@media (max-width: 600px) {
+
+
+    :root {
+
+        --header-height: 68px;
+    }
+
+
+    /* General */
+
+    .section {
+
+        padding:
+            70px 18px;
+    }
+
+
+    .section-title {
+
+        font-size: 34px;
+    }
+
+
+    .section-lead {
+
+        font-size: 15px;
+    }
+
+
+    /* Header */
+
+    .header-inner {
+
+        height:
+            var(--header-height);
+
+        padding:
+            0 18px;
+    }
+
+
+    .header-spark-logo {
+
+        width: 38px;
+
+        height: 38px;
+    }
+
+
+    .brand-name {
+
+        font-size: 22px;
+    }
+
+
+    /* ========================================================
+       HERO MOBILE
+       ======================================================== */
+
+    .hero {
+
+        min-height:
+            calc(100vh - var(--header-height));
+
+        padding:
+            55px 18px 45px;
+    }
+
+
+    .hero-college-logo img {
+
+        width: 80px;
+
+        height: 80px;
+    }
+
+
+    .college-title {
+
+        font-size: 25px;
+
+        line-height: 1.15;
+
+        white-space: normal;
+    }
+
+
+    .department-title {
+
+        margin:
+            10px 0 18px;
+
+        font-size: 16px;
+
+        line-height: 1.4;
+    }
+
+
+    .spark-logo {
+
+        width: 115px;
+
+        height: 115px;
+    }
+
+
+    .spark-title {
+
+        font-size: 46px;
+    }
+
+
+    .hero-tagline {
+
+        font-size: 15px;
+    }
+
+
+    .hero-actions {
+
+        flex-direction: column;
+
+        width: 100%;
+    }
+
+
+    .hero-actions .btn {
+
+        width:
+            min(320px, 100%);
+    }
+
+
+    .hero-date {
+
+        flex-direction: column;
+
+        gap: 7px;
+    }
+
+
+    /* Countdown */
+
+    .countdown {
+
+        gap: 7px;
+    }
+
+
+    .countdown-item {
+
+        width: 65px;
+
+        min-height: 68px;
+
+        padding: 8px;
+    }
+
+
+    .cd-num {
+
+        font-size: 24px;
+    }
+
+
+    .cd-label {
+
+        font-size: 7px;
+    }
+
+
+    .countdown-divider {
+
+        font-size: 19px;
+    }
+
+
+    .countdown-caption {
+
+        font-size: 8px;
+    }
+
+
+    .countdown-caption .line {
+
+        width: 28px;
+    }
+
+
+    /* About */
+
+    .perks-grid {
+
+        grid-template-columns: 1fr;
+    }
+
+
+    /* Event cards */
+
+    .event-card {
+
+        padding:
+            26px 22px;
+    }
+
+
+    .event-card h3 {
+
+        font-size: 30px;
+    }
+
+
+    /* TechFusion */
+
+    .tf-hero {
+
+        padding:
+            45px 18px 55px;
+    }
+
+
+    .tf-hero h1 {
+
+        font-size: 58px;
+    }
+
+
+    .hero-meta {
+
+        flex-direction: column;
+    }
+
+
+    .meta-chip {
+
+        width: 100%;
+
+        text-align: center;
+
+        border-radius: 12px;
+
+        line-height: 1.5;
+    }
+
+
+    .subevent-card {
+
+        padding:
+            24px 20px;
+    }
+
+
+    /* Organisers */
+
+    .org-col {
+
+        padding: 22px;
+    }
+
+
+    /* Footer */
+
+    .footer-inner {
+
+        grid-template-columns: 1fr;
+    }
+
+
+    .site-footer {
+
+        padding:
+            45px 18px 22px;
+    }
+
+
+    /* Back to top */
+
+    .back-to-top {
+
+        right: 15px;
+
+        bottom: 15px;
+
+        width: 42px;
+
+        height: 42px;
+    }
+}
+
+
+/* ============================================================
+   MODULE 17 — VERY SMALL SCREENS
+   ============================================================ */
+
+@media (max-width: 380px) {
+
+
+    .brand-name {
+
+        font-size: 20px;
+    }
+
+
+    .hero-college-logo img {
+
+        width: 72px;
+
+        height: 72px;
+    }
+
+
+    .college-title {
+
+        font-size: 22px;
+    }
+
+
+    .spark-logo {
+
+        width: 100px;
+
+        height: 100px;
+    }
+
+
+    .spark-title {
+
+        font-size: 40px;
+    }
+
+
+    .countdown-item {
+
+        width: 58px;
+
+        min-height: 62px;
+    }
+
+
+    .cd-num {
+
+        font-size: 21px;
+    }
+
+
+    .countdown-divider {
+
+        font-size: 16px;
+    }
+
+
+    .btn {
+
+        padding:
+            12px 18px;
+
+        font-size: 15px;
+    }
+}
+
+
+/* ============================================================
+   MODULE 18 — REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+
+        animation-duration:
+            0.001ms !important;
+
+        animation-iteration-count:
+            1 !important;
+
+        transition-duration:
+            0.001ms !important;
+
+        scroll-behavior:
+            auto !important;
+    }
+
+}
+/* =========================================================
+   SPARK 2026 — HOME ORGANISING TEAM
+   ========================================================= */
+
+.organising-team-section {
+    padding-top: 90px;
+    padding-bottom: 90px;
+}
+
+
+/* =========================================================
+   MAIN TEAM CARDS
+   ========================================================= */
+
+.team-main-card {
+
+    margin-top: 28px;
+
+    padding: 30px;
+
+    background: #ffffff;
+
+    border: 1px solid #dce7f5;
+
+    border-radius: 22px;
+
+    box-shadow:
+        0 15px 40px rgba(15, 50, 90, 0.08);
+
+}
+
+
+/* =========================================================
+   CARD HEADER
+   ========================================================= */
+
+.team-card-title {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    margin-bottom: 25px;
+
+}
+
+
+.team-icon {
+
+    width: 45px;
+
+    height: 45px;
+
+    display: grid;
+
+    place-items: center;
+
+    flex-shrink: 0;
+
+    border-radius: 13px;
+
+    background: #eaf3ff;
+
+    color: #1565c0;
+
+    font-size: 19px;
+
+    font-weight: 800;
+
+}
+
+
+.team-card-title h3 {
+
+    margin: 0;
+
+    color: #0e2a52;
+
+    font-size: 23px;
+
+}
+
+
+.team-card-title p {
+
+    margin: 4px 0 0;
+
+    color: #718096;
+
+    font-size: 13px;
+
+}
+
+
+/* =========================================================
+   PEOPLE GRID
+   ========================================================= */
+
+.team-person-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 15px;
+
+}
+
+
+.team-person {
+
+    padding: 18px;
+
+    background: #f7faff;
+
+    border: 1px solid #e5edf7;
+
+    border-radius: 14px;
+
+}
+
+
+.team-person strong {
+
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #102f58;
+
+    font-size: 15px;
+
+    line-height: 1.4;
+
+}
+
+
+.team-person span {
+
+    display: block;
+
+    color: #64748b;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+
+}
+
+
+/* =========================================================
+   CONVENORS
+   ========================================================= */
+
+.convenors-card {
+
+    border-top: 4px solid #1565c0;
+
+}
+
+
+/* =========================================================
+   FACULTY COORDINATORS
+   ========================================================= */
+
+.faculty-card {
+
+    border-top: 4px solid #d49b18;
+
+}
+
+
+.faculty-card .team-icon {
+
+    background: #fff7df;
+
+    color: #b27b00;
+
+}
+
+/* =========================================================
+   STUDENT ORGANISERS
+   ========================================================= */
+
+.student-organisers-card {
+
+    margin-top: 35px;
+
+    padding: 32px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #092b55,
+            #0d3c73
+        );
+
+    border-radius: 24px;
+
+    box-shadow:
+        0 20px 50px rgba(9, 43, 85, 0.18);
+
+}
+
+
+/* =========================================================
+   STUDENT CARD HEADER
+   ========================================================= */
+
+.student-card-header {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    margin-bottom: 28px;
+
+}
+
+
+.student-card-header .team-icon {
+
+    background:
+        rgba(255, 255, 255, 0.12);
+
+    color: #ffd34d;
+
+}
+
+
+.student-card-header h3 {
+
+    margin: 0;
+
+    color: #ffffff;
+
+    font-size: 24px;
+
+}
+
+
+.student-card-header p {
+
+    margin: 4px 0 0;
+
+    color: #cbdcf2;
+
+    font-size: 13px;
+
+}
+
+
+/* =========================================================
+   STUDENT TEAM SECTION
+   ========================================================= */
+
+.student-team-section {
+
+    margin-top: 18px;
+
+    padding: 20px;
+
+    background:
+        rgba(255, 255, 255, 0.07);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.12);
+
+    border-radius: 15px;
+
+}
+
+
+.student-team-section h4 {
+
+    margin: 0 0 14px;
+
+    color: #ffd34d;
+
+    font-size: 13px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+
+}
+
+
+/* =========================================================
+   WEBMASTER
+   ========================================================= */
+
+.webmaster-section {
+
+    width: 100%;
+
+}
+
+
+.webmaster-name {
+
+    width: fit-content;
+
+    min-width: 220px;
+
+    padding:
+        12px 18px;
+
+    background:
+        rgba(255, 255, 255, 0.10);
+
+    border-radius: 10px;
+
+    color: #ffffff;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+}
+
+
+/* =========================================================
+   REGISTRATION ORGANISERS
+   ========================================================= */
+
+.student-name-list {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 10px;
+
+}
+
+
+.student-name-list span {
+
+    display: flex;
+
+    align-items: center;
+
+    min-height: 42px;
+
+    padding:
+        10px 13px;
+
+    background:
+        rgba(255, 255, 255, 0.08);
+
+    border-radius: 9px;
+
+    color: #ffffff;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+}
+
+
+/* =========================================================
+   RESPONSIVE — TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .student-name-list {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE — MOBILE
+   ========================================================= */
+
+@media (max-width: 560px) {
+
+    .student-organisers-card {
+
+        padding: 20px;
+
+    }
+
+
+    .student-team-section {
+
+        padding: 16px;
+
+    }
+
+
+    .student-name-list {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .webmaster-name {
+
+        width: 100%;
+
+        min-width: 0;
+
+        box-sizing: border-box;
+
+    }
+
+}

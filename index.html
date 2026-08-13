@@ -1,0 +1,2437 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <!-- =========================================================
+         MODULE 1 — DOCUMENT SETUP
+         ========================================================= -->
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="SPARK 2026 — National Level Technical Summit by the Department of Electronics and Communication Engineering, Sathyabama Institute of Science and Technology."
+    >
+
+    <meta
+        name="theme-color"
+        content="#0E2A52"
+    >
+
+    <title>
+        SPARK 2026 | Sathyabama Institute of Science & Technology
+    </title>
+
+
+    <!-- =========================================================
+         MODULE 2 — GOOGLE FONTS
+         ========================================================= -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <!-- =========================================================
+         MODULE 3 — STYLESHEET
+         ========================================================= -->
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================================
+         MODULE 4 — HEADER
+         ========================================================= -->
+
+    <header class="site-header">
+
+        <div class="header-inner">
+
+
+            <!-- BRAND -->
+
+            <a
+                href="#home"
+                class="brand"
+                data-nav
+                aria-label="SPARK 2026 Home"
+            >
+
+                <img
+                    src="images/spark.png"
+                    alt="SPARK 2026"
+                    class="header-spark-logo"
+                >
+
+                <span class="brand-name">
+                    SPARK<span>2026</span>
+                </span>
+
+            </a>
+
+
+            <!-- NAVIGATION -->
+
+            <nav
+                class="main-nav"
+                id="mainNav"
+                aria-label="Main Navigation"
+            >
+
+                <a
+                    href="#home"
+                    data-nav
+                >
+                    Home
+                </a>
+
+                <a
+                    href="#about"
+                    data-nav
+                >
+                    About
+                </a>
+
+                <a
+                    href="#events"
+                    data-nav
+                >
+                    Events
+                </a>
+
+                <a
+                    href="#contact"
+                    data-nav
+                >
+                    Contact
+                </a>
+
+            </nav>
+
+
+            <!-- HEADER BUTTON -->
+
+            <a
+                href="#events"
+                class="header-cta"
+                data-nav
+            >
+                Explore Events
+            </a>
+
+
+            <!-- MOBILE MENU -->
+
+            <button
+                class="nav-toggle"
+                id="navToggle"
+                type="button"
+                aria-label="Open navigation"
+                aria-expanded="false"
+                aria-controls="mainNav"
+            >
+
+                <span></span>
+                <span></span>
+                <span></span>
+
+            </button>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =========================================================
+         MODULE 5 — HOME VIEW
+         ========================================================= -->
+
+    <main id="homeView">
+
+
+        <!-- =====================================================
+             MODULE 5A — HOME HERO
+             ===================================================== -->
+
+        <section
+            class="hero"
+            id="home"
+        >
+
+            <!-- Animated background -->
+
+            <canvas
+                id="heroCanvas"
+                class="hero-canvas"
+                aria-hidden="true"
+            ></canvas>
+
+
+            <!-- Hero content -->
+
+            <div class="hero-content">
+
+
+                <!-- SATHYABAMA LOGO -->
+
+                <div class="hero-college-logo">
+
+                    <img
+                        src="images/sathyabama-logo.png"
+                        alt="Sathyabama Institute of Science and Technology"
+                    >
+
+                </div>
+
+
+                <!-- COLLEGE NAME -->
+
+                <h1 class="college-title">
+
+                    SATHYABAMA INSTITUTE OF SCIENCE &amp; TECHNOLOGY
+
+                </h1>
+
+
+                <!-- DEPARTMENT -->
+
+                <p class="department-title">
+
+                    Dept of Electronics and Communication Engineering
+
+                </p>
+
+
+                <!-- SPARK TITLE -->
+
+                <div class="spark-title">
+
+                    SPARK
+                    <span>2026</span>
+
+                </div>
+
+
+                <!-- TAGLINE -->
+
+                <p class="hero-tagline">
+
+                    Four Days. Two Circuits.
+                    One Spark of Innovation.
+
+                </p>
+
+
+                <!-- HERO BUTTONS -->
+
+                <div class="hero-actions">
+
+                    <a
+                        href="#events"
+                        class="btn btn-primary"
+                        data-nav
+                    >
+                        Explore Events →
+                    </a>
+
+                    <a
+                        href="#about"
+                        class="btn btn-secondary"
+                        data-nav
+                    >
+                        Discover SPARK
+                    </a>
+
+                </div>
+
+
+                <!-- DATE -->
+
+                <div class="hero-date">
+
+                    <span>
+                        DATE : 22–25 September 2026
+                    </span>
+
+                    <span>
+                        VENUE : Sathyabama Institute of Science & Technology
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 COUNTDOWN
+                 ================================================= -->
+
+            <div
+                class="countdown"
+                id="countdown"
+            >
+
+                <div class="countdown-item">
+
+                    <span
+                        class="cd-num"
+                        id="cdDays"
+                    >
+                        00
+                    </span>
+
+                    <span class="cd-label">
+                        Days
+                    </span>
+
+                </div>
+
+
+                <div class="countdown-divider">
+                    :
+                </div>
+
+
+                <div class="countdown-item">
+
+                    <span
+                        class="cd-num"
+                        id="cdHours"
+                    >
+                        00
+                    </span>
+
+                    <span class="cd-label">
+                        Hours
+                    </span>
+
+                </div>
+
+
+                <div class="countdown-divider">
+                    :
+                </div>
+
+
+                <div class="countdown-item">
+
+                    <span
+                        class="cd-num"
+                        id="cdMins"
+                    >
+                        00
+                    </span>
+
+                    <span class="cd-label">
+                        Minutes
+                    </span>
+
+                </div>
+
+
+                <div class="countdown-divider">
+                    :
+                </div>
+
+
+                <div class="countdown-item">
+
+                    <span
+                        class="cd-num"
+                        id="cdSecs"
+                    >
+                        00
+                    </span>
+
+                    <span class="cd-label">
+                        Seconds
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <p
+                class="countdown-caption"
+                id="cdCaption"
+            >
+
+                <span class="line"></span>
+
+                Until the spark begins
+
+                <span class="line"></span>
+
+            </p>
+
+        </section>
+
+
+
+        <!-- =====================================================
+             MODULE 6 — ABOUT
+             ===================================================== -->
+
+        <section
+            class="section"
+            id="about"
+        >
+
+            <div class="section-inner">
+
+
+                <p class="eyebrow reveal">
+                    About SPARK 2026
+                </p>
+
+
+                <h2 class="section-title reveal">
+
+                    Four days. Two circuits.
+                    One spark of innovation.
+
+                </h2>
+
+
+                <p class="section-lead reveal">
+
+                    SPARK 2026 is a national-level technical summit
+                    organized by the Department of Electronics and
+                    Communication Engineering at Sathyabama Institute
+                    of Science and Technology.
+
+                    The summit brings together student innovators,
+                    coders, circuit-builders and technology enthusiasts
+                    for technical competitions, innovation and
+                    engineering challenges.
+
+                </p>
+
+
+                <!-- HIGHLIGHTS -->
+
+                <div class="perks-grid reveal">
+
+
+                    <div class="perk">
+
+                        <span class="perk-icon">
+                            ⚡
+                        </span>
+
+                        <span>
+                            National Level Technical Summit
+                        </span>
+
+                    </div>
+
+
+                    <div class="perk">
+
+                        <span class="perk-icon">
+                            🏆
+                        </span>
+
+                        <span>
+                            Competitive Engineering Challenges
+                        </span>
+
+                    </div>
+
+
+                    <div class="perk">
+
+                        <span class="perk-icon">
+                            🎓
+                        </span>
+
+                        <span>
+                            Student Innovation
+                        </span>
+
+                    </div>
+
+
+                    <div class="perk">
+
+                        <span class="perk-icon">
+                            🤖
+                        </span>
+
+                        <span>
+                            Robotics &amp; Technology
+                        </span>
+
+                    </div>
+
+
+                    <div class="perk">
+
+                        <span class="perk-icon">
+                            💡
+                        </span>
+
+                        <span>
+                            Ideas &amp; Innovation
+                        </span>
+
+                    </div>
+
+
+                    <div class="perk">
+
+                        <span class="perk-icon">
+                            🧠
+                        </span>
+
+                        <span>
+                            Technical Excellence
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================================
+             MODULE 7 — EVENTS
+             ===================================================== -->
+
+        <section
+            class="section section-alt"
+            id="events"
+        >
+
+            <div class="section-inner">
+
+
+                <p class="eyebrow reveal">
+                    SPARK 2026 Events
+                </p>
+
+
+                <h2 class="section-title reveal">
+                    Choose Your Challenge
+                </h2>
+
+
+                <p class="section-lead reveal">
+
+                    Explore our technical events and choose the
+                    challenge that matches your skills.
+
+                </p>
+
+
+                <!-- EVENT GRID -->
+
+                <div class="events-grid">
+
+
+                    <!-- =================================================
+                         TECHFUSION
+                         ================================================= -->
+
+                    <article
+                        class="event-card ec-techfusion reveal"
+                    >
+
+                        <div class="ec-head">
+
+                            <span class="ec-tag">
+                                01 · Technical Conclave
+                            </span>
+
+                            <h3>
+                                TechFusion
+                            </h3>
+
+                            <p class="ec-dates">
+                                22 &amp; 23 September 2026
+                            </p>
+
+                        </div>
+
+
+                        <p class="ec-desc">
+
+                            Turn your idea into impact through
+                            four exciting technical competitions
+                            covering innovation, circuits,
+                            technical knowledge and programming.
+
+                        </p>
+
+
+                        <ul class="ec-list">
+
+                            <li>
+                                IdeaForge · Idea Pitching
+                            </li>
+
+                            <li>
+                                Circuit Clash · Hardware Debug
+                            </li>
+
+                            <li>
+                                IQuest · Technical IQ
+                            </li>
+
+                            <li>
+                                CodeSprint · Programming
+                            </li>
+
+                        </ul>
+
+
+                        <button
+                            class="btn btn-primary btn-block"
+                            id="openTechFusion"
+                            type="button"
+                        >
+                            View Details &amp; Register →
+                        </button>
+
+                    </article>
+
+
+
+                    <!-- =================================================
+                         ROBOVISIONÄR
+                         ================================================= -->
+
+                    <article
+                        class="event-card ec-robovisionar reveal"
+                    >
+
+                        <div class="ec-head">
+
+                            <span class="ec-tag">
+                                02 · Robotics &amp; Drone Championship
+                            </span>
+
+                            <h3>
+                                RoboVisionär
+                            </h3>
+
+                            <p class="ec-dates">
+                                24 &amp; 25 September 2026
+                            </p>
+
+                        </div>
+
+
+                        <p class="ec-desc">
+
+                            Build. Innovate. Dominate.
+
+                            A national robotics and drone engineering
+                            championship featuring exciting challenges
+                            for robotics enthusiasts.
+
+                        </p>
+
+
+                        <ul class="ec-list">
+
+                            <li>
+                                Fastest LFR
+                            </li>
+
+                            <li>
+                                Obstacle Robo Race
+                            </li>
+
+                            <li>
+                                Drone Race Circuit (FPV)
+                            </li>
+
+                            <li>
+                                Bot Sumo 5kg · Robo Soccer 1v1
+                            </li>
+
+                        </ul>
+
+
+                        <a
+                            class="btn btn-primary btn-block"
+                            href="https://chassisvortex.vercel.app/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Visit Official Site ↗
+                        </a>
+
+                    </article>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             MODULE 8 — ORGANISING TEAM
+             ===================================================== -->
+
+        <section
+            class="section organising-team-section"
+            id="organising-team"
+        >
+
+            <div class="section-inner">
+
+
+                <!-- =================================================
+                     SECTION HEADING
+                     ================================================= -->
+
+                <p class="eyebrow reveal">
+                    SPARK 2026
+                </p>
+
+
+                <h2 class="section-title reveal">
+                    Organising Team
+                </h2>
+
+
+                <p class="section-lead reveal">
+
+                    Meet the distinguished patrons, convenors,
+                    faculty coordinators and student organisers
+                    behind SPARK 2026.
+
+                </p>
+
+
+
+                <!-- =================================================
+                     CHIEF PATRONS
+                     ================================================= -->
+
+                <div class="team-main-card reveal">
+
+                    <div class="team-card-title">
+
+                        <span class="team-icon">
+                            ★
+                        </span>
+
+                        <div>
+
+                            <h3>
+                                Chief Patrons
+                            </h3>
+
+                            <p>
+                                Leadership &amp; Guidance
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="team-person-grid">
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Dr. Mariazeena Johnson
+                            </strong>
+
+                            <span>
+                                Chancellor
+                            </span>
+
+                        </div>
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Dr. Marie Johnson
+                            </strong>
+
+                            <span>
+                                President
+                            </span>
+
+                        </div>
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Mr. J. Arul Selvan
+                            </strong>
+
+                            <span>
+                                Vice President
+                            </span>
+
+                        </div>
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Ms. Maria Bernadette Arulselvan
+                            </strong>
+
+                            <span>
+                                Vice President
+                            </span>
+
+                        </div>
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Ms. Maria Catherine Johnson
+                            </strong>
+
+                            <span>
+                                Vice President
+                            </span>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     PATRONS
+                     ================================================= -->
+
+                <div class="team-main-card reveal">
+
+                    <div class="team-card-title">
+
+                        <span class="team-icon">
+                            ◆
+                        </span>
+
+                        <div>
+
+                            <h3>
+                                Patrons
+                            </h3>
+
+                            <p>
+                                Institutional Support
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="team-person-grid">
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Dr. B. Sheela Rani
+                            </strong>
+
+                            <span>
+                                Vice Chancellor
+                            </span>
+
+                        </div>
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Dr. E. Logashanmugam
+                            </strong>
+
+                            <span>
+                                Pro Vice Chancellor
+                            </span>
+
+                        </div>
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Dr. G. Sundari
+                            </strong>
+
+                            <span>
+                                Registrar
+                            </span>
+
+                        </div>
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Dr. N. M. Nandhitha
+                            </strong>
+
+                            <span>
+                                Director, Student Administration
+                            </span>
+
+                        </div>
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Dr. T. Ravi
+                            </strong>
+
+                            <span>
+                                Head, Department of ECE
+                            </span>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     CONVENORS
+                     ================================================= -->
+
+                <div class="team-main-card convenors-card reveal">
+
+                    <div class="team-card-title">
+
+                        <span class="team-icon">
+                            ✦
+                        </span>
+
+                        <div>
+
+                            <h3>
+                                Convenors
+                            </h3>
+
+                            <p>
+                                Event Leadership
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="team-person-grid">
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Dr. Mathan N
+                            </strong>
+
+                            <span>
+                                Assistant Professor
+                            </span>
+
+                        </div>
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Dr. Muthiah M A
+                            </strong>
+
+                            <span>
+                                Assistant Professor
+                            </span>
+
+                        </div>
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Dr. Sharanya C
+                            </strong>
+
+                            <span>
+                                Assistant Professor
+                            </span>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     FACULTY COORDINATORS — REGISTRATION
+                     ================================================= -->
+
+                <div class="team-main-card faculty-card reveal">
+
+                    <div class="team-card-title">
+
+                        <span class="team-icon">
+                            ◈
+                        </span>
+
+                        <div>
+
+                            <h3>
+                                Faculty Coordinators
+                            </h3>
+
+                            <p>
+                                Registration
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="team-person-grid">
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Mr. Jagan K
+                            </strong>
+
+                            <span>
+                                Assistant Professor
+                            </span>
+
+                        </div>
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Ms. Regila Manohari
+                            </strong>
+
+                            <span>
+                                Assistant Professor
+                            </span>
+
+                        </div>
+
+
+                        <div class="team-person">
+
+                            <strong>
+                                Ms. Hindhuja S
+                            </strong>
+
+                            <span>
+                                Assistant Professor
+                            </span>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+
+
+<!-- =================================================
+     STUDENT ORGANISERS
+     ================================================= -->
+
+<div class="student-organisers-card reveal">
+
+    <div class="student-card-header">
+
+        <span class="team-icon">
+            ⚡
+        </span>
+
+        <div>
+            <h3>Student Organisers</h3>
+
+            <p>
+                SPARK 2026 Student Team
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- =============================================
+         WEBMASTER
+         ============================================= -->
+
+    <div class="student-team-section webmaster-section">
+
+        <h4>
+            Webmaster
+        </h4>
+
+        <div class="webmaster-name">
+            Ms. Priya S
+        </div>
+
+    </div>
+
+
+    <!-- =============================================
+         REGISTRATION
+         ============================================= -->
+
+    <div class="student-team-section">
+
+        <h4>
+            Registration
+        </h4>
+
+
+        <div class="student-name-list">
+
+            <span>
+                Ms. Pooma M
+            </span>
+
+            <span>
+                Mr. Gukan
+            </span>
+
+            <span>
+                Mr. Praveen Kumar S
+            </span>
+
+            <span>
+                Mr. Muthukumar
+            </span>
+
+            <span>
+                Mr. Ashik Ali
+            </span>
+
+            <span>
+                Mr. Logesh
+            </span>
+
+            <span>
+                Ms. Aathira
+            </span>
+
+            <span>
+                Ms. Rubana
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =========================================================
+     HOME PAGE FOOTER
+     ========================================================= -->
+
+<footer class="site-footer" id="contact">
+
+    <div class="footer-inner">
+
+        <!-- FOOTER BRAND -->
+        <div class="footer-brand">
+
+            <img
+                src="images/spark.png"
+                alt="SPARK 2026"
+                class="footer-spark-logo"
+            >
+
+            <div>
+
+                <span class="footer-brand-name">
+                    SPARK<span>2026</span>
+                </span>
+
+                <p>
+                    Department of Electronics &amp;
+                    Communication Engineering
+                    <br>
+                    Sathyabama Institute of Science
+                    and Technology
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- VENUE -->
+        <div class="footer-col">
+
+            <h4>
+                Venue
+            </h4>
+
+            <p>
+                Sathyabama Institute of Science
+                and Technology,
+                <br>
+                Chennai, Tamil Nadu
+            </p>
+
+        </div>
+
+
+        <!-- CONTACT -->
+        <div class="footer-col">
+
+            <h4>
+                Contact
+            </h4>
+
+            <p>
+
+                <a href="mailto:spark2026ece@gmail.com">
+                    spark2026ece@gmail.com
+                </a>
+
+            </p>
+
+        </div>
+
+
+        <!-- QUICK LINKS -->
+        <div class="footer-col">
+
+            <h4>
+                Quick Links
+            </h4>
+
+            <p>
+
+                <a href="#home" data-nav>
+                    Home
+                </a>
+
+                <br>
+
+                <a href="#about" data-nav>
+                    About
+                </a>
+
+                <br>
+
+                <a href="#events" data-nav>
+                    Events
+                </a>
+
+                <br>
+
+                <a href="#organising-team" data-nav>
+                    Organising Team
+                </a>
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- COPYRIGHT -->
+
+    <p class="footer-fine">
+
+        ©
+        <span class="footer-year">
+            2026
+        </span>
+
+        SPARK — Department of ECE,
+        Sathyabama Institute of Science and Technology.
+
+        All rights reserved.
+
+    </p>
+
+</footer>
+
+
+</main>
+<!-- =========================================================
+     END OF HOME VIEW
+     ========================================================= -->
+
+
+<!-- =========================================================
+     MODULE 9 — TECHFUSION VIEW
+     ========================================================= -->
+
+<section
+    id="techfusionView"
+    hidden
+>
+
+
+    <!-- =====================================================
+         MODULE 9A — TECHFUSION HERO
+         ===================================================== -->
+
+    <section class="tf-hero">
+
+        <div class="tf-hero-inner">
+
+            <button
+                class="back-link"
+                id="backToHome"
+                type="button"
+            >
+                ← Back to SPARK 2026
+            </button>
+
+
+            <p class="eyebrow">
+                SPARK 2026 · Technical Conclave
+            </p>
+
+
+            <h1>
+                TechFusion
+            </h1>
+
+
+            <p class="tf-tagline">
+                Turn Your Idea into Impact!
+            </p>
+
+
+            <div class="hero-meta">
+
+                <span class="meta-chip">
+                    📅 22 &amp; 23 September 2026
+                </span>
+
+                <span class="meta-chip">
+                    📍 Sathyabama Institute of Science
+                    &amp; Technology, Chennai
+                </span>
+
+            </div>
+
+
+            <a
+                href="#techfusion-events"
+                class="btn btn-primary btn-lg"
+                data-techfusion-register
+            >
+                Explore Challenges →
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MODULE 9B — TECHFUSION EVENTS
+         ===================================================== -->
+
+    <section
+        class="section"
+        id="techfusion-events"
+    >
+
+        <div class="section-inner">
+
+            <p class="eyebrow reveal">
+                Four Events
+            </p>
+
+
+            <h2 class="section-title reveal">
+                Pick Your Challenge
+            </h2>
+
+
+            <p class="section-lead reveal">
+                Choose the event that matches your technical
+                interests and showcase your skills.
+            </p>
+
+
+            <div class="subevents-grid">
+
+
+                <!-- =================================================
+                     IDEAFORGE
+                     ================================================= -->
+
+                <article class="subevent-card reveal">
+
+                    <span class="se-icon">
+                        💡
+                    </span>
+
+                    <h3>
+                        IdeaForge
+                    </h3>
+
+                    <p class="se-sub">
+                        National Idea Pitching Competition
+                    </p>
+
+                    <p class="se-line">
+                        "Turn Your Idea into Impact!"
+                    </p>
+
+                    <ul>
+
+                        <li>
+                            Present an innovative engineering
+                            or technology idea.
+                        </li>
+
+                        <li>
+                            Suggested areas include Semiconductor
+                            Technology, AI &amp; Generative AI,
+                            Quantum Computing, Signal &amp; Image
+                            Processing, IoT, Cybersecurity and
+                            Renewable/Sustainable Engineering.
+                        </li>
+
+                    </ul>
+
+
+                    <a
+                        href="event.html?event=ideaforge"
+                        class="btn btn-primary btn-block"
+                    >
+                        View Details →
+                    </a>
+
+                </article>
+
+
+                <!-- =================================================
+                     CIRCUIT CLASH
+                     ================================================= -->
+
+                <article class="subevent-card reveal">
+
+                    <span class="se-icon">
+                        🔌
+                    </span>
+
+                    <h3>
+                        Circuit Clash
+                    </h3>
+
+                    <p class="se-sub">
+                        Electronic Hardware
+                        Troubleshooting Challenge
+                    </p>
+
+                    <p class="se-line">
+                        "Test. Debug. Conquer!"
+                    </p>
+
+                    <ul>
+
+                        <li>
+                            Basic Electronic Circuits,
+                            Analog &amp; Digital Electronics
+                            and Semiconductor Devices.
+                        </li>
+
+                        <li>
+                            Digital Logic, Sequential Circuits,
+                            Sensors, Signal Conditioning,
+                            Circuit Analysis, Fault Detection
+                            &amp; Troubleshooting.
+                        </li>
+
+                    </ul>
+
+
+                    <a
+                        href="event.html?event=circuit-clash"
+                        class="btn btn-primary btn-block"
+                    >
+                        View Details →
+                    </a>
+
+                </article>
+
+
+                <!-- =================================================
+                     IQUEST
+                     ================================================= -->
+
+                <article class="subevent-card reveal">
+
+                    <span class="se-icon">
+                        🧠
+                    </span>
+
+                    <h3>
+                        IQuest
+                    </h3>
+
+                    <p class="se-sub">
+                        Technical IQ Challenge
+                    </p>
+
+                    <p class="se-line">
+                        "Think. Answer. Triumph!"
+                    </p>
+
+                    <ul>
+
+                        <li>
+                            Test your technical knowledge across
+                            Electronics, AI, Robotics, IoT,
+                            Semiconductors and Emerging Technologies.
+                        </li>
+
+                        <li>
+                            Compete in a fast-paced IQ test that
+                            rewards accuracy, analytical thinking
+                            and technical excellence.
+                        </li>
+
+                    </ul>
+
+
+                    <a
+                        href="event.html?event=iqquest"
+                        class="btn btn-primary btn-block"
+                    >
+                        View Details →
+                    </a>
+
+                </article>
+
+
+                <!-- =================================================
+                     CODESPRINT
+                     ================================================= -->
+
+                <article class="subevent-card reveal">
+
+                    <span class="se-icon">
+                        💻
+                    </span>
+
+                    <h3>
+                        CodeSprint
+                    </h3>
+
+                    <p class="se-sub">
+                        Programming Challenge
+                    </p>
+
+                    <p class="se-line">
+                        "Code. Compile. Conquer!"
+                    </p>
+
+                    <ul>
+
+                        <li>
+                            Test your programming skills by solving
+                            real-world coding and automation challenges.
+                        </li>
+
+                        <li>
+                            C Programming, Java and Python,
+                            Data Structures and competitive
+                            problem-solving.
+                        </li>
+
+                    </ul>
+
+
+                    <a
+                        href="event.html?event=codesprint"
+                        class="btn btn-primary btn-block"
+                    >
+                        View Details →
+                    </a>
+
+                </article>
+
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MODULE 9C — TECHFUSION ORGANISING TEAM
+         ===================================================== -->
+
+    <section class="section">
+
+        <div class="section-inner">
+
+            <p class="eyebrow reveal">
+                SPARK 2026
+            </p>
+
+            <h2 class="section-title reveal">
+                TechFusion Organising Team
+            </h2>
+
+            <!-- Keep your existing TechFusion organising-team
+                 content here -->
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MODULE 9D — TECHFUSION CTA
+         ===================================================== -->
+
+    <section class="section">
+
+        <div class="tf-register-cta">
+
+            <div class="tf-register-inner">
+
+                <h2>
+                    Ready to take the challenge?
+                </h2>
+
+                <p>
+                    Choose one of the four TechFusion
+                    competitions and showcase your
+                    technical skills.
+                </p>
+
+                <a
+                    href="#techfusion-events"
+                    class="btn btn-primary btn-lg"
+                    data-techfusion-register
+                >
+                    Choose Your Challenge →
+                </a>
+
+                <p class="tf-register-note">
+
+                    Questions?
+
+                    <a href="mailto:spark2026ece@gmail.com">
+                        Contact SPARK 2026
+                    </a>
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+<!-- =========================================================
+     END OF TECHFUSION VIEW
+     ========================================================= -->
+
+        <section class="tf-hero">
+
+            <div class="tf-hero-inner">
+
+
+                <button
+                    class="back-link"
+                    id="backToHome"
+                    type="button"
+                >
+                    ← Back to SPARK 2026
+                </button>
+
+
+                <p class="eyebrow">
+                    SPARK 2026 · Technical Conclave
+                </p>
+
+
+                <h1>
+                    TechFusion
+                </h1>
+
+
+                <p class="tf-tagline">
+                    Turn Your Idea into Impact!
+                </p>
+
+
+                <div class="hero-meta">
+
+
+                    <span class="meta-chip">
+
+                        📅
+
+                        22 &amp; 23 September 2026
+
+                    </span>
+
+
+                    <span class="meta-chip">
+
+                        📍
+
+                        Sathyabama Institute of Science
+                        &amp; Technology, Chennai
+
+                    </span>
+
+                </div>
+
+
+                <a
+                    href="#techfusion-events"
+                    class="btn btn-primary btn-lg"
+                    data-techfusion-register
+                >
+                    Explore Challenges →
+                </a>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================================
+             MODULE 9B — TECHFUSION EVENTS
+             ===================================================== -->
+
+        <section
+            class="section"
+            id="techfusion-events"
+        >
+
+            <div class="section-inner">
+
+
+                <p class="eyebrow reveal">
+                    Four Events
+                </p>
+
+
+                <h2 class="section-title reveal">
+                    Pick Your Challenge
+                </h2>
+
+
+                <p class="section-lead reveal">
+
+                    Choose the event that matches your technical
+                    interests and showcase your skills.
+
+                </p>
+
+
+                <div class="subevents-grid">
+
+
+                    <!-- =================================================
+                         IDEAFORGE
+                         ================================================= -->
+
+                    <article
+                        class="subevent-card reveal"
+                    >
+
+                        <span class="se-icon">
+                            💡
+                        </span>
+
+
+                        <h3>
+                            IdeaForge
+                        </h3>
+
+
+                        <p class="se-sub">
+                            National Idea Pitching Competition
+                        </p>
+
+
+                        <p class="se-line">
+                            "Turn Your Idea into Impact!"
+                        </p>
+
+
+                        <ul>
+
+                            <li>
+                                Present an innovative engineering
+                                or technology idea.
+                            </li>
+
+                            <li>
+                                Suggested areas include Semiconductor
+                                Technology, AI &amp; Generative AI,
+                                Quantum Computing, Signal &amp; Image
+                                Processing, IoT, Cybersecurity and
+                                Renewable/Sustainable Engineering.
+                            </li>
+
+                        </ul>
+
+
+                        <a
+                            href="event.html?event=ideaforge"
+                            class="btn btn-primary btn-block"
+                        >
+                            View Details →
+                        </a>
+
+                    </article>
+
+
+
+                    <!-- =================================================
+                         CIRCUIT CLASH
+                         ================================================= -->
+
+                    <article
+                        class="subevent-card reveal"
+                    >
+
+                        <span class="se-icon">
+                            🔌
+                        </span>
+
+
+                        <h3>
+                            Circuit Clash
+                        </h3>
+
+
+                        <p class="se-sub">
+                            Electronic Hardware
+                            Troubleshooting Challenge
+                        </p>
+
+
+                        <p class="se-line">
+                            "Test. Debug. Conquer!"
+                        </p>
+
+
+                        <ul>
+
+                            <li>
+                                Basic Electronic Circuits,
+                                Analog &amp; Digital Electronics
+                                and Semiconductor Devices.
+                            </li>
+
+                            <li>
+                                Digital Logic, Sequential Circuits,
+                                Sensors, Signal Conditioning,
+                                Circuit Analysis, Fault Detection
+                                &amp; Troubleshooting.
+                            </li>
+
+                        </ul>
+
+
+                        <a
+                            href="event.html?event=circuitclash"
+                            class="btn btn-primary btn-block"
+                        >
+                            View Details →
+                        </a>
+
+                    </article>
+
+
+
+                    <!-- =================================================
+                         IQUEST
+                         ================================================= -->
+
+                    <article
+                        class="subevent-card reveal"
+                    >
+
+                        <span class="se-icon">
+                            🧠
+                        </span>
+
+
+                        <h3>
+                            IQuest
+                        </h3>
+
+
+                        <p class="se-sub">
+                            Technical IQ Challenge
+                        </p>
+
+
+                        <p class="se-line">
+                            "Think. Answer. Triumph!"
+                        </p>
+
+
+                        <ul>
+
+                            <li>
+                                Emerging technologies, engineering
+                                concepts and current technological
+                                developments.
+                            </li>
+
+                            <li>
+                                Semiconductor Technology &amp; VLSI,
+                                AI &amp; Generative AI, Quantum Computing,
+                                IoT, Cybersecurity, Robotics,
+                                Programming, Data Science and
+                                Sustainable Engineering.
+                            </li>
+
+                        </ul>
+
+
+                        <a
+                            href="event.html?event=iqquest"
+                            class="btn btn-primary btn-block"
+                        >
+                            View Details →
+                        </a>
+
+                    </article>
+
+
+
+                    <!-- =================================================
+                         CODESPRINT
+                         ================================================= -->
+
+                    <article
+                        class="subevent-card reveal"
+                    >
+
+                        <span class="se-icon">
+                            💻
+                        </span>
+
+
+                        <h3>
+                            CodeSprint
+                        </h3>
+
+
+                        <p class="se-sub">
+                            Programming Challenge
+                        </p>
+
+
+                        <p class="se-line">
+                            "Code. Compile. Conquer!"
+                        </p>
+
+
+                        <ul>
+
+                            <li>
+                                C Programming, Java and Python.
+                            </li>
+
+                            <li>
+                                Data Structures and competitive
+                                problem-solving.
+                            </li>
+
+                        </ul>
+
+
+                        <a
+                            href="event.html?event=codesprint"
+                            class="btn btn-primary btn-block"
+                        >
+                            View Details →
+                        </a>
+
+                    </article>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================================
+             MODULE 9C — TECHFUSION ORGANISERS
+             ===================================================== -->
+
+        <section class="section section-alt">
+
+            <div class="section-inner">
+
+
+                <p class="eyebrow reveal">
+                    TechFusion Team
+                </p>
+
+
+                <h2 class="section-title reveal">
+                    Organisers
+                </h2>
+
+
+                <div class="organisers-grid reveal">
+
+
+                    <div class="org-col">
+
+                        <h3>
+                            Faculty Coordinators
+                        </h3>
+
+                        <ul>
+
+                            <li>
+                                <strong>
+                                    IdeaForge
+                                </strong>
+                                <br>
+                                Dr. Bhuvaneswari A J
+                                <br>
+                                Ms. Caroline Priyanka
+                            </li>
+
+
+                            <li>
+                                <strong>
+                                    CodeSprint
+                                </strong>
+                                <br>
+                                Ms. Bhuvaneswari S
+                                <br>
+                                Dr. Soniya S
+                            </li>
+
+
+                            <li>
+                                <strong>
+                                    Circuit Clash
+                                </strong>
+                                <br>
+                                Mr. Arunbalaji S
+                                <br>
+                                Ms. Jeba Nimsiya N
+                            </li>
+
+
+                            <li>
+                                <strong>
+                                    IQuest
+                                </strong>
+                                <br>
+                                Ms. Imaya S
+                                <br>
+                                Ms. Mohanapriya G
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+
+
+                    <div class="org-col">
+
+                        <h3>
+                            Student Organisers
+                        </h3>
+
+                        <ul>
+
+                            <li>
+
+                                <strong>
+                                    Webmaster
+                                </strong>
+
+                                <br>
+
+                                Ms. Priya
+
+                            </li>
+
+
+                            <li>
+
+                                <strong>
+                                    Registration
+                                </strong>
+
+                                <br>
+
+                                Ms. Pooma
+                                <br>
+                                Mr. Gukan
+                                <br>
+                                Mr. Praveen Kumar S
+                                <br>
+                                Mr. Muthukumar
+                                <br>
+                                Ms. Rubana
+
+                            </li>
+
+
+                            <li>
+
+                                <strong>
+                                    IdeaForge
+                                </strong>
+
+                                <br>
+
+                                Ms. Nitheesha K
+                                <br>
+                                Ms. Kanagadurga
+                                <br>
+                                Ms. Akzhara B S
+                                <br>
+                                Ms. Suganya S
+
+                            </li>
+
+
+                            <li>
+
+                                <strong>
+                                    CodeSprint
+                                </strong>
+
+                                <br>
+
+                                Ms. Nanthana K T
+                                <br>
+                                Ms. Reshma V
+                                <br>
+                                Ms. Divyadarshini
+                                <br>
+                                Ms. Shanana B
+
+                            </li>
+
+
+                            <li>
+
+                                <strong>
+                                    Circuit Clash
+                                </strong>
+
+                                <br>
+
+                                Ms. Poojashri
+                                <br>
+                                Ms. Panchami
+                                <br>
+                                Ms. Nivedha
+                                <br>
+                                Ms. Janani
+
+                            </li>
+
+
+                            <li>
+
+                                <strong>
+                                    IQuest
+                                </strong>
+
+                                <br>
+
+                                Ms. Poojashri
+                                <br>
+                                Ms. Panchami
+                                <br>
+                                Ms. Sanjana
+                                <br>
+                                Ms. Ransam Selshiya T
+
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================================
+             MODULE 9D — TECHFUSION CTA
+             ===================================================== -->
+
+        <section class="section">
+
+            <div class="tf-register-cta">
+
+                <div class="tf-register-inner">
+
+
+                    <h2>
+                        Ready to take the challenge?
+                    </h2>
+
+
+                    <p>
+
+                        Choose one of the four TechFusion
+                        competitions and showcase your
+                        technical skills.
+
+                    </p>
+
+
+                    <a
+                        href="#techfusion-events"
+                        class="btn btn-primary btn-lg"
+                        data-techfusion-register
+                    >
+                        Choose Your Challenge →
+                    </a>
+
+
+                    <p class="tf-register-note">
+
+                        Questions?
+
+                        <a
+                            href="mailto:spark2026ece@gmail.com"
+                        >
+                            Contact SPARK 2026
+                        </a>
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================================
+             MODULE 9E — TECHFUSION FOOTER
+             ===================================================== -->
+
+        <footer class="site-footer">
+
+            <div class="footer-inner">
+
+
+                <div class="footer-brand">
+
+                    <img
+                        src="images/spark.png"
+                        alt="SPARK 2026"
+                        class="footer-spark-logo"
+                    >
+
+                    <div>
+
+                        <span class="footer-brand-name">
+
+                            SPARK<span>2026</span>
+
+                        </span>
+
+
+                        <p>
+
+                            Department of Electronics &amp;
+                            Communication Engineering
+                            <br>
+
+                            Sathyabama Institute of Science
+                            and Technology
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="footer-col">
+
+                    <h4>
+                        Venue
+                    </h4>
+
+                    <p>
+
+                        Sathyabama Institute of Science
+                        and Technology,
+                        <br>
+                        Chennai, Tamil Nadu
+
+                    </p>
+
+                </div>
+
+
+                <div class="footer-col">
+
+                    <h4>
+                        Contact
+                    </h4>
+
+                    <p>
+
+                        <a
+                            href="mailto:spark2026ece@gmail.com"
+                        >
+                            spark2026ece@gmail.com
+                        </a>
+
+                    </p>
+
+                </div>
+
+
+                <div class="footer-col">
+
+                    <h4>
+                        Navigation
+                    </h4>
+
+                    <p>
+
+                        <button
+                            class="footer-back-button"
+                            id="backToHomeFooter"
+                            type="button"
+                        >
+                            Back to SPARK 2026
+                        </button>
+
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <p class="footer-fine">
+
+                ©
+                <span class="footer-year">
+                    2026
+                </span>
+
+                SPARK — Department of ECE,
+                Sathyabama Institute of Science and Technology.
+
+                All rights reserved.
+
+            </p>
+
+        </footer>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         MODULE 10 — BACK TO TOP
+         ========================================================= -->
+
+    <button
+        class="back-to-top"
+        id="backToTop"
+        type="button"
+        aria-label="Back to top"
+    >
+        ↑
+    </button>
+
+
+
+    <!-- =========================================================
+         MODULE 11 — JAVASCRIPT
+         ========================================================= -->
+
+    <script
+        src="script.js"
+        defer
+    ></script>
+
+
+</body>
+
+</html>

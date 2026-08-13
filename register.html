@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        SPARK 2026 | Registration
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="register.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         MODULE 1 : REGISTRATION HEADER
+         ===================================================== -->
+
+    <header class="register-header">
+
+        <div class="header-container">
+
+
+            <!-- BACK BUTTON -->
+
+            <a
+                href="index.html"
+                class="back-btn"
+            >
+                ← Back to SPARK 2026
+            </a>
+
+
+
+            <!-- BRAND -->
+
+            <div class="register-brand">
+
+                <span class="brand-icon">
+                    ⚡
+                </span>
+
+                <span class="brand-name">
+                    SPARK<span>2026</span>
+                </span>
+
+            </div>
+
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =====================================================
+         EVENT INFORMATION
+         ===================================================== -->
+
+    <section class="registration-hero">
+
+        <div class="hero-content">
+
+
+            <p class="hero-label">
+                SPARK 2026 · TECHFUSION
+            </p>
+
+
+            <h1 id="eventTitle">
+                Event Registration
+            </h1>
+
+
+<p
+    id="eventSubtitle"
+    class="hero-subtitle"
+>
+    Complete your registration below
+</p>
+
+
+            <!-- EVENT INFORMATION -->
+
+            <div class="event-info">
+
+
+                <!-- DATE -->
+
+                <div class="info-box">
+
+                    <span class="info-icon">
+                        📅
+                    </span>
+
+                    <div>
+
+                        <small>
+                            Date
+                        </small>
+
+                        <strong id="eventDate">
+                            —
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- TIME -->
+
+                <div class="info-box">
+
+                    <span class="info-icon">
+                        ⏰
+                    </span>
+
+                    <div>
+
+                        <small>
+                            Time
+                        </small>
+
+                        <strong id="eventTime">
+                            —
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- VENUE -->
+
+                <div class="info-box">
+
+                    <span class="info-icon">
+                        📍
+                    </span>
+
+                    <div>
+
+                        <small>
+                            Venue
+                        </small>
+
+                        <strong id="eventVenue">
+                            —
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- FEE -->
+
+                <div class="info-box">
+
+                    <span class="info-icon">
+                        💰
+                    </span>
+
+                    <div>
+
+                        <small>
+                            Registration Fee
+                        </small>
+
+                        <strong id="eventFee">
+                            ₹200 / Participant
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         DO NOT CLOSE BODY OR HTML HERE
+         ===================================================== -->
+         <!-- =====================================================
+     MODULE 2 : PARTICIPATION TYPE
+     ===================================================== -->
+
+<section
+    id="participationSection"
+    class="participation-section"
+>
+
+    <div class="participation-container">
+
+
+        <!-- =============================================
+             SECTION HEADER
+             ============================================= -->
+
+        <div class="participation-heading">
+
+            <span class="section-tag">
+                STEP 1
+            </span>
+
+            <h2>
+                Participation
+            </h2>
+
+            <p id="participationInstruction">
+                Your participation type is determined
+                by the selected event.
+            </p>
+
+        </div>
+
+
+
+        <!-- =============================================
+             PARTICIPATION CARDS
+             ============================================= -->
+
+        <div class="participation-options">
+
+
+            <!-- =========================================
+                 INDIVIDUAL
+                 ========================================= -->
+
+            <button
+                type="button"
+                class="participation-card"
+                data-participation="individual"
+            >
+
+                <div class="selection-check">
+                    ✓
+                </div>
+
+
+                <div class="participation-icon">
+                    👤
+                </div>
+
+
+                <div class="participation-card-content">
+
+                    <h3>
+                        Individual
+                    </h3>
+
+                    <p>
+                        Participate individually
+                        in the event.
+                    </p>
+
+                </div>
+
+
+                <div class="participation-bottom">
+
+                    <span>
+                        1 Participant
+                    </span>
+
+                    <strong>
+                        ₹200
+                    </strong>
+
+                </div>
+
+            </button>
+
+
+
+            <!-- =========================================
+                 TEAM
+                 ========================================= -->
+
+            <button
+                type="button"
+                class="participation-card"
+                data-participation="team"
+            >
+
+                <div class="selection-check">
+                    ✓
+                </div>
+
+
+                <div class="participation-icon">
+                    👥
+                </div>
+
+
+                <div class="participation-card-content">
+
+                    <h3>
+                        Team
+                    </h3>
+
+                    <p>
+                        Participate with exactly
+                        2 participants.
+                    </p>
+
+                </div>
+
+
+                <div class="participation-bottom">
+
+                    <span>
+                        2 Participants
+                    </span>
+
+                    <strong>
+                        ₹400
+                    </strong>
+
+                </div>
+
+            </button>
+
+
+        </div>
+
+
+
+        <!-- =============================================
+             PARTICIPATION MESSAGE
+             ============================================= -->
+
+        <div
+            id="participationMessage"
+            class="participation-message"
+        >
+
+            <span>
+                ℹ️
+            </span>
+
+            <p>
+                Loading event participation rules...
+            </p>
+
+        </div>
+
+
+
+        <!-- =============================================
+             CONTINUE
+             ============================================= -->
+
+        <div class="participation-actions">
+
+            <button
+                id="continueParticipation"
+                type="button"
+                class="continue-btn"
+            >
+
+                Continue
+
+                <span>
+                    →
+                </span>
+
+            </button>
+
+        </div>
+
+
+    </div>
+
+</section>
+<!-- =====================================================
+     MODULE 3 : PARTICIPANT DETAILS
+     ===================================================== -->
+
+<section
+    id="participantSection"
+    class="participant-section"
+    hidden
+>
+
+    <div class="participant-container">
+
+
+        <!-- =============================================
+             SECTION HEADER
+             ============================================= -->
+
+        <div class="participant-heading">
+
+            <span class="section-tag">
+                STEP 2
+            </span>
+
+            <h2>
+                Participant Details
+            </h2>
+
+            <p>
+                Enter the details of all participants
+                carefully.
+            </p>
+
+        </div>
+
+
+
+        <!-- =============================================
+             TEAM INFORMATION
+             Only visible for team events
+             ============================================= -->
+
+        <div
+            id="teamNameBox"
+            class="team-name-box"
+            hidden
+        >
+
+            <div class="team-name-header">
+
+                <div class="team-name-icon">
+                    👥
+                </div>
+
+                <div>
+
+                    <span class="section-tag">
+                        TEAM INFORMATION
+                    </span>
+
+                    <h3>
+                        Team Name
+                    </h3>
+
+                    <p>
+                        Enter a unique name for your team.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="participant-field">
+
+                <label for="teamName">
+
+                    Team Name
+
+                    <span>
+                        *
+                    </span>
+
+                </label>
+
+
+                <input
+                    type="text"
+                    id="teamName"
+                    name="teamName"
+                    placeholder="Enter your team name"
+                    maxlength="80"
+                    autocomplete="off"
+                >
+
+
+                <small
+                    class="field-error"
+                    id="teamNameError"
+                ></small>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =============================================
+             PARTICIPANT FORMS
+             JavaScript generates the forms here
+             ============================================= -->
+
+        <div
+            id="participantForms"
+            class="participant-forms"
+        >
+
+            <!-- JavaScript will generate
+                 participant forms here -->
+
+        </div>
+
+
+
+        <!-- =============================================
+             PARTICIPANT SUMMARY
+             ============================================= -->
+
+        <div class="participant-summary">
+
+
+            <!-- PARTICIPATION -->
+
+            <div class="participant-summary-item">
+
+                <span>
+                    Participation
+                </span>
+
+                <strong id="selectedType">
+                    —
+                </strong>
+
+            </div>
+
+
+
+            <!-- PARTICIPANTS -->
+
+            <div class="participant-summary-item">
+
+                <span>
+                    Participants
+                </span>
+
+                <strong id="selectedCount">
+                    0
+                </strong>
+
+            </div>
+
+
+
+            <!-- TOTAL -->
+
+            <div class="participant-summary-item">
+
+                <span>
+                    Total Fee
+                </span>
+
+                <strong id="selectedTotal">
+                    ₹0
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =============================================
+             NAVIGATION
+             ============================================= -->
+
+        <div class="participant-actions">
+
+
+            <!-- BACK -->
+
+            <button
+                type="button"
+                id="backToParticipation"
+                class="secondary-btn"
+            >
+
+                ← Back
+
+            </button>
+
+
+
+            <!-- CONTINUE -->
+
+            <button
+                type="button"
+                id="continueToReview"
+                class="continue-btn"
+            >
+
+                Continue to Review
+
+                <span>
+                    →
+                </span>
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+</section>
+<!-- =====================================================
+     MODULE 4 : REVIEW REGISTRATION
+     ===================================================== -->
+
+<section
+    id="reviewSection"
+    class="review-section"
+    hidden
+>
+
+    <div class="review-container">
+
+
+        <!-- =============================================
+             SECTION HEADER
+             ============================================= -->
+
+        <div class="review-heading">
+
+            <span class="section-tag">
+                STEP 3
+            </span>
+
+            <h2>
+                Review Your Registration
+            </h2>
+
+            <p>
+                Please verify all the details before
+                proceeding to payment.
+            </p>
+
+        </div>
+
+
+
+        <!-- =============================================
+             EVENT INFORMATION
+             ============================================= -->
+
+        <div class="review-event-card">
+
+
+            <div class="review-event-header">
+
+                <div>
+
+                    <span class="review-label">
+                        EVENT
+                    </span>
+
+                    <h3 id="reviewEventName">
+                        —
+                    </h3>
+
+                </div>
+
+
+                <span class="review-event-status">
+                    Registration
+                </span>
+
+            </div>
+
+
+
+            <div class="review-event-details">
+
+
+                <!-- DATE -->
+
+                <div class="review-event-item">
+
+                    <span>
+                        📅 Date
+                    </span>
+
+                    <strong id="reviewEventDate">
+                        —
+                    </strong>
+
+                </div>
+
+
+
+<!-- TIME -->
+
+<div class="review-event-item">
+
+    <span>
+        ⏰ Time
+    </span>
+
+    <strong id="reviewEventTime">
+        —
+    </strong>
+
+</div>
+
+
+<!-- VENUE -->
+
+<div class="review-event-item">
+
+    <span>
+        📍 Venue
+    </span>
+
+    <strong id="reviewEventVenue">
+        Sathyabama Institute of Science and Technology
+    </strong>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+        <!-- =============================================
+             REGISTRATION OVERVIEW
+             ============================================= -->
+
+        <div class="review-overview">
+
+
+            <!-- TEAM NAME -->
+
+            <div
+                class="review-overview-item"
+                id="reviewTeamNameBox"
+                hidden
+            >
+
+                <span>
+                    Team Name
+                </span>
+
+                <strong id="reviewTeamName">
+                    —
+                </strong>
+
+            </div>
+
+
+
+            <!-- PARTICIPATION -->
+
+            <div class="review-overview-item">
+
+                <span>
+                    Participation Type
+                </span>
+
+                <strong id="reviewParticipation">
+                    —
+                </strong>
+
+            </div>
+
+
+
+            <!-- PARTICIPANTS -->
+
+            <div class="review-overview-item">
+
+                <span>
+                    Number of Participants
+                </span>
+
+                <strong id="reviewParticipantCount">
+                    0
+                </strong>
+
+            </div>
+
+
+
+            <!-- FEE -->
+
+            <div class="review-overview-item">
+
+                <span>
+                    Fee / Participant
+                </span>
+
+                <strong>
+                    ₹200
+                </strong>
+
+            </div>
+
+
+
+            <!-- TOTAL -->
+
+            <div class="review-overview-item total">
+
+                <span>
+                    Total Amount
+                </span>
+
+                <strong id="reviewTotalAmount">
+                    ₹0
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =============================================
+             PARTICIPANT SECTION
+             ============================================= -->
+
+        <div class="review-participants-section">
+
+
+            <div class="review-section-title">
+
+                <div>
+
+                    <span class="section-tag">
+                        PARTICIPANTS
+                    </span>
+
+                    <h3>
+                        Participant Details
+                    </h3>
+
+                </div>
+
+
+                <strong>
+
+                    <span id="reviewTotalPeople">
+                        0
+                    </span>
+
+                    Participant(s)
+
+                </strong>
+
+            </div>
+
+
+
+            <!-- JAVASCRIPT CREATES CARDS HERE -->
+
+            <div
+                id="reviewParticipants"
+                class="review-participants"
+            >
+
+                <!-- Review cards generated by JavaScript -->
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =============================================
+             GRAND TOTAL
+             ============================================= -->
+
+        <div class="review-grand-total">
+
+
+            <div>
+
+                <span>
+                    Registration Total
+                </span>
+
+                <small>
+                    ₹200 per participant
+                </small>
+
+            </div>
+
+
+            <strong id="reviewGrandTotal">
+                ₹0
+            </strong>
+
+
+        </div>
+
+
+
+        <!-- =============================================
+             REVIEW ACTIONS
+             ============================================= -->
+
+        <div class="review-actions">
+
+
+            <!-- EDIT -->
+
+            <button
+                type="button"
+                id="editDetails"
+                class="secondary-btn"
+            >
+
+                ← Edit Details
+
+            </button>
+
+
+
+            <!-- PAYMENT -->
+
+            <button
+                type="button"
+                id="continueToPayment"
+                class="continue-btn"
+            >
+
+                Continue to Payment
+
+                <span>
+                    →
+                </span>
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+</section>
+<!-- =====================================================
+     MODULE 5 : PAYMENT
+     ===================================================== -->
+
+<section
+    id="paymentSection"
+    class="payment-section"
+    hidden
+>
+
+    <div class="payment-container">
+
+
+        <!-- =============================================
+             SECTION HEADER
+             ============================================= -->
+
+        <div class="payment-heading">
+
+            <span class="section-tag">
+                STEP 4
+            </span>
+
+            <h2>
+                Payment
+            </h2>
+
+            <p>
+                Complete the registration payment to
+                confirm your participation.
+            </p>
+
+        </div>
+
+
+
+        <!-- =============================================
+             PAYMENT EVENT CARD
+             ============================================= -->
+
+        <div class="payment-event-card">
+
+            <span class="payment-label">
+                EVENT
+            </span>
+
+            <h3 id="paymentEventName">
+                —
+            </h3>
+
+            <p id="paymentParticipation">
+                —
+            </p>
+
+        </div>
+
+
+
+        <!-- =============================================
+             PAYMENT SUMMARY
+             ============================================= -->
+
+        <div class="payment-summary">
+
+
+            <!-- PARTICIPANTS -->
+
+            <div class="payment-summary-row">
+
+                <span>
+                    Number of Participants
+                </span>
+
+                <strong id="paymentParticipantCount">
+                    0
+                </strong>
+
+            </div>
+
+
+
+            <!-- TEAM NAME -->
+
+            <div
+                id="paymentTeamRow"
+                class="payment-summary-row"
+                hidden
+            >
+
+                <span>
+                    Team Name
+                </span>
+
+                <strong id="paymentTeamName">
+                    —
+                </strong>
+
+            </div>
+
+
+
+            <!-- MEMBERS -->
+
+            <div class="payment-summary-row">
+
+                <span>
+                    Fee / Participant
+                </span>
+
+                <strong id="paymentAmount">
+                    ₹200
+                </strong>
+
+            </div>
+
+
+
+            <!-- TOTAL -->
+
+            <div class="payment-summary-row payment-total">
+
+                <span>
+                    Total Amount
+                </span>
+
+                <strong id="paymentTotal">
+                    ₹0
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =============================================
+             PAYMENT INFORMATION
+             ============================================= -->
+
+        <div class="payment-info-box">
+
+            <div class="payment-info-icon">
+                🔒
+            </div>
+
+            <div>
+
+                <h3>
+                    Secure Registration Payment
+                </h3>
+
+                <p>
+                    Verify the amount and participant
+                    details before completing your payment.
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =============================================
+             PAYMENT METHOD
+             ============================================= -->
+
+        <div class="payment-method">
+
+            <span class="section-tag">
+                PAYMENT METHOD
+            </span>
+
+            <h3>
+                Registration Fee
+            </h3>
+
+            <p>
+                ₹200 per participant
+            </p>
+
+        </div>
+
+
+
+        <!-- =============================================
+             PAYMENT ACTIONS
+             ============================================= -->
+
+        <div class="payment-actions">
+
+
+            <!-- BACK -->
+
+            <button
+                type="button"
+                id="backToReview"
+                class="secondary-btn"
+            >
+
+                ← Back to Review
+
+            </button>
+
+
+
+            <!-- COMPLETE PAYMENT -->
+
+            <button
+                type="button"
+                id="completePayment"
+                class="continue-btn"
+            >
+
+                Complete Payment
+
+                <span>
+                    →
+                </span>
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+</section>
+<!-- =====================================================
+     MODULE 6 : REGISTRATION SUCCESS
+     ===================================================== -->
+
+<section
+    id="successSection"
+    class="success-section"
+    hidden
+>
+
+    <div class="success-container">
+
+
+        <!-- =============================================
+             SUCCESS ICON
+             ============================================= -->
+
+        <div class="success-icon">
+
+            ✓
+
+        </div>
+
+
+
+        <!-- =============================================
+             SUCCESS HEADER
+             ============================================= -->
+
+        <div class="success-heading">
+
+            <span class="section-tag">
+                REGISTRATION COMPLETE
+            </span>
+
+            <h2>
+                Registration Successful!
+            </h2>
+
+            <p>
+                Your SPARK 2026 event registration has
+                been completed successfully.
+            </p>
+
+        </div>
+
+
+
+        <!-- =============================================
+             REGISTRATION ID
+             ============================================= -->
+
+        <div class="registration-id-card">
+
+            <span>
+                REGISTRATION ID
+            </span>
+
+            <strong
+                id="successRegistrationId"
+            >
+                —
+            </strong>
+
+            <p>
+                Please save this ID for future reference.
+            </p>
+
+        </div>
+
+
+
+        <!-- =============================================
+             SUCCESS DETAILS
+             ============================================= -->
+
+        <div class="success-details">
+
+
+            <!-- EVENT -->
+
+            <div class="success-detail">
+
+                <span>
+                    Event
+                </span>
+
+                <strong
+                    id="successEventName"
+                >
+                    —
+                </strong>
+
+            </div>
+
+
+
+            <!-- PARTICIPANTS -->
+
+            <div class="success-detail">
+
+                <span>
+                    Participants
+                </span>
+
+                <strong
+                    id="successParticipantCount"
+                >
+                    0
+                </strong>
+
+            </div>
+
+
+
+            <!-- TEAM NAME -->
+
+            <div
+                class="success-detail"
+                id="successTeamRow"
+                hidden
+            >
+
+                <span>
+                    Team Name
+                </span>
+
+                <strong
+                    id="successTeamName"
+                >
+                    —
+                </strong>
+
+            </div>
+
+
+
+            <!-- AMOUNT -->
+
+            <div class="success-detail total">
+
+                <span>
+                    Registration Amount
+                </span>
+
+                <strong
+                    id="successAmount"
+                >
+                    ₹0
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =============================================
+             SUCCESS MESSAGE
+             ============================================= -->
+
+        <div class="success-message">
+
+            <div class="success-message-icon">
+                📩
+            </div>
+
+            <div>
+
+                <h3>
+                    Keep Your Registration ID
+                </h3>
+
+                <p>
+                    Use your registration ID when
+                    communicating with the event
+                    coordinators.
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =============================================
+             ACTIONS
+             ============================================= -->
+
+        <div class="success-actions">
+
+
+            <a
+                href="index.html"
+                class="continue-btn"
+            >
+                Back to SPARK 2026
+            </a>
+
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     MODULE 7 : JAVASCRIPT
+     ===================================================== -->
+<!-- =====================================================
+     RAZORPAY CHECKOUT
+     ===================================================== -->
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+
+<!-- =====================================================
+     REGISTRATION JAVASCRIPT
+     ===================================================== -->
+
+<script src="register.js"></script>
+
+</body>
+</html>
