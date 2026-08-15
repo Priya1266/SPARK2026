@@ -2830,17 +2830,36 @@ span:nth-child(3) {
 }
 
 
-.webmaster-name {
+/* =========================================================
+   WEBMASTER NAME CARDS
+   ========================================================= */
 
-    width: fit-content;
+.webmaster-name-list {
 
-    min-width: 220px;
+    display: grid;
 
-    padding:
-        12px 18px;
+    grid-template-columns: 1fr;
 
-    background:
-        rgba(255, 255, 255, 0.10);
+    gap: 10px;
+
+    width: 100%;
+
+}
+
+
+.webmaster-name-list span {
+
+    display: flex;
+
+    align-items: center;
+
+    min-height: 42px;
+
+    padding: 10px 16px;
+
+    box-sizing: border-box;
+
+    background: rgba(255, 255, 255, 0.10);
 
     border-radius: 10px;
 
@@ -2852,6 +2871,20 @@ span:nth-child(3) {
 
 }
 
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .webmaster-name-list {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}
 
 /* =========================================================
    REGISTRATION ORGANISERS
@@ -2944,6 +2977,87 @@ span:nth-child(3) {
         min-width: 0;
 
         box-sizing: border-box;
+
+    }
+
+}
+/* =========================================================
+   WEBMASTER + STUDENT COORDINATORS
+   ========================================================= */
+
+.student-team-row {
+
+    display: grid;
+
+    grid-template-columns: 0.8fr 1.2fr;
+
+    gap: 20px;
+
+    width: 100%;
+
+    margin-bottom: 35px;
+
+}
+
+
+/* =========================================================
+   BOTH CARDS
+   ========================================================= */
+
+.student-team-row
+.student-team-section {
+
+    box-sizing: border-box;
+
+    height: 100%;
+
+}
+
+
+/* =========================================================
+   STUDENT COORDINATORS
+   ========================================================= */
+
+.student-coordinators-section
+.student-name-list {
+
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 10px 18px;
+
+}
+
+
+/* Individual coordinator names */
+
+.student-coordinators-section
+.student-name-list span {
+
+    display: block;
+
+}
+
+
+/* =========================================================
+   MOBILE RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .student-team-row {
+
+        grid-template-columns: 1fr;
+
+        gap: 15px;
+
+    }
+
+    .student-coordinators-section
+    .student-name-list {
+
+        grid-template-columns: 1fr;
 
     }
 
