@@ -1,11 +1,11 @@
 {
-  "name": "spark-2026-payment-server",
+  "name": "spark-2026",
   "version": "1.0.0",
-  "description": "SPARK 2026 registration payment server",
-  "main": "server.js",
+  "description": "SPARK 2026 registration and payment server",
+  "main": "server/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node server/server.js",
+    "dev": "node server/server.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -14,7 +14,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.5.0",
-    "nodemailer": "^9.0.5",
+    "nodemailer": "^7.0.5",
     "razorpay": "^2.9.6"
   }
 }

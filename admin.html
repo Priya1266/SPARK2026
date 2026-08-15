@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        SPARK 2026 | Admin Login
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="admin.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         ADMIN LOGIN PAGE
+         ===================================================== -->
+
+    <main class="login-page">
+
+
+        <!-- =================================================
+             LOGIN CARD
+             ================================================= -->
+
+        <section class="login-card">
+
+
+            <!-- LOGO / TITLE -->
+
+            <div class="login-brand">
+
+                <div class="logo-circle">
+                    S
+                </div>
+
+                <h1>
+                    SPARK 2026
+                </h1>
+
+                <p>
+                    Admin Control Panel
+                </p>
+
+            </div>
+
+
+            <!-- =================================================
+                 LOGIN FORM
+                 ================================================= -->
+
+            <form
+                id="adminLoginForm"
+                class="login-form"
+            >
+
+
+                <!-- USERNAME -->
+
+                <div class="form-group">
+
+                    <label
+                        for="adminUsername"
+                    >
+                        Admin Username
+                    </label>
+
+                    <input
+                        type="text"
+                        id="adminUsername"
+                        name="username"
+                        placeholder="Enter admin username"
+                        autocomplete="username"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- PASSWORD -->
+
+                <div class="form-group">
+
+                    <label
+                        for="adminPassword"
+                    >
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="adminPassword"
+                        name="password"
+                        placeholder="Enter admin password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- LOGIN BUTTON -->
+
+                <button
+                    type="submit"
+                    id="loginButton"
+                    class="login-button"
+                >
+
+                    LOGIN
+
+                </button>
+
+
+                <!-- LOGIN MESSAGE -->
+
+                <p
+                    id="loginMessage"
+                    class="login-message"
+                ></p>
+
+
+            </form>
+
+
+            <!-- =================================================
+                 SECURITY INFORMATION
+                 ================================================= -->
+
+            <div class="security-note">
+
+                <span class="lock-icon">
+                    🔒
+                </span>
+
+                <span>
+                    Authorized administrators only
+                </span>
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+
+    <!-- =====================================================
+         LOGIN JAVASCRIPT
+         ===================================================== -->
+
+    <script src="admin.js"></script>
+
+
+</body>
+
+</html>

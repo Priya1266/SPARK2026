@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        SPARK 2026 | Admin Dashboard
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="admin-dashboard.css"
+    >
+
+</head>
+
+
+<body>
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <header class="admin-header">
+
+        <div class="brand">
+
+            <div class="brand-logo">
+                S
+            </div>
+
+            <div>
+
+                <h1>
+                    SPARK 2026
+                </h1>
+
+                <p>
+                    Admin Control Panel
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="header-right">
+
+            <div class="admin-info">
+
+                <span class="admin-label">
+                    Logged in as
+                </span>
+
+                <strong id="adminUsername">
+                    Admin
+                </strong>
+
+            </div>
+
+
+            <button
+                id="logoutButton"
+                class="logout-button"
+                type="button"
+            >
+                Logout
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         MAIN DASHBOARD
+         ===================================================== -->
+
+    <main class="dashboard-container">
+
+
+        <!-- =================================================
+             PAGE TITLE
+             ================================================= -->
+
+        <section class="page-heading">
+
+            <div>
+
+                <h2>
+                    Registration Management
+                </h2>
+
+                <p>
+                    Review participant payments and manually verify registrations.
+                </p>
+
+            </div>
+
+
+            <button
+                id="refreshButton"
+                class="refresh-button"
+                type="button"
+            >
+                ↻ Refresh
+            </button>
+
+        </section>
+
+
+        <!-- =================================================
+             STATISTICS
+             ================================================= -->
+
+        <section class="stats-grid">
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    ⏳
+                </div>
+
+                <div>
+
+                    <span>
+                        Pending Verification
+                    </span>
+
+                    <strong id="pendingCount">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    🎯
+                </div>
+
+                <div>
+
+                    <span>
+                        Events
+                    </span>
+
+                    <strong>
+                        4
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    ₹
+                </div>
+
+                <div>
+
+                    <span>
+                        Fee / Participant
+                    </span>
+
+                    <strong>
+                        ₹200
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+        <!-- =================================================
+             STATUS MESSAGE
+             ================================================= -->
+
+        <div
+            id="dashboardMessage"
+            class="dashboard-message"
+        >
+            Loading registrations...
+        </div>
+
+
+        <!-- =================================================
+             REGISTRATION LIST
+             ================================================= -->
+
+        <section
+            id="registrationsContainer"
+            class="registrations-container"
+        >
+
+        </section>
+
+
+    </main>
+
+
+    <!-- =====================================================
+         DETAILS MODAL
+         ===================================================== -->
+
+    <div
+        id="detailsModal"
+        class="modal hidden"
+    >
+
+        <div class="modal-box">
+
+
+            <!-- MODAL HEADER -->
+
+            <div class="modal-header">
+
+                <div>
+
+                    <span class="modal-small-title">
+                        Registration
+                    </span>
+
+                    <h2>
+                        Full Details
+                    </h2>
+
+                </div>
+
+
+                <button
+                    id="closeModal"
+                    class="close-button"
+                    type="button"
+                    aria-label="Close"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <!-- MODAL CONTENT -->
+
+            <div
+                id="modalContent"
+                class="modal-content"
+            >
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+         ===================================================== -->
+
+    <script src="admin-dashboard.js"></script>
+
+</body>
+
+</html>

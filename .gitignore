@@ -1,0 +1,23 @@
+﻿# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Node dependencies
+node_modules/
+**/node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test/local files
+server/test-mongodb.js
+
+# Generated files
+*.log
