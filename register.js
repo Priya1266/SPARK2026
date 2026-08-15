@@ -4445,7 +4445,7 @@ if (completePayment) {
 
                 const orderResponse =
                     await fetch(
-                        "http://localhost:3000/api/create-order",
+                        "/api/create-order",
                         {
                             method: "POST",
 
@@ -4578,7 +4578,7 @@ if (completePayment) {
 
                                 const verifyResponse =
                                     await fetch(
-                                        "http://localhost:3000/api/verify-payment",
+                                        "/api/verify-payment",
                                         {
                                             method: "POST",
 
