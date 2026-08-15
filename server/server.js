@@ -1238,28 +1238,26 @@ app.post(
         // ERROR
         // ======================================================
 
-        catch (error) {
+catch (error) {
 
-            console.error(
-                "❌ Razorpay order creation error:"
-            );
+    console.error("==========================================");
+    console.error("❌ RAZORPAY ORDER CREATION FAILED");
+    console.error("Error message:", error.message);
+    console.error("Error status:", error.statusCode);
+    console.error("Error code:", error.error?.code);
+    console.error("Error description:", error.error?.description);
+    console.error("Full Razorpay error:", error);
+    console.error("==========================================");
 
-            console.error(
-                error
-            );
+    return res.status(500).json({
 
+        success: false,
 
-            return res.status(500).json({
+        message: "Unable to create payment order."
 
-                success:
-                    false,
+    });
 
-                message:
-                    "Unable to create payment order."
-
-            });
-
-        }
+}
 
     }
 
