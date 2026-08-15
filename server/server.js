@@ -179,10 +179,8 @@ const mongoClient =
 
 
 let database;
-
-
 let registrationsCollection;
-
+let databaseConnectionPromise = null;
 
 // ============================================================
 // ACKNOWLEDGEMENT EMAIL TRANSPORTER
@@ -417,163 +415,107 @@ function generateRegistrationCode(
     );
 
 }
-// ============================================================
-// CONNECT TO MONGODB
-// ============================================================
-
 async function connectDatabase() {
 
-    try {
+    // If already connected, do nothing
+    if (database && registrationsCollection) {
+        return;
+    }
 
-        console.log(
-            "Connecting to MongoDB..."
-        );
+    // If connection is already in progress,
+    // wait for the same connection
+    if (databaseConnectionPromise) {
+        return databaseConnectionPromise;
+    }
 
+    databaseConnectionPromise = (async () => {
 
-        // ----------------------------------------------------
-        // CONNECT
-        // ----------------------------------------------------
+        try {
 
-        await mongoClient.connect();
+            console.log("Connecting to MongoDB...");
 
+            await mongoClient.connect();
 
-        // ----------------------------------------------------
-        // SELECT DATABASE
-        // ----------------------------------------------------
-
-        database =
-            mongoClient.db(
+            database = mongoClient.db(
                 process.env.MONGODB_DB_NAME
             );
 
+            registrationsCollection =
+                database.collection("registrations");
 
-        // ----------------------------------------------------
-        // SELECT COLLECTION
-        // ----------------------------------------------------
 
-        registrationsCollection =
-            database.collection(
-                "registrations"
+            // ====================================================
+            // DATABASE INDEXES
+            // ====================================================
+
+            await registrationsCollection.createIndex(
+                {
+                    registrationId: 1
+                },
+                {
+                    unique: true
+                }
             );
 
 
-        // ====================================================
-        // DATABASE INDEXES
-        // ====================================================
+            await registrationsCollection.createIndex(
+                {
+                    razorpayOrderId: 1
+                },
+                {
+                    unique: true
+                }
+            );
 
 
-        // ----------------------------------------------------
-        // REGISTRATION ID
-        // ----------------------------------------------------
-
-        await registrationsCollection.createIndex(
-
-            {
-                registrationId:
-                    1
-            },
-
-            {
-                unique:
-                    true
-            }
-
-        );
+            await registrationsCollection.createIndex(
+                {
+                    razorpayPaymentId: 1
+                },
+                {
+                    unique: true,
+                    sparse: true
+                }
+            );
 
 
-        // ----------------------------------------------------
-        // RAZORPAY ORDER ID
-        // ----------------------------------------------------
-
-        await registrationsCollection.createIndex(
-
-            {
-                razorpayOrderId:
-                    1
-            },
-
-            {
-                unique:
-                    true
-            }
-
-        );
+            await registrationsCollection.createIndex(
+                {
+                    verificationStatus: 1
+                }
+            );
 
 
-        // ----------------------------------------------------
-        // RAZORPAY PAYMENT ID
-        // ----------------------------------------------------
+            console.log(
+                "✅ MongoDB connected successfully."
+            );
 
-        await registrationsCollection.createIndex(
+            console.log(
+                `✅ Database: ${process.env.MONGODB_DB_NAME}`
+            );
 
-            {
-                razorpayPaymentId:
-                    1
-            },
+            console.log(
+                "✅ Collection: registrations"
+            );
 
-            {
-                unique:
-                    true,
+        }
 
-                sparse:
-                    true
+        catch (error) {
 
-            }
+            console.error(
+                "❌ MongoDB connection failed:"
+            );
 
-        );
+            console.error(error);
 
+            databaseConnectionPromise = null;
 
-        // ----------------------------------------------------
-        // VERIFICATION STATUS
-        // ----------------------------------------------------
+            throw error;
+        }
 
-        await registrationsCollection.createIndex(
+    })();
 
-            {
-                verificationStatus:
-                    1
-            }
-
-        );
-
-
-        // ====================================================
-        // SUCCESS MESSAGE
-        // ====================================================
-
-        console.log(
-            "✅ MongoDB connected successfully."
-        );
-
-
-        console.log(
-            `✅ Database: ${process.env.MONGODB_DB_NAME}`
-        );
-
-
-        console.log(
-            "✅ Collection: registrations"
-        );
-
-    }
-
-
-    catch (error) {
-
-        console.error(
-            "❌ MongoDB connection failed:"
-        );
-
-
-        console.error(
-            error
-        );
-
-
-        process.exit(1);
-
-    }
-
+    return databaseConnectionPromise;
 }
 // ============================================================
 // ADMIN AUTHENTICATION
@@ -1008,12 +950,62 @@ app.post(
         try {
 
             // ==================================================
+            // ENSURE MONGODB IS READY
+            // ==================================================
+
+            await connectDatabase();
+
+
+            // ==================================================
+            // CHECK RAZORPAY CONFIGURATION
+            // ==================================================
+
+            if (
+                !process.env.RAZORPAY_KEY_ID ||
+                !process.env.RAZORPAY_KEY_SECRET
+            ) {
+
+                console.error(
+                    "❌ Razorpay environment variables are missing."
+                );
+
+                return res.status(500).json({
+
+                    success: false,
+
+                    message:
+                        "Payment configuration is missing."
+
+                });
+
+            }
+
+
+            // ==================================================
             // GET EVENT ID
             // ==================================================
 
             const {
                 eventId
             } = req.body;
+
+
+            // ==================================================
+            // CHECK EVENT ID
+            // ==================================================
+
+            if (!eventId) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Event ID is required."
+
+                });
+
+            }
 
 
             // ==================================================
@@ -1028,8 +1020,7 @@ app.post(
 
                 return res.status(400).json({
 
-                    success:
-                        false,
+                    success: false,
 
                     message:
                         "Invalid event."
@@ -1042,33 +1033,47 @@ app.post(
             // ==================================================
             // CALCULATE AMOUNT SERVER-SIDE
             // ==================================================
-            //
-            // IMPORTANT:
-            // The amount is NOT trusted from the frontend.
-            //
-            // Example:
-            //
-            // CodeSprint:
-            // 1 participant × ₹200 = ₹200
-            //
-            // iDeaForge:
-            // 2 participants × ₹200 = ₹400
-            //
-            // Circuit Clash:
-            // 2 participants × ₹200 = ₹400
-            //
-            // iQuest:
-            // 2 participants × ₹200 = ₹400
-            //
 
             const amountRupees =
-                event.participants *
-                event.feePerParticipant;
+
+                Number(
+                    event.participants
+                ) *
+
+                Number(
+                    event.feePerParticipant
+                );
 
 
             const amountPaise =
-                amountRupees *
-                100;
+
+                amountRupees * 100;
+
+
+            // ==================================================
+            // VALIDATE AMOUNT
+            // ==================================================
+
+            if (
+                !Number.isFinite(amountPaise) ||
+                amountPaise <= 0
+            ) {
+
+                console.error(
+                    "❌ Invalid payment amount:",
+                    amountPaise
+                );
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Invalid payment amount."
+
+                });
+
+            }
 
 
             // ==================================================
@@ -1076,6 +1081,7 @@ app.post(
             // ==================================================
 
             const receipt =
+
                 `spark_${eventId}_${Date.now()}`;
 
 
@@ -1083,7 +1089,37 @@ app.post(
             // CREATE RAZORPAY ORDER
             // ==================================================
 
+            console.log(
+                "=========================================="
+            );
+
+            console.log(
+                "Creating Razorpay order..."
+            );
+
+            console.log(
+                `Event ID: ${eventId}`
+            );
+
+            console.log(
+                `Event: ${event.name}`
+            );
+
+            console.log(
+                `Participants: ${event.participants}`
+            );
+
+            console.log(
+                `Fee / Participant: ₹${event.feePerParticipant}`
+            );
+
+            console.log(
+                `Total Amount: ₹${amountRupees}`
+            );
+
+
             const order =
+
                 await razorpay.orders.create({
 
                     amount:
@@ -1109,11 +1145,54 @@ app.post(
                         participants:
                             String(
                                 event.participants
+                            ),
+
+                        amount_rupees:
+                            String(
+                                amountRupees
                             )
 
                     }
 
                 });
+
+
+            // ==================================================
+            // CHECK ORDER RESPONSE
+            // ==================================================
+
+            if (
+                !order ||
+                !order.id
+            ) {
+
+                console.error(
+                    "❌ Razorpay did not return a valid order."
+                );
+
+                return res.status(500).json({
+
+                    success: false,
+
+                    message:
+                        "Unable to create payment order."
+
+                });
+
+            }
+
+
+            // ==================================================
+            // SUCCESS LOG
+            // ==================================================
+
+            console.log(
+                `✅ Razorpay Order Created: ${order.id}`
+            );
+
+            console.log(
+                "=========================================="
+            );
 
 
             // ==================================================
@@ -1141,6 +1220,9 @@ app.post(
                 event:
                     event.name,
 
+                eventId:
+                    eventId,
+
                 participants:
                     event.participants,
 
@@ -1159,7 +1241,10 @@ app.post(
         catch (error) {
 
             console.error(
-                "Razorpay order creation error:",
+                "❌ Razorpay order creation error:"
+            );
+
+            console.error(
                 error
             );
 
@@ -1184,12 +1269,35 @@ app.post(
 // ============================================================
 
 app.post(
-
     "/api/verify-payment",
 
     async (req, res) => {
 
         try {
+
+            // ==================================================
+            // ENSURE MONGODB IS READY
+            // ==================================================
+
+            await connectDatabase();
+
+
+            if (!registrationsCollection) {
+
+                console.error(
+                    "❌ registrationsCollection is not initialized."
+                );
+
+                return res.status(500).json({
+
+                    success: false,
+
+                    message:
+                        "Database is not ready. Please try again."
+                });
+
+            }
+
 
             // ==================================================
             // GET PAYMENT + REGISTRATION DATA
@@ -1226,11 +1334,28 @@ app.post(
 
                 return res.status(400).json({
 
-                    success:
-                        false,
+                    success: false,
 
                     message:
                         "Payment verification details are missing."
+
+                });
+
+            }
+
+
+            // ==================================================
+            // CHECK EVENT ID
+            // ==================================================
+
+            if (!eventId) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Event ID is missing."
 
                 });
 
@@ -1245,16 +1370,17 @@ app.post(
 
                 !registration ||
 
-                !registration.participants ||
+                !Array.isArray(
+                    registration.participants
+                ) ||
 
-                !registration.participants.length
+                registration.participants.length === 0
 
             ) {
 
                 return res.status(400).json({
 
-                    success:
-                        false,
+                    success: false,
 
                     message:
                         "Registration information is missing."
@@ -1276,8 +1402,7 @@ app.post(
 
                 return res.status(400).json({
 
-                    success:
-                        false,
+                    success: false,
 
                     message:
                         "Invalid event."
@@ -1290,33 +1415,42 @@ app.post(
             // ==================================================
             // VERIFY RAZORPAY SIGNATURE
             // ==================================================
-            //
-            // Razorpay creates the signature using:
-            //
-            // order_id + "|" + payment_id
-            //
-            // We recreate it using the SECRET KEY.
-            //
+
+            const razorpaySecret =
+                process.env.RAZORPAY_KEY_SECRET;
+
+
+            if (!razorpaySecret) {
+
+                console.error(
+                    "❌ RAZORPAY_KEY_SECRET is not configured."
+                );
+
+                return res.status(500).json({
+
+                    success: false,
+
+                    message:
+                        "Payment configuration error."
+
+                });
+
+            }
+
 
             const generatedSignature =
 
                 crypto
 
                     .createHmac(
-
                         "sha256",
-
-                        process.env
-                            .RAZORPAY_KEY_SECRET
-
+                        razorpaySecret
                     )
 
                     .update(
 
                         razorpay_order_id +
-
                         "|" +
-
                         razorpay_payment_id
 
                     )
@@ -1328,14 +1462,12 @@ app.post(
             // SAFE SIGNATURE COMPARISON
             // ==================================================
 
-            let isValid =
-                false;
+            let isValid = false;
 
 
             if (
 
                 generatedSignature.length ===
-
                 razorpay_signature.length
 
             ) {
@@ -1345,19 +1477,13 @@ app.post(
                     crypto.timingSafeEqual(
 
                         Buffer.from(
-
                             generatedSignature,
-
                             "utf8"
-
                         ),
 
                         Buffer.from(
-
                             razorpay_signature,
-
                             "utf8"
-
                         )
 
                     );
@@ -1375,11 +1501,9 @@ app.post(
                     "❌ Invalid Razorpay payment signature."
                 );
 
-
                 return res.status(400).json({
 
-                    success:
-                        false,
+                    success: false,
 
                     message:
                         "Payment verification failed."
@@ -1396,21 +1520,44 @@ app.post(
             const razorpayOrder =
 
                 await razorpay.orders.fetch(
-
                     razorpay_order_id
-
                 );
+
+
+            // ==================================================
+            // VERIFY ORDER BELONGS TO EXPECTED EVENT
+            // ==================================================
+
+            if (
+
+                razorpayOrder.notes &&
+
+                razorpayOrder.notes.event_id &&
+
+                razorpayOrder.notes.event_id !==
+                    eventId
+
+            ) {
+
+                console.error(
+                    "❌ Razorpay order event mismatch."
+                );
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Payment event verification failed."
+
+                });
+
+            }
 
 
             // ==================================================
             // VERIFY ACTUAL PAYMENT AMOUNT
             // ==================================================
-            //
-            // The amount is calculated again on the server.
-            //
-            // This prevents someone from changing the
-            // amount on the frontend.
-            //
 
             const expectedAmount =
 
@@ -1437,11 +1584,20 @@ app.post(
                     "❌ Razorpay amount mismatch."
                 );
 
+                console.error(
+                    "Expected:",
+                    expectedAmount
+                );
+
+                console.error(
+                    "Received:",
+                    razorpayOrder.amount
+                );
+
 
                 return res.status(400).json({
 
-                    success:
-                        false,
+                    success: false,
 
                     message:
                         "Payment amount does not match the event fee."
@@ -1452,27 +1608,24 @@ app.post(
 
 
             // ==================================================
-            // CHECK EVENT AGAINST RAZORPAY ORDER NOTES
+            // VERIFY RAZORPAY ORDER PAYMENT STATUS
             // ==================================================
 
             if (
-
-                razorpayOrder.notes &&
-
-                razorpayOrder.notes.event_id &&
-
-                razorpayOrder.notes.event_id !==
-                    eventId
-
+                razorpayOrder.status &&
+                razorpayOrder.status !== "paid"
             ) {
+
+                console.error(
+                    "❌ Razorpay order is not marked as paid."
+                );
 
                 return res.status(400).json({
 
-                    success:
-                        false,
+                    success: false,
 
                     message:
-                        "Payment event verification failed."
+                        "Razorpay payment is not completed."
 
                 });
 
@@ -1502,8 +1655,7 @@ app.post(
 
                 return res.json({
 
-                    success:
-                        true,
+                    success: true,
 
                     message:
                         "Payment was already recorded.",
@@ -1537,6 +1689,33 @@ app.post(
 
 
             // ==================================================
+            // VERIFY PARTICIPANT COUNT
+            // ==================================================
+
+            if (
+
+                registration.participants.length !==
+                Number(event.participants)
+
+            ) {
+
+                console.error(
+                    "❌ Participant count mismatch."
+                );
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Participant count does not match the selected event."
+
+                });
+
+            }
+
+
+            // ==================================================
             // GENERATE SERVER-SIDE REGISTRATION ID
             // ==================================================
 
@@ -1554,7 +1733,6 @@ app.post(
             const primaryParticipant =
 
                 registration.participants[0] ||
-
                 {};
 
 
@@ -1584,14 +1762,17 @@ app.post(
 
                 eventDate:
                     registration.date ||
+                    event.date ||
                     null,
 
                 eventTime:
                     registration.time ||
+                    event.time ||
                     null,
 
                 eventVenue:
                     registration.venue ||
+                    event.venue ||
                     null,
 
 
@@ -1643,7 +1824,6 @@ app.post(
                 amount:
 
                     event.participants *
-
                     event.feePerParticipant,
 
                 currency:
@@ -1707,9 +1887,7 @@ app.post(
             // ==================================================
 
             await registrationsCollection.insertOne(
-
                 databaseRecord
-
             );
 
 
@@ -1721,42 +1899,37 @@ app.post(
                 "=========================================="
             );
 
-
             console.log(
                 "✅ PAYMENT VERIFIED"
             );
 
-
             console.log(
-
                 `Registration ID: ${registrationId}`
-
             );
 
-
             console.log(
-
                 `Event: ${event.name}`
-
             );
-
 
             console.log(
-
                 `Payment ID: ${razorpay_payment_id}`
-
             );
 
+            console.log(
+                "Payment Status: PAID"
+            );
 
             console.log(
                 "Verification Status: PENDING"
             );
 
-
             console.log(
                 "Acknowledgement Email: NOT SENT"
             );
 
+            console.log(
+                "MongoDB Save: SUCCESS"
+            );
 
             console.log(
                 "=========================================="
@@ -1769,8 +1942,7 @@ app.post(
 
             return res.json({
 
-                success:
-                    true,
+                success: true,
 
                 message:
                     "Payment verified and registration submitted for manual verification.",
@@ -1805,18 +1977,17 @@ app.post(
         catch (error) {
 
             console.error(
+                "❌ Payment verification / registration error:"
+            );
 
-                "Payment verification / registration error:",
-
+            console.error(
                 error
-
             );
 
 
             return res.status(500).json({
 
-                success:
-                    false,
+                success: false,
 
                 message:
                     "Payment was received, but the registration could not be saved. Please contact the event coordinator."
