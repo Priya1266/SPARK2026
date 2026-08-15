@@ -1,12 +1,27 @@
 // ============================================================
-// GET EVENT NAME FROM URL
+// SPARK 2026 — EVENT PAGE
 // ============================================================
 
-const params =
-    new URLSearchParams(window.location.search);
+"use strict";
 
-const eventId =
-    params.get("event");
+
+// ============================================================
+// GET EVENT ID FROM URL
+// ============================================================
+
+const params = new URLSearchParams(
+    window.location.search
+);
+
+// Supports:
+// ?event=circuitclash
+// ?event=circuit-clash
+// ?event=Circuit-Clash
+
+const eventId = (params.get("event") || "")
+    .trim()
+    .toLowerCase()
+    .replace(/-/g, "");
 
 
 // ============================================================
@@ -21,8 +36,7 @@ const events = {
 
     ideaforge: {
 
-        title:
-            "iDeaForge",
+        title: "iDeaForge",
 
         subtitle:
             "National Idea Pitching Competition",
@@ -48,45 +62,53 @@ const events = {
         time:
             "10:00 AM – 12:30 PM",
 
-        // ----------------------------------------------------
-        // FACULTY COORDINATORS
-        // ----------------------------------------------------
-
         facultyCoordinators: [
-            "Dr. Bhuvaneswari A J",
-            "Ms. Caroline Priyanka"
-        ],
 
-        // ----------------------------------------------------
-        // STUDENT ORGANISERS
-        // ----------------------------------------------------
+            "Dr. Bhuvaneswari A J",
+
+            "Ms. Caroline Priyanka"
+
+        ],
 
         studentOrganisers: [
-            "Ms. Nitheesha K",
-            "Ms. Kanagadurga",
-            "Ms. Akzhara B S",
-            "Mr. Mothil D",
-            "Ms. Suganya S"
-        ],
 
-        // ----------------------------------------------------
-        // FOCUS AREAS
-        // ----------------------------------------------------
+            "Ms. Nitheesha K",
+
+            "Ms. Kanagadurga",
+
+            "Ms. Akzhara B S",
+
+            "Mr. Mothil D",
+
+            "Ms. Suganya S"
+
+        ],
 
         focusTitle:
             "Focus Areas",
 
         focusAreas: [
+
             "Semiconductor Technology & VLSI",
+
             "Artificial Intelligence & Generative AI",
+
             "Quantum Computing",
+
             "Signal & Image Processing",
+
             "Internet of Things (IoT)",
+
             "Cybersecurity",
+
             "Robotics & Automation",
+
             "Programming & Computational Technologies",
+
             "Data Science & Machine Learning",
+
             "Renewable & Sustainable Engineering"
+
         ],
 
         rules: [
@@ -141,43 +163,49 @@ const events = {
         time:
             "1:00 PM – 3:00 PM",
 
-        // ----------------------------------------------------
-        // FACULTY COORDINATORS
-        // ----------------------------------------------------
-
         facultyCoordinators: [
-            "Mr. Arunbalaji S",
-            "Ms. Jeba Nimsiya N"
-        ],
 
-        // ----------------------------------------------------
-        // STUDENT ORGANISERS
-        // ----------------------------------------------------
+            "Mr. Arunbalaji S",
+
+            "Ms. Jeba Nimsiya N"
+
+        ],
 
         studentOrganisers: [
-            "Ms. Poojashri",
-            "Ms. Panchami",
-            "Ms. Nivedha",
-            "Ms. Janani",
-            "Mr. Thanigaivel.V"
-        ],
 
-        // ----------------------------------------------------
-        // FOCUS AREAS
-        // ----------------------------------------------------
+            "Ms. Poojashri",
+
+            "Ms. Panchami",
+
+            "Ms. Nivedha",
+
+            "Ms. Janani",
+
+            "Mr. Thanigaivel.V"
+
+        ],
 
         focusTitle:
             "Focus Areas",
 
         focusAreas: [
+
             "Basic Electronic Circuits",
+
             "Analog & Digital Electronics",
+
             "Semiconductor Devices",
+
             "Digital Logic & Combinational Circuits",
+
             "Sequential Circuits",
+
             "Sensors & Signal Conditioning",
+
             "Circuit Analysis",
+
             "Fault Detection & Troubleshooting"
+
         ],
 
         rules: [
@@ -231,49 +259,58 @@ const events = {
         date:
             "23 September 2026",
 
-        // UPDATED TIME
         time:
             "1:00 PM – 3:00 PM",
 
-        // ----------------------------------------------------
-        // FACULTY COORDINATORS
-        // ----------------------------------------------------
-
         facultyCoordinators: [
-            "Ms. Imaya S",
-            "Ms. Mohanapriya G"
-        ],
 
-        // ----------------------------------------------------
-        // STUDENT ORGANISERS
-        // ----------------------------------------------------
+            "Ms. Imaya S",
+
+            "Ms. Mohanapriya G",
+
+            "Ms. Revathy"
+
+        ],
 
         studentOrganisers: [
-            "Ms. Poojasri",
-            "Ms. Panchami",
-            "Ms. Sanjana",
-            "Mr. Srinivas Hari",
-            "Ms. Ransam Selshiya T"
-        ],
 
-        // ----------------------------------------------------
-        // QUIZ FOCUS
-        // ----------------------------------------------------
+            "Ms. Poojasri",
+
+            "Ms. Panchami",
+
+            "Ms. Sanjana",
+
+            "Mr. Srinivas Hari",
+
+            "Ms. Ransam Selshiya T"
+
+        ],
 
         focusTitle:
             "Quiz Focus",
 
         focusAreas: [
+
             "Semiconductor Technology & VLSI",
+
             "Artificial Intelligence & Generative AI",
+
             "Quantum Computing",
+
             "Signal & Image Processing",
+
             "Internet of Things (IoT)",
+
             "Cybersecurity",
+
             "Robotics & Automation",
+
             "Programming & Computational Technologies",
+
             "Data Science & Machine Learning",
+
             "Renewable & Sustainable Engineering"
+
         ],
 
         rules: [
@@ -326,39 +363,41 @@ const events = {
         time:
             "10:00 AM – 12:30 PM",
 
-        // ----------------------------------------------------
-        // FACULTY COORDINATORS
-        // ----------------------------------------------------
-
         facultyCoordinators: [
-            "Ms. Bhuvaneswari S",
-            "Dr. Soniya S"
-        ],
 
-        // ----------------------------------------------------
-        // STUDENT ORGANISERS
-        // ----------------------------------------------------
+            "Ms. Bhuvaneswari S",
+
+            "Dr. Soniya S"
+
+        ],
 
         studentOrganisers: [
-            "Ms. Nanthana K T",
-            "Ms. Reshma V",
-            "Ms. Divyadarshini",
-            "Mr. Mohan Kumar",
-            "Ms. Shanana B"
-        ],
 
-        // ----------------------------------------------------
-        // PROGRAMMING AREAS
-        // ----------------------------------------------------
+            "Ms. Nanthana K T",
+
+            "Ms. Reshma V",
+
+            "Ms. Divyadarshini",
+
+            "Mr. Mohan Kumar",
+
+            "Ms. Shanana B"
+
+        ],
 
         focusTitle:
             "Programming Areas",
 
         focusAreas: [
+
             "C Programming",
+
             "Java",
+
             "Python",
+
             "Data Structures"
+
         ],
 
         rules: [
@@ -385,126 +424,154 @@ const events = {
 
 
 // ============================================================
-// CHECK WHETHER EVENT EXISTS
+// CHECK EVENT
 // ============================================================
 
-if (!eventId || !events[eventId]) {
+if (
+    !eventId ||
+    !Object.prototype.hasOwnProperty.call(
+        events,
+        eventId
+    )
+) {
 
     document.body.innerHTML = `
 
-        <div
+        <main
             style="
+                min-height:100vh;
+                display:flex;
+                align-items:center;
+                justify-content:center;
                 text-align:center;
-                margin-top:100px;
                 font-family:Arial,sans-serif;
+                padding:30px;
             "
         >
 
-            <h1>
-                Event Not Found
-            </h1>
+            <div>
 
-            <p>
-                The requested event could not be found.
-            </p>
+                <h1>
+                    Event Not Found
+                </h1>
 
-            <a href="index.html">
-                ← Back to TechFusion
-            </a>
+                <p>
+                    The requested event could not be found.
+                </p>
 
-        </div>
+                <p>
+                    Event ID:
+                    <strong>
+                        ${eventId || "missing"}
+                    </strong>
+                </p>
+
+                <br>
+
+                <a href="index.html">
+                    ← Back to SPARK 2026
+                </a>
+
+            </div>
+
+        </main>
 
     `;
 
     throw new Error(
         "Invalid event ID: " + eventId
     );
-
 }
 
 
 // ============================================================
-// SELECTED EVENT
+// SELECT EVENT
 // ============================================================
 
-const event =
-    events[eventId];
-
-
-// ============================================================
-// FILL EVENT INFORMATION
-// ============================================================
-
-document.getElementById(
-    "eventTitle"
-).innerText =
-    event.title;
-
-
-document.getElementById(
-    "eventSubtitle"
-).innerText =
-    event.subtitle;
-
-
-document.getElementById(
-    "about"
-).innerText =
-    event.about;
+const event = events[eventId];
 
 
 // ============================================================
-// PARTICIPATION
+// BASIC EVENT INFORMATION
 // ============================================================
 
-document.getElementById(
-    "teamSize"
-).innerText =
-    event.participation;
+const eventTitle =
+    document.getElementById("eventTitle");
+
+if (eventTitle) {
+
+    eventTitle.innerText =
+        event.title;
+}
 
 
-// ============================================================
-// FEE
-// ============================================================
+const eventSubtitle =
+    document.getElementById("eventSubtitle");
 
-document.getElementById(
-    "fee"
-).innerText =
-    event.fee;
+if (eventSubtitle) {
 
-
-// ============================================================
-// VENUE
-// ============================================================
-
-document.getElementById(
-    "venue"
-).innerText =
-    event.venue;
+    eventSubtitle.innerText =
+        event.subtitle;
+}
 
 
-// ============================================================
-// DATE
-// ============================================================
+const about =
+    document.getElementById("about");
 
-document.getElementById(
-    "date"
-).innerText =
-    event.date;
+if (about) {
+
+    about.innerText =
+        event.about;
+}
 
 
-// ============================================================
-// TIME
-// ============================================================
+const teamSize =
+    document.getElementById("teamSize");
 
-const timeElement =
+if (teamSize) {
+
+    teamSize.innerText =
+        event.participation;
+}
+
+
+const fee =
+    document.getElementById("fee");
+
+if (fee) {
+
+    fee.innerText =
+        event.fee;
+}
+
+
+const venue =
+    document.getElementById("venue");
+
+if (venue) {
+
+    venue.innerText =
+        event.venue;
+}
+
+
+const date =
+    document.getElementById("date");
+
+if (date) {
+
+    date.innerText =
+        event.date;
+}
+
+
+const time =
     document.getElementById("time");
 
-if (timeElement) {
+if (time) {
 
-    timeElement.innerText =
+    time.innerText =
         event.time;
-
 }
 
 
@@ -534,7 +601,6 @@ if (facultyList) {
 
         }
     );
-
 }
 
 
@@ -564,7 +630,6 @@ if (studentList) {
 
         }
     );
-
 }
 
 
@@ -605,7 +670,6 @@ if (
 
         }
     );
-
 }
 
 
@@ -633,17 +697,12 @@ if (ruleList) {
 
         }
     );
-
 }
 
 
 // ============================================================
-// REMOVE OLD COORDINATOR DISPLAY
+// REMOVE OLD COORDINATOR DISPLAY IF PRESENT
 // ============================================================
-
-// The old "To be Announced" coordinator field
-// is no longer used because faculty coordinators
-// are displayed separately.
 
 const coordinatorElement =
     document.getElementById(
@@ -662,7 +721,6 @@ if (coordinatorElement) {
         coordinatorParent.remove();
 
     }
-
 }
 
 
@@ -682,9 +740,27 @@ if (registerBtn) {
         function () {
 
             window.location.href =
-                `register.html?event=${eventId}`;
+                `register.html?event=${encodeURIComponent(eventId)}`;
 
         }
     );
-
 }
+
+
+// ============================================================
+// DEBUG
+// ============================================================
+
+console.log(
+    "SPARK 2026 Event Page"
+);
+
+console.log(
+    "Event ID:",
+    eventId
+);
+
+console.log(
+    "Event:",
+    event.title
+);

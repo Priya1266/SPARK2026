@@ -4673,25 +4673,35 @@ if (completePayment) {
                                         .razorpay_order_id;
 
 
-                                /* =========================================
-                                   GENERATE REGISTRATION ID
-                                   ========================================= */
+/* =========================================
+   USE SERVER-GENERATED REGISTRATION ID
+   ========================================= */
 
-                                registration.registrationId =
-                                    generateRegistrationId();
+registration.registrationId =
+    verifyData.registrationId;
 
 
-                                /* =========================================
-                                   SAVE FINAL REGISTRATION
-                                   ========================================= */
+/* =========================================
+   UPDATE VERIFICATION STATUS
+   ========================================= */
 
-                                localStorage.setItem(
-                                    "sparkRegistration",
-                                    JSON.stringify(
-                                        registration
-                                    )
-                                );
+registration.verificationStatus =
+    verifyData.verificationStatus || "PENDING";
 
+registration.acknowledgementSent =
+    false;
+
+
+/* =========================================
+   SAVE FINAL REGISTRATION LOCALLY
+   ========================================= */
+
+localStorage.setItem(
+    "sparkRegistration",
+    JSON.stringify(
+        registration
+    )
+);
 
                                 /* =========================================
                                    SHOW SUCCESS
