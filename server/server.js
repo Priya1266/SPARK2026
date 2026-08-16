@@ -1,94 +1,56 @@
-require("dotenv").config({
-    path: require("path").join(__dirname, ".env")
-});
 // ============================================================
-// IMPORTS
+// SPARK 2026 — REGISTRATION SERVER
+// UPI PAYMENT + 16-DIGIT UTR + ADMIN VERIFICATION + MONGODB
+// + ACKNOWLEDGEMENT EMAIL
 // ============================================================
+
+require("dotenv").config();
 
 const express = require("express");
-
-const Razorpay = require("razorpay");
-
 const crypto = require("crypto");
-
-const {
-    MongoClient
-} = require("mongodb");
-
+const { MongoClient } = require("mongodb");
+const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
-
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
 
-const cookieParser =
-    require("cookie-parser");
-
-const nodemailer =
-    require("nodemailer");
-
-
-// ============================================================
-// EXPRESS APP
-// ============================================================
-
-const app =
-    express();
-
-
-// ============================================================
-// SERVER PORT
-// ============================================================
+const app = express();
 
 const PORT =
-    process.env.PORT || 3000;
+    Number(process.env.PORT) || 3000;
 
 
 // ============================================================
-// MIDDLEWARE
+// MODULE 1 — MIDDLEWARE
 // ============================================================
 
 app.use(
-    express.json()
+    express.json({
+        limit: "1mb"
+    })
 );
-
 
 app.use(
-    cookieParser()
+    express.urlencoded({
+        extended: true,
+        limit: "1mb"
+    })
 );
+
+app.use(cookieParser());
 
 
 // ============================================================
-// CORS
+// MODULE 2 — CORS
 // ============================================================
 
 const allowedOrigins = [
-
-    // --------------------------------------------------------
-    // LOCAL DEVELOPMENT
-    // --------------------------------------------------------
-
     "http://127.0.0.1:5500",
-
     "http://localhost:5500",
-
-
-    // --------------------------------------------------------
-    // GITHUB PAGES
-    // --------------------------------------------------------
-
+    "https://spark-4004.vercel.app",
     "https://priya1266.github.io",
-
-
-    // --------------------------------------------------------
-    // LIVE DOMAIN
-    // --------------------------------------------------------
-    // We will use this when the backend is deployed.
-    // Keeping it here now is harmless.
-    // --------------------------------------------------------
-
     "https://sistsparkece26.com"
-
 ];
-
 
 app.use(
     (req, res, next) => {
@@ -96,11 +58,9 @@ app.use(
         const origin =
             req.headers.origin;
 
-
         if (
-            allowedOrigins.includes(
-                origin
-            )
+            origin &&
+            allowedOrigins.includes(origin)
         ) {
 
             res.header(
@@ -108,68 +68,99 @@ app.use(
                 origin
             );
 
+            res.header(
+                "Access-Control-Allow-Credentials",
+                "true"
+            );
         }
-
 
         res.header(
             "Access-Control-Allow-Methods",
-            "GET,POST,OPTIONS"
+            "GET,POST,PATCH,OPTIONS"
         );
-
 
         res.header(
             "Access-Control-Allow-Headers",
             "Content-Type"
         );
 
-
-        // IMPORTANT:
-        // Required for admin authentication
-        // cookies.
-
-        res.header(
-            "Access-Control-Allow-Credentials",
-            "true"
-        );
-
-
         if (
             req.method === "OPTIONS"
         ) {
-
-            return res.sendStatus(
-                204
-            );
-
+            return res.sendStatus(204);
         }
 
-
         next();
-
     }
 );
 
 
 // ============================================================
-// RAZORPAY
+// MODULE 3 — REQUIRED ENVIRONMENT VARIABLES
 // ============================================================
 
-const razorpay =
-    new Razorpay({
+if (
+    !process.env.MONGODB_URI
+) {
 
-        key_id:
-            process.env
-                .RAZORPAY_KEY_ID,
+    console.error(
+        "❌ MONGODB_URI is missing in .env"
+    );
 
-        key_secret:
-            process.env
-                .RAZORPAY_KEY_SECRET
+    process.exit(1);
+}
 
-    });
+
+if (
+    !process.env.MONGODB_DB_NAME
+) {
+
+    console.error(
+        "❌ MONGODB_DB_NAME is missing in .env"
+    );
+
+    process.exit(1);
+}
+
+
+if (
+    !process.env.ADMIN_USERNAME
+) {
+
+    console.error(
+        "❌ ADMIN_USERNAME is missing in .env"
+    );
+
+    process.exit(1);
+}
+
+
+if (
+    !process.env.ADMIN_PASSWORD_HASH
+) {
+
+    console.error(
+        "❌ ADMIN_PASSWORD_HASH is missing in .env"
+    );
+
+    process.exit(1);
+}
+
+
+if (
+    !process.env.JWT_SECRET
+) {
+
+    console.error(
+        "❌ JWT_SECRET is missing in .env"
+    );
+
+    process.exit(1);
+}
 
 
 // ============================================================
-// MONGODB
+// MODULE 4 — MONGODB
 // ============================================================
 
 const mongoClient =
@@ -177,126 +168,203 @@ const mongoClient =
         process.env.MONGODB_URI
     );
 
+let database = null;
 
-let database;
-let registrationsCollection;
-let databaseConnectionPromise = null;
+let registrationsCollection =
+    null;
 
-// ============================================================
-// ACKNOWLEDGEMENT EMAIL TRANSPORTER
-// ============================================================
-//
-// This will be used only after an admin verifies
-// a registration.
-//
-// IMPORTANT:
-// SMTP_USER and SMTP_PASS must be present
-// in server/.env
-//
-// We will add the actual email function in
-// Module 8.
-//
-
-const emailTransporter =
-    nodemailer.createTransport({
-
-        host:
-            process.env.SMTP_HOST,
-
-        port:
-            Number(
-                process.env.SMTP_PORT ||
-                465
-            ),
-
-        secure:
-            process.env.SMTP_SECURE ===
-            "true",
-
-        auth: {
-
-            user:
-                process.env.SMTP_USER,
-
-            pass:
-                process.env.SMTP_PASS
-
-        }
-
-    });
+let databaseConnectionPromise =
+    null;
 
 
 // ============================================================
-// EMAIL CONNECTION TEST
+// MODULE 5 — CONNECT TO MONGODB
 // ============================================================
-//
-// This does NOT send an email.
-//
-// It simply checks the SMTP configuration when
-// the server starts.
-//
-// If SMTP credentials are missing, the server
-// will still start because payment/admin
-// functionality should continue to work.
-//
 
-async function verifyEmailTransporter() {
+async function connectDatabase() {
 
     if (
-        !process.env.SMTP_USER ||
-        !process.env.SMTP_PASS
+        database &&
+        registrationsCollection
     ) {
-
-        console.log(
-            "⚠️ Email: SMTP credentials not configured yet."
-        );
-
         return;
-
     }
 
 
-    try {
-
-        await emailTransporter.verify();
-
-        console.log(
-            "✅ Email: SMTP connection READY"
-        );
-
+    if (
+        databaseConnectionPromise
+    ) {
+        return databaseConnectionPromise;
     }
 
-    catch (error) {
 
-        console.error(
-            "⚠️ Email SMTP connection failed:"
-        );
+    databaseConnectionPromise =
+        (async () => {
 
-        console.error(
-            error.message
-        );
+            try {
 
-        console.log(
-            "⚠️ Payment and admin functions will continue to work."
-        );
+                console.log(
+                    "=========================================="
+                );
 
-    }
+                console.log(
+                    "Connecting to MongoDB..."
+                );
 
+
+                await mongoClient.connect();
+
+
+                database =
+                    mongoClient.db(
+                        process.env.MONGODB_DB_NAME
+                    );
+
+
+                registrationsCollection =
+                    database.collection(
+                        "registrations"
+                    );
+
+
+                // ------------------------------------------------
+                // UNIQUE REGISTRATION ID
+                // ------------------------------------------------
+
+                await registrationsCollection.createIndex(
+                    {
+                        registrationId: 1
+                    },
+                    {
+                        unique: true
+                    }
+                );
+
+
+                // ------------------------------------------------
+                // UNIQUE UTR
+                // ------------------------------------------------
+
+                try {
+
+                    await registrationsCollection.createIndex(
+                        {
+                            utr: 1
+                        },
+                        {
+                            unique: true,
+
+                            partialFilterExpression: {
+                                utr: {
+                                    $type: "string"
+                                }
+                            }
+                        }
+                    );
+
+                }
+                catch (indexError) {
+
+                    console.log(
+                        "⚠️ UTR index warning:"
+                    );
+
+                    console.log(
+                        indexError.message
+                    );
+                }
+
+
+                // ------------------------------------------------
+                // VERIFICATION INDEX
+                // ------------------------------------------------
+
+                await registrationsCollection.createIndex(
+                    {
+                        verificationStatus: 1
+                    }
+                );
+
+
+                // ------------------------------------------------
+                // EVENT INDEX
+                // ------------------------------------------------
+
+                await registrationsCollection.createIndex(
+                    {
+                        eventId: 1
+                    }
+                );
+
+
+                // ------------------------------------------------
+                // DATE INDEX
+                // ------------------------------------------------
+
+                await registrationsCollection.createIndex(
+                    {
+                        createdAt: -1
+                    }
+                );
+
+
+                console.log(
+                    "✅ MongoDB connected successfully."
+                );
+
+                console.log(
+                    `✅ Database: ${process.env.MONGODB_DB_NAME}`
+                );
+
+                console.log(
+                    "✅ Collection: registrations"
+                );
+
+                console.log(
+                    "=========================================="
+                );
+
+            }
+            catch (error) {
+
+                console.error(
+                    "❌ MongoDB connection failed:"
+                );
+
+                console.error(
+                    error
+                );
+
+                process.exit(1);
+
+            }
+            finally {
+
+                databaseConnectionPromise =
+                    null;
+            }
+
+        })();
+
+
+    return databaseConnectionPromise;
 }
+
+
 // ============================================================
-// EVENT CONFIGURATION
+// MODULE 6 — EVENT CONFIGURATION
 // ============================================================
 
 const events = {
 
-    // ========================================================
+    // ==========================================================
     // IDEA FORGE
-    // ========================================================
+    // ==========================================================
 
     ideaforge: {
 
         name:
-            "iDeaForge",
+            "IdeaForge",
 
         participants:
             2,
@@ -306,13 +374,12 @@ const events = {
 
         code:
             "IDF"
-
     },
 
 
-    // ========================================================
+    // ==========================================================
     // CIRCUIT CLASH
-    // ========================================================
+    // ==========================================================
 
     circuitclash: {
 
@@ -327,13 +394,12 @@ const events = {
 
         code:
             "CC"
-
     },
 
 
-    // ========================================================
-    // IQUEST
-    // ========================================================
+    // ==========================================================
+    // iQUEST
+    // ==========================================================
 
     iqquest: {
 
@@ -348,13 +414,12 @@ const events = {
 
         code:
             "IQ"
-
     },
 
 
-    // ========================================================
+    // ==========================================================
     // CODESPRINT
-    // ========================================================
+    // ==========================================================
 
     codesprint: {
 
@@ -369,29 +434,45 @@ const events = {
 
         code:
             "CS"
-
     }
 
 };
 
 
 // ============================================================
+// MODULE 7 — PAYMENT CONFIGURATION
+// ============================================================
+
+const PAYMENT_CONFIG = {
+
+    upiId:
+        "9940464883@ptaxis",
+
+    method:
+        "UPI"
+};
+
+
+// ============================================================
+// MODULE 8 — HELPER FUNCTIONS
+// ============================================================
+
+function cleanText(value) {
+
+    if (
+        value === undefined ||
+        value === null
+    ) {
+        return "";
+    }
+
+    return String(value).trim();
+}
+
+
+// ============================================================
 // GENERATE REGISTRATION CODE
 // ============================================================
-//
-// Example:
-//
-// SPK26-CS-MSTX9UB0-9B9BC1
-//
-// The code contains:
-// SPK26
-// Event code
-// Timestamp
-// Random value
-//
-// This is generated on the SERVER.
-// The frontend cannot choose the registration ID.
-//
 
 function generateRegistrationCode(
     event
@@ -413,117 +494,177 @@ function generateRegistrationCode(
     return (
         `SPK26-${event.code}-${timestamp}-${random}`
     );
-
 }
-async function connectDatabase() {
 
-    // If already connected, do nothing
-    if (database && registrationsCollection) {
-        return;
+
+// ============================================================
+// NORMALIZE PARTICIPANT
+// ============================================================
+
+function normalizeParticipant(
+    participant
+) {
+
+    if (
+        !participant ||
+        typeof participant !== "object"
+    ) {
+
+        return null;
     }
 
-    // If connection is already in progress,
-    // wait for the same connection
-    if (databaseConnectionPromise) {
-        return databaseConnectionPromise;
+
+    const fullName =
+        cleanText(
+            participant.fullName ||
+            participant.name
+        );
+
+
+    return {
+
+        fullName:
+            fullName,
+
+        name:
+            fullName,
+
+        college:
+            cleanText(
+                participant.college
+            ),
+
+        department:
+            cleanText(
+                participant.department
+            ),
+
+        year:
+            cleanText(
+                participant.year
+            ),
+
+        phone:
+            cleanText(
+                participant.phone
+            ),
+
+        email:
+            cleanText(
+                participant.email
+            )
+    };
+}
+
+
+// ============================================================
+// VALIDATE PARTICIPANT
+// ============================================================
+
+function validateParticipant(
+    participant
+) {
+
+    if (
+        !participant
+    ) {
+
+        return false;
     }
 
-    databaseConnectionPromise = (async () => {
 
-        try {
+    const requiredFields = [
 
-            console.log("Connecting to MongoDB...");
+        "fullName",
+        "college",
+        "department",
+        "year",
+        "phone",
+        "email"
 
-            await mongoClient.connect();
-
-            database = mongoClient.db(
-                process.env.MONGODB_DB_NAME
-            );
-
-            registrationsCollection =
-                database.collection("registrations");
+    ];
 
 
-            // ====================================================
-            // DATABASE INDEXES
-            // ====================================================
+    for (
+        const field of requiredFields
+    ) {
 
-            await registrationsCollection.createIndex(
-                {
-                    registrationId: 1
-                },
-                {
-                    unique: true
-                }
-            );
+        if (
+            !cleanText(
+                participant[field]
+            )
+        ) {
 
-
-            await registrationsCollection.createIndex(
-                {
-                    razorpayOrderId: 1
-                },
-                {
-                    unique: true
-                }
-            );
-
-
-            await registrationsCollection.createIndex(
-                {
-                    razorpayPaymentId: 1
-                },
-                {
-                    unique: true,
-                    sparse: true
-                }
-            );
-
-
-            await registrationsCollection.createIndex(
-                {
-                    verificationStatus: 1
-                }
-            );
-
-
-            console.log(
-                "✅ MongoDB connected successfully."
-            );
-
-            console.log(
-                `✅ Database: ${process.env.MONGODB_DB_NAME}`
-            );
-
-            console.log(
-                "✅ Collection: registrations"
-            );
-
+            return false;
         }
+    }
 
-        catch (error) {
 
-            console.error(
-                "❌ MongoDB connection failed:"
-            );
+    // ----------------------------------------------------------
+    // PHONE
+    // ----------------------------------------------------------
 
-            console.error(error);
+    if (
+        !/^[6-9]\d{9}$/.test(
+            participant.phone
+        )
+    ) {
 
-            databaseConnectionPromise = null;
+        return false;
+    }
 
-            throw error;
-        }
 
-    })();
+    // ----------------------------------------------------------
+    // EMAIL
+    // ----------------------------------------------------------
 
-    return databaseConnectionPromise;
+    if (
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            .test(
+                participant.email
+            )
+    ) {
+
+        return false;
+    }
+
+
+    return true;
 }
-// ============================================================
-// ADMIN AUTHENTICATION
-// ============================================================
 
 
 // ============================================================
-// CREATE ADMIN JWT
+// GET PARTICIPANT COUNT
+// ============================================================
+
+function getParticipantCount(
+    participation
+) {
+
+    if (
+        participation ===
+        "team"
+    ) {
+
+        return 2;
+    }
+
+
+    if (
+        participation ===
+        "individual"
+    ) {
+
+        return 1;
+    }
+
+
+    return 0;
+}
+
+
+// ============================================================
+// MODULE 9 — ADMIN JWT
 // ============================================================
 
 function createAdminToken() {
@@ -546,22 +687,17 @@ function createAdminToken() {
 
             expiresIn:
                 "8h"
-
         }
-
     );
-
 }
 
 
 // ============================================================
-// ADMIN LOGIN
+// MODULE 10 — ADMIN LOGIN
 // ============================================================
 
 app.post(
-
     "/api/admin/login",
-
     async (req, res) => {
 
         try {
@@ -573,7 +709,7 @@ app.post(
 
 
             // ------------------------------------------------
-            // CHECK INPUT
+            // INPUT VALIDATION
             // ------------------------------------------------
 
             if (
@@ -588,14 +724,12 @@ app.post(
 
                     message:
                         "Username and password are required."
-
                 });
-
             }
 
 
             // ------------------------------------------------
-            // CHECK USERNAME
+            // USERNAME CHECK
             // ------------------------------------------------
 
             if (
@@ -610,14 +744,12 @@ app.post(
 
                     message:
                         "Invalid username or password."
-
                 });
-
             }
 
 
             // ------------------------------------------------
-            // CHECK PASSWORD
+            // PASSWORD CHECK
             // ------------------------------------------------
 
             const passwordValid =
@@ -627,11 +759,12 @@ app.post(
 
                     process.env
                         .ADMIN_PASSWORD_HASH
-
                 );
 
 
-            if (!passwordValid) {
+            if (
+                !passwordValid
+            ) {
 
                 return res.status(401).json({
 
@@ -640,14 +773,12 @@ app.post(
 
                     message:
                         "Invalid username or password."
-
                 });
-
             }
 
 
             // ------------------------------------------------
-            // CREATE JWT
+            // CREATE TOKEN
             // ------------------------------------------------
 
             const token =
@@ -655,7 +786,7 @@ app.post(
 
 
             // ------------------------------------------------
-            // STORE JWT IN HTTP-ONLY COOKIE
+            // HTTP-ONLY COOKIE
             // ------------------------------------------------
 
             res.cookie(
@@ -681,15 +812,9 @@ app.post(
                         60 *
                         60 *
                         1000
-
                 }
-
             );
 
-
-            // ------------------------------------------------
-            // SUCCESS
-            // ------------------------------------------------
 
             return res.json({
 
@@ -698,11 +823,9 @@ app.post(
 
                 message:
                     "Admin login successful."
-
             });
 
         }
-
 
         catch (error) {
 
@@ -719,18 +842,14 @@ app.post(
 
                 message:
                     "Unable to process admin login."
-
             });
-
         }
-
     }
-
 );
 
 
 // ============================================================
-// ADMIN AUTHENTICATION MIDDLEWARE
+// MODULE 11 — ADMIN AUTHENTICATION
 // ============================================================
 
 function requireAdmin(
@@ -741,16 +860,14 @@ function requireAdmin(
 
     try {
 
-        // ----------------------------------------------------
-        // GET TOKEN FROM COOKIE
-        // ----------------------------------------------------
-
         const token =
             req.cookies
                 .spark_admin_token;
 
 
-        if (!token) {
+        if (
+            !token
+        ) {
 
             return res.status(401).json({
 
@@ -759,15 +876,9 @@ function requireAdmin(
 
                 message:
                     "Admin authentication required."
-
             });
-
         }
 
-
-        // ----------------------------------------------------
-        // VERIFY JWT
-        // ----------------------------------------------------
 
         const decoded =
             jwt.verify(
@@ -775,13 +886,8 @@ function requireAdmin(
                 token,
 
                 process.env.JWT_SECRET
-
             );
 
-
-        // ----------------------------------------------------
-        // CHECK ROLE
-        // ----------------------------------------------------
 
         if (
             decoded.role !==
@@ -795,15 +901,9 @@ function requireAdmin(
 
                 message:
                     "Administrator access required."
-
             });
-
         }
 
-
-        // ----------------------------------------------------
-        // STORE ADMIN INFORMATION
-        // ----------------------------------------------------
 
         req.admin =
             decoded;
@@ -812,7 +912,6 @@ function requireAdmin(
         next();
 
     }
-
 
     catch (error) {
 
@@ -823,24 +922,18 @@ function requireAdmin(
 
             message:
                 "Admin session is invalid or expired."
-
         });
-
     }
-
 }
 
 
 // ============================================================
-// ADMIN SESSION CHECK
+// MODULE 12 — ADMIN SESSION CHECK
 // ============================================================
 
 app.get(
-
     "/api/admin/session",
-
     requireAdmin,
-
     (req, res) => {
 
         return res.json({
@@ -853,24 +946,18 @@ app.get(
 
             role:
                 req.admin.role
-
         });
-
     }
-
 );
 
 
 // ============================================================
-// ADMIN LOGOUT
+// MODULE 13 — ADMIN LOGOUT
 // ============================================================
 
 app.post(
-
     "/api/admin/logout",
-
     requireAdmin,
-
     (req, res) => {
 
         res.clearCookie(
@@ -882,15 +969,13 @@ app.post(
                 httpOnly:
                     true,
 
-                sameSite:
-                    "lax",
-
                 secure:
                     process.env.NODE_ENV ===
-                    "production"
+                    "production",
 
+                sameSite:
+                    "lax"
             }
-
         );
 
 
@@ -901,856 +986,184 @@ app.post(
 
             message:
                 "Admin logged out successfully."
-
         });
-
     }
-
 );
+
+
 // ============================================================
-// HEALTH CHECK
+// MODULE 14 — HEALTH CHECK
 // ============================================================
 
 app.get(
-
     "/",
+    async (req, res) => {
 
-    (req, res) => {
-
-        res.json({
+        return res.json({
 
             success:
                 true,
 
             message:
-                "SPARK 2026 Payment + Registration Server is running!",
+                "SPARK 2026 Registration Server is running.",
 
             database:
                 database
                     ? "connected"
-                    : "not connected"
+                    : "not connected",
 
+            paymentMethod:
+                PAYMENT_CONFIG.method,
+
+            upiId:
+                PAYMENT_CONFIG.upiId,
+
+            manualVerification:
+                true
         });
-
     }
-
 );
 
 
 // ============================================================
-// CREATE RAZORPAY ORDER
+// MODULE 15 — GET EVENTS
+// ============================================================
+
+app.get(
+    "/api/events",
+    (req, res) => {
+
+        const eventList =
+
+            Object.entries(
+                events
+            )
+
+            .map(
+                (
+                    [id, event]
+                ) => ({
+
+                    id,
+
+                    name:
+                        event.name,
+
+                    participants:
+                        event.participants,
+
+                    feePerParticipant:
+                        event.feePerParticipant,
+
+                    totalFee:
+                        event.participants *
+                        event.feePerParticipant
+                })
+            );
+
+
+        return res.json({
+
+            success:
+                true,
+
+            events:
+                eventList
+        });
+    }
+);
+
+
+// ============================================================
+// MODULE 16 — PAYMENT DETAILS
 // ============================================================
 
 app.post(
-
-    "/api/create-order",
-
+    "/api/payment-details",
     async (req, res) => {
 
         try {
 
-            // ==================================================
-            // ENSURE MONGODB IS READY
-            // ==================================================
-
             await connectDatabase();
 
 
-            // ==================================================
-            // CHECK RAZORPAY CONFIGURATION
-            // ==================================================
-
-            if (
-                !process.env.RAZORPAY_KEY_ID ||
-                !process.env.RAZORPAY_KEY_SECRET
-            ) {
-
-                console.error(
-                    "❌ Razorpay environment variables are missing."
+            const eventId =
+                cleanText(
+                    req.body.eventId
                 );
 
-                return res.status(500).json({
 
-                    success: false,
+            const participation =
+                cleanText(
+                    req.body.teamSize
+                );
 
-                    message:
-                        "Payment configuration is missing."
-
-                });
-
-            }
-
-
-            // ==================================================
-            // GET EVENT ID
-            // ==================================================
-
-            const {
-                eventId
-            } = req.body;
-
-
-            // ==================================================
-            // CHECK EVENT ID
-            // ==================================================
-
-            if (!eventId) {
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Event ID is required."
-
-                });
-
-            }
-
-
-            // ==================================================
-            // CHECK EVENT
-            // ==================================================
 
             const event =
                 events[eventId];
 
 
-            if (!event) {
+            if (
+                !event
+            ) {
 
                 return res.status(400).json({
 
-                    success: false,
+                    success:
+                        false,
 
                     message:
                         "Invalid event."
-
                 });
-
             }
 
 
-            // ==================================================
-            // CALCULATE AMOUNT SERVER-SIDE
-            // ==================================================
-
-            const amountRupees =
-
-                Number(
-                    event.participants
-                ) *
-
-                Number(
-                    event.feePerParticipant
+            const participantCount =
+                getParticipantCount(
+                    participation
                 );
 
-
-            const amountPaise =
-
-                amountRupees * 100;
-
-
-            // ==================================================
-            // VALIDATE AMOUNT
-            // ==================================================
 
             if (
-                !Number.isFinite(amountPaise) ||
-                amountPaise <= 0
+                participantCount === 0
             ) {
-
-                console.error(
-                    "❌ Invalid payment amount:",
-                    amountPaise
-                );
 
                 return res.status(400).json({
 
-                    success: false,
-
-                    message:
-                        "Invalid payment amount."
-
-                });
-
-            }
-
-
-            // ==================================================
-            // UNIQUE RAZORPAY RECEIPT
-            // ==================================================
-
-            const receipt =
-
-                `spark_${eventId}_${Date.now()}`;
-
-
-            // ==================================================
-            // CREATE RAZORPAY ORDER
-            // ==================================================
-
-            console.log(
-                "=========================================="
-            );
-
-            console.log(
-                "Creating Razorpay order..."
-            );
-
-            console.log(
-                `Event ID: ${eventId}`
-            );
-
-            console.log(
-                `Event: ${event.name}`
-            );
-
-            console.log(
-                `Participants: ${event.participants}`
-            );
-
-            console.log(
-                `Fee / Participant: ₹${event.feePerParticipant}`
-            );
-
-            console.log(
-                `Total Amount: ₹${amountRupees}`
-            );
-
-
-            const order =
-
-                await razorpay.orders.create({
-
-                    amount:
-                        amountPaise,
-
-                    currency:
-                        "INR",
-
-                    receipt:
-                        receipt,
-
-                    partial_payment:
+                    success:
                         false,
 
-                    notes: {
-
-                        event_id:
-                            eventId,
-
-                        event_name:
-                            event.name,
-
-                        participants:
-                            String(
-                                event.participants
-                            ),
-
-                        amount_rupees:
-                            String(
-                                amountRupees
-                            )
-
-                    }
-
-                });
-
-
-            // ==================================================
-            // CHECK ORDER RESPONSE
-            // ==================================================
-
-            if (
-                !order ||
-                !order.id
-            ) {
-
-                console.error(
-                    "❌ Razorpay did not return a valid order."
-                );
-
-                return res.status(500).json({
-
-                    success: false,
-
                     message:
-                        "Unable to create payment order."
-
+                        "Invalid participation type."
                 });
-
             }
 
 
-            // ==================================================
-            // SUCCESS LOG
-            // ==================================================
+            if (
+                participantCount !==
+                event.participants
+            ) {
 
-            console.log(
-                `✅ Razorpay Order Created: ${order.id}`
-            );
+                return res.status(400).json({
 
-            console.log(
-                "=========================================="
-            );
+                    success:
+                        false,
+
+                    message:
+                        "Invalid participant count for this event."
+                });
+            }
 
 
-            // ==================================================
-            // SERVER RESPONSE
-            // ==================================================
+            const amount =
+                participantCount *
+                event.feePerParticipant;
+
 
             return res.json({
 
                 success:
                     true,
-
-                keyId:
-                    process.env
-                        .RAZORPAY_KEY_ID,
-
-                orderId:
-                    order.id,
-
-                amount:
-                    order.amount,
-
-                currency:
-                    order.currency,
-
-                event:
-                    event.name,
-
-                eventId:
-                    eventId,
-
-                participants:
-                    event.participants,
-
-                amountRupees:
-                    amountRupees
-
-            });
-
-        }
-
-
-        // ======================================================
-        // ERROR
-        // ======================================================
-
-catch (error) {
-
-    console.error("==========================================");
-    console.error("❌ RAZORPAY ORDER CREATION FAILED");
-    console.error("Error message:", error.message);
-    console.error("Error status:", error.statusCode);
-    console.error("Error code:", error.error?.code);
-    console.error("Error description:", error.error?.description);
-    console.error("Full Razorpay error:", error);
-    console.error("==========================================");
-
-    return res.status(500).json({
-
-        success: false,
-
-        message: "Unable to create payment order."
-
-    });
-
-}
-
-    }
-
-);
-// ============================================================
-// VERIFY PAYMENT + SAVE REGISTRATION
-// ============================================================
-
-app.post(
-    "/api/verify-payment",
-
-    async (req, res) => {
-
-        try {
-
-            // ==================================================
-            // ENSURE MONGODB IS READY
-            // ==================================================
-
-            await connectDatabase();
-
-
-            if (!registrationsCollection) {
-
-                console.error(
-                    "❌ registrationsCollection is not initialized."
-                );
-
-                return res.status(500).json({
-
-                    success: false,
-
-                    message:
-                        "Database is not ready. Please try again."
-                });
-
-            }
-
-
-            // ==================================================
-            // GET PAYMENT + REGISTRATION DATA
-            // ==================================================
-
-            const {
-
-                razorpay_order_id,
-
-                razorpay_payment_id,
-
-                razorpay_signature,
-
-                eventId,
-
-                registration
-
-            } = req.body;
-
-
-            // ==================================================
-            // CHECK PAYMENT DETAILS
-            // ==================================================
-
-            if (
-
-                !razorpay_order_id ||
-
-                !razorpay_payment_id ||
-
-                !razorpay_signature
-
-            ) {
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Payment verification details are missing."
-
-                });
-
-            }
-
-
-            // ==================================================
-            // CHECK EVENT ID
-            // ==================================================
-
-            if (!eventId) {
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Event ID is missing."
-
-                });
-
-            }
-
-
-            // ==================================================
-            // CHECK REGISTRATION DATA
-            // ==================================================
-
-            if (
-
-                !registration ||
-
-                !Array.isArray(
-                    registration.participants
-                ) ||
-
-                registration.participants.length === 0
-
-            ) {
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Registration information is missing."
-
-                });
-
-            }
-
-
-            // ==================================================
-            // CHECK EVENT
-            // ==================================================
-
-            const event =
-                events[eventId];
-
-
-            if (!event) {
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Invalid event."
-
-                });
-
-            }
-
-
-            // ==================================================
-            // VERIFY RAZORPAY SIGNATURE
-            // ==================================================
-
-            const razorpaySecret =
-                process.env.RAZORPAY_KEY_SECRET;
-
-
-            if (!razorpaySecret) {
-
-                console.error(
-                    "❌ RAZORPAY_KEY_SECRET is not configured."
-                );
-
-                return res.status(500).json({
-
-                    success: false,
-
-                    message:
-                        "Payment configuration error."
-
-                });
-
-            }
-
-
-            const generatedSignature =
-
-                crypto
-
-                    .createHmac(
-                        "sha256",
-                        razorpaySecret
-                    )
-
-                    .update(
-
-                        razorpay_order_id +
-                        "|" +
-                        razorpay_payment_id
-
-                    )
-
-                    .digest("hex");
-
-
-            // ==================================================
-            // SAFE SIGNATURE COMPARISON
-            // ==================================================
-
-            let isValid = false;
-
-
-            if (
-
-                generatedSignature.length ===
-                razorpay_signature.length
-
-            ) {
-
-                isValid =
-
-                    crypto.timingSafeEqual(
-
-                        Buffer.from(
-                            generatedSignature,
-                            "utf8"
-                        ),
-
-                        Buffer.from(
-                            razorpay_signature,
-                            "utf8"
-                        )
-
-                    );
-
-            }
-
-
-            // ==================================================
-            // INVALID SIGNATURE
-            // ==================================================
-
-            if (!isValid) {
-
-                console.error(
-                    "❌ Invalid Razorpay payment signature."
-                );
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Payment verification failed."
-
-                });
-
-            }
-
-
-            // ==================================================
-            // FETCH ACTUAL RAZORPAY ORDER
-            // ==================================================
-
-            const razorpayOrder =
-
-                await razorpay.orders.fetch(
-                    razorpay_order_id
-                );
-
-
-            // ==================================================
-            // VERIFY ORDER BELONGS TO EXPECTED EVENT
-            // ==================================================
-
-            if (
-
-                razorpayOrder.notes &&
-
-                razorpayOrder.notes.event_id &&
-
-                razorpayOrder.notes.event_id !==
-                    eventId
-
-            ) {
-
-                console.error(
-                    "❌ Razorpay order event mismatch."
-                );
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Payment event verification failed."
-
-                });
-
-            }
-
-
-            // ==================================================
-            // VERIFY ACTUAL PAYMENT AMOUNT
-            // ==================================================
-
-            const expectedAmount =
-
-                event.participants *
-
-                event.feePerParticipant *
-
-                100;
-
-
-            if (
-
-                Number(
-                    razorpayOrder.amount
-                ) !==
-
-                Number(
-                    expectedAmount
-                )
-
-            ) {
-
-                console.error(
-                    "❌ Razorpay amount mismatch."
-                );
-
-                console.error(
-                    "Expected:",
-                    expectedAmount
-                );
-
-                console.error(
-                    "Received:",
-                    razorpayOrder.amount
-                );
-
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Payment amount does not match the event fee."
-
-                });
-
-            }
-
-
-            // ==================================================
-            // VERIFY RAZORPAY ORDER PAYMENT STATUS
-            // ==================================================
-
-            if (
-                razorpayOrder.status &&
-                razorpayOrder.status !== "paid"
-            ) {
-
-                console.error(
-                    "❌ Razorpay order is not marked as paid."
-                );
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Razorpay payment is not completed."
-
-                });
-
-            }
-
-
-            // ==================================================
-            // PREVENT DUPLICATE PAYMENT RECORD
-            // ==================================================
-
-            const existingPayment =
-
-                await registrationsCollection.findOne({
-
-                    razorpayPaymentId:
-                        razorpay_payment_id
-
-                });
-
-
-            if (existingPayment) {
-
-                console.log(
-                    "⚠️ Payment already recorded."
-                );
-
-
-                return res.json({
-
-                    success: true,
-
-                    message:
-                        "Payment was already recorded.",
-
-                    registrationId:
-                        existingPayment.registrationId,
-
-                    paymentId:
-                        existingPayment
-                            .razorpayPaymentId,
-
-                    orderId:
-                        existingPayment
-                            .razorpayOrderId,
-
-                    paymentStatus:
-                        existingPayment
-                            .paymentStatus,
-
-                    verificationStatus:
-                        existingPayment
-                            .verificationStatus,
-
-                    acknowledgementSent:
-                        existingPayment
-                            .acknowledgementSent
-
-                });
-
-            }
-
-
-            // ==================================================
-            // VERIFY PARTICIPANT COUNT
-            // ==================================================
-
-            if (
-
-                registration.participants.length !==
-                Number(event.participants)
-
-            ) {
-
-                console.error(
-                    "❌ Participant count mismatch."
-                );
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    message:
-                        "Participant count does not match the selected event."
-
-                });
-
-            }
-
-
-            // ==================================================
-            // GENERATE SERVER-SIDE REGISTRATION ID
-            // ==================================================
-
-            const registrationId =
-
-                generateRegistrationCode(
-                    event
-                );
-
-
-            // ==================================================
-            // PRIMARY PARTICIPANT / PAYER
-            // ==================================================
-
-            const primaryParticipant =
-
-                registration.participants[0] ||
-                {};
-
-
-            // ==================================================
-            // BUILD DATABASE RECORD
-            // ==================================================
-
-            const databaseRecord = {
-
-                // ==================================================
-                // REGISTRATION
-                // ==================================================
-
-                registrationId:
-                    registrationId,
-
-
-                // ==================================================
-                // EVENT
-                // ==================================================
 
                 eventId:
                     eventId,
@@ -1758,130 +1171,694 @@ app.post(
                 eventName:
                     event.name,
 
-                eventDate:
-                    registration.date ||
-                    event.date ||
-                    null,
-
-                eventTime:
-                    registration.time ||
-                    event.time ||
-                    null,
-
-                eventVenue:
-                    registration.venue ||
-                    event.venue ||
-                    null,
-
-
-                // ==================================================
-                // PARTICIPATION
-                // ==================================================
-
-                participation:
-                    registration.participation ||
-                    null,
-
-                participantCount:
-                    event.participants,
-
-                teamName:
-                    registration.teamName ||
-                    "",
-
-
-                // ==================================================
-                // PARTICIPANTS
-                // ==================================================
-
                 participants:
-                    registration.participants,
+                    participantCount,
 
-
-                // ==================================================
-                // PRIMARY PARTICIPANT / PAYER
-                // ==================================================
-
-                payerName:
-                    primaryParticipant.name ||
-                    "",
-
-                payerEmail:
-                    primaryParticipant.email ||
-                    "",
-
-                payerPhone:
-                    primaryParticipant.phone ||
-                    "",
-
-
-                // ==================================================
-                // PAYMENT
-                // ==================================================
+                feePerParticipant:
+                    event.feePerParticipant,
 
                 amount:
-
-                    event.participants *
-                    event.feePerParticipant,
+                    amount,
 
                 currency:
                     "INR",
 
-                razorpayOrderId:
-                    razorpay_order_id,
+                paymentMethod:
+                    PAYMENT_CONFIG.method,
 
-                razorpayPaymentId:
-                    razorpay_payment_id,
-
-
-                // ==================================================
-                // PAYMENT STATUS
-                // ==================================================
+                upiId:
+                    PAYMENT_CONFIG.upiId,
 
                 paymentStatus:
-                    "PAID",
+                    "PENDING"
+            });
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Payment details error:",
+                error
+            );
 
 
-                // ==================================================
-                // MANUAL VERIFICATION
-                // ==================================================
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to load payment details."
+            });
+        }
+    }
+);
+
+
+// ============================================================
+// MODULE 17 — CREATE REGISTRATION
+// ============================================================
+
+app.post(
+    "/api/register",
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            console.log(
+                "=========================================="
+            );
+
+            console.log(
+                "NEW REGISTRATION REQUEST"
+            );
+
+
+            // ==================================================
+            // READ REQUEST
+            // ==================================================
+
+            const {
+
+                eventId,
+                eventName,
+                teamSize,
+                amount,
+
+                participant,
+                participants,
+
+                teamLeader,
+                teamMember,
+
+                teamName,
+
+                utr,
+                transactionId,
+
+                payerName
+
+            } = req.body;
+
+
+            // ==================================================
+            // EVENT VALIDATION
+            // ==================================================
+
+            const cleanEventId =
+                cleanText(
+                    eventId
+                );
+
+
+            const event =
+                events[
+                    cleanEventId
+                ];
+
+
+            if (
+                !event
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Invalid event."
+                });
+            }
+
+
+            // ==================================================
+            // PARTICIPATION VALIDATION
+            // ==================================================
+
+            const cleanTeamSize =
+                cleanText(
+                    teamSize
+                );
+
+
+            if (
+                cleanTeamSize !==
+                    "individual" &&
+
+                cleanTeamSize !==
+                    "team"
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Invalid participation type."
+                });
+            }
+
+
+            // ==================================================
+            // PARTICIPANT COUNT
+            // ==================================================
+
+            const participantCount =
+                getParticipantCount(
+                    cleanTeamSize
+                );
+
+
+            if (
+                participantCount !==
+                event.participants
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Participant count does not match this event."
+                });
+            }
+
+
+            // ==================================================
+            // SERVER-SIDE AMOUNT
+            // ==================================================
+
+            const serverAmount =
+                participantCount *
+                event.feePerParticipant;
+
+
+            if (
+                amount !== undefined &&
+                Number(amount) !==
+                    Number(serverAmount)
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Payment amount does not match the event fee."
+                });
+            }
+
+
+            // ==================================================
+            // NORMALIZE PARTICIPANTS
+            // ==================================================
+
+            let normalizedParticipant =
+                null;
+
+            let normalizedTeamLeader =
+                null;
+
+            let normalizedTeamMember =
+                null;
+
+
+            // ==================================================
+            // INDIVIDUAL
+            // ==================================================
+
+            if (
+                cleanTeamSize ===
+                "individual"
+            ) {
+
+                normalizedParticipant =
+                    normalizeParticipant(
+
+                        participant ||
+
+                        (
+                            Array.isArray(
+                                participants
+                            )
+                                ? participants[0]
+                                : null
+                        ) ||
+
+                        teamLeader
+                    );
+
+
+                if (
+                    !validateParticipant(
+                        normalizedParticipant
+                    )
+                ) {
+
+                    return res.status(400).json({
+
+                        success:
+                            false,
+
+                        message:
+                            "Participant information is incomplete."
+                    });
+                }
+            }
+
+
+            // ==================================================
+            // TEAM
+            // ==================================================
+
+            if (
+                cleanTeamSize ===
+                "team"
+            ) {
+
+                normalizedTeamLeader =
+                    normalizeParticipant(
+                        teamLeader
+                    );
+
+
+                if (
+                    !validateParticipant(
+                        normalizedTeamLeader
+                    )
+                ) {
+
+                    return res.status(400).json({
+
+                        success:
+                            false,
+
+                        message:
+                            "Team leader information is incomplete."
+                    });
+                }
+
+
+                normalizedTeamMember =
+                    normalizeParticipant(
+                        teamMember
+                    );
+
+
+                if (
+                    !validateParticipant(
+                        normalizedTeamMember
+                    )
+                ) {
+
+                    return res.status(400).json({
+
+                        success:
+                            false,
+
+                        message:
+                            "Team member information is incomplete."
+                    });
+                }
+            }
+
+
+            // ==================================================
+            // PAYER NAME
+            // ==================================================
+
+            const cleanPayerName =
+                cleanText(
+                    payerName
+                );
+
+
+            if (
+                !cleanPayerName
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Payer name is required."
+                });
+            }
+
+
+            if (
+                cleanPayerName.length <
+                2
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Payer name is invalid."
+                });
+            }
+
+
+            if (
+                !/^[A-Za-z .'-]+$/.test(
+                    cleanPayerName
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Payer name contains invalid characters."
+                });
+            }
+
+
+            // ==================================================
+            // UTR
+            // EXACTLY 16 DIGITS
+            // ==================================================
+
+            const cleanUTR =
+                cleanText(
+                    utr ||
+                    transactionId
+                );
+
+
+            if (
+                !cleanUTR
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "16-digit UTR / Transaction ID is required."
+                });
+            }
+
+
+            if (
+                !/^\d{16}$/.test(
+                    cleanUTR
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "UTR / Transaction ID must contain exactly 16 digits."
+                });
+            }
+
+
+            // ==================================================
+            // DUPLICATE UTR CHECK
+            // ==================================================
+
+            const existingUTR =
+                await registrationsCollection.findOne({
+
+                    utr:
+                        cleanUTR
+                });
+
+
+            if (
+                existingUTR
+            ) {
+
+                return res.status(409).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "This UTR / Transaction ID has already been submitted.",
+
+                    registrationId:
+                        existingUTR.registrationId
+                });
+            }
+
+
+            // ==================================================
+            // GENERATE REGISTRATION ID
+            // ==================================================
+
+            const registrationId =
+                generateRegistrationCode(
+                    event
+                );
+
+
+            // ==================================================
+            // PARTICIPANT EMAIL
+            // ==================================================
+
+            const payerEmail =
+
+                cleanTeamSize ===
+                "individual"
+
+                    ? (
+                        normalizedParticipant &&
+                        normalizedParticipant.email
+                    )
+
+                    : (
+                        normalizedTeamLeader &&
+                        normalizedTeamLeader.email
+                    );
+
+
+            const payerPhone =
+
+                cleanTeamSize ===
+                "individual"
+
+                    ? (
+                        normalizedParticipant &&
+                        normalizedParticipant.phone
+                    )
+
+                    : (
+                        normalizedTeamLeader &&
+                        normalizedTeamLeader.phone
+                    );
+
+
+            // ==================================================
+            // DATABASE RECORD
+            // ==================================================
+
+            const databaseRecord = {
+
+                registrationId:
+
+
+                    registrationId,
+
+
+                // ------------------------------------------------
+                // EVENT
+                // ------------------------------------------------
+
+                eventId:
+
+                    cleanEventId,
+
+                eventName:
+
+                    event.name,
+
+
+                // ------------------------------------------------
+                // PARTICIPATION
+                // ------------------------------------------------
+
+                participation:
+
+                    cleanTeamSize,
+
+                participantCount:
+
+                    participantCount,
+
+
+                // ------------------------------------------------
+                // INDIVIDUAL
+                // ------------------------------------------------
+
+                participant:
+
+                    cleanTeamSize ===
+                    "individual"
+
+                        ? normalizedParticipant
+
+                        : null,
+
+
+                // ------------------------------------------------
+                // TEAM
+                // ------------------------------------------------
+
+                teamLeader:
+
+                    cleanTeamSize ===
+                    "team"
+
+                        ? normalizedTeamLeader
+
+                        : null,
+
+
+                teamMember:
+
+                    cleanTeamSize ===
+                    "team"
+
+                        ? normalizedTeamMember
+
+                        : null,
+
+
+                teamName:
+
+                    cleanText(
+                        teamName
+                    ),
+
+
+                // ------------------------------------------------
+                // PAYER
+                // ------------------------------------------------
+
+                payerName:
+
+                    cleanPayerName,
+
+                payerEmail:
+
+                    payerEmail ||
+                    null,
+
+                payerPhone:
+
+                    payerPhone ||
+                    null,
+
+
+                // ------------------------------------------------
+                // PAYMENT
+                // ------------------------------------------------
+
+                amount:
+
+                    serverAmount,
+
+                currency:
+
+                    "INR",
+
+                paymentMethod:
+
+                    PAYMENT_CONFIG.method,
+
+                upiId:
+
+                    PAYMENT_CONFIG.upiId,
+
+                utr:
+
+                    cleanUTR,
+
+                transactionId:
+
+                    cleanUTR,
+
+
+                // ------------------------------------------------
+                // PAYMENT STATUS
+                // ------------------------------------------------
+
+                paymentStatus:
+
+                    "SUBMITTED",
+
+
+                // ------------------------------------------------
+                // VERIFICATION
+                // ------------------------------------------------
 
                 verificationStatus:
+
                     "PENDING",
 
+                verificationReason:
+
+                    null,
+
                 verifiedAt:
+
                     null,
 
                 verifiedBy:
+
                     null,
 
 
-                // ==================================================
-                // ACKNOWLEDGEMENT EMAIL
-                // ==================================================
+                // ------------------------------------------------
+                // ACKNOWLEDGEMENT
+                // ------------------------------------------------
 
                 acknowledgementSent:
+
                     false,
 
                 acknowledgementSentAt:
+
                     null,
 
 
-                // ==================================================
+                // ------------------------------------------------
                 // TIMESTAMPS
-                // ==================================================
+                // ------------------------------------------------
 
                 createdAt:
+
                     new Date(),
 
                 updatedAt:
-                    new Date()
 
+                    new Date()
             };
 
 
             // ==================================================
-            // SAVE REGISTRATION TO MONGODB
+            // INSERT INTO MONGODB
             // ==================================================
 
             await registrationsCollection.insertOne(
@@ -1890,7 +1867,7 @@ app.post(
 
 
             // ==================================================
-            // SERVER CONSOLE
+            // SERVER LOG
             // ==================================================
 
             console.log(
@@ -1898,7 +1875,7 @@ app.post(
             );
 
             console.log(
-                "✅ PAYMENT VERIFIED"
+                "✅ REGISTRATION SAVED"
             );
 
             console.log(
@@ -1910,23 +1887,31 @@ app.post(
             );
 
             console.log(
-                `Payment ID: ${razorpay_payment_id}`
+                `Participation: ${cleanTeamSize}`
             );
 
             console.log(
-                "Payment Status: PAID"
+                `Participants: ${participantCount}`
+            );
+
+            console.log(
+                `Amount: ₹${serverAmount}`
+            );
+
+            console.log(
+                `Payer: ${cleanPayerName}`
+            );
+
+            console.log(
+                `UTR: ${cleanUTR}`
+            );
+
+            console.log(
+                "Payment Status: SUBMITTED"
             );
 
             console.log(
                 "Verification Status: PENDING"
-            );
-
-            console.log(
-                "Acknowledgement Email: NOT SENT"
-            );
-
-            console.log(
-                "MongoDB Save: SUCCESS"
             );
 
             console.log(
@@ -1935,47 +1920,60 @@ app.post(
 
 
             // ==================================================
-            // RESPONSE TO FRONTEND
+            // RESPONSE
             // ==================================================
 
-            return res.json({
+            return res.status(201).json({
 
-                success: true,
+                success:
+                    true,
 
                 message:
-                    "Payment verified and registration submitted for manual verification.",
+                    "Registration submitted successfully. Payment is pending manual verification.",
 
                 registrationId:
+
                     registrationId,
 
-                paymentId:
-                    razorpay_payment_id,
+                event:
 
-                orderId:
-                    razorpay_order_id,
+                    event.name,
+
+                amount:
+
+                    serverAmount,
+
+                currency:
+
+                    "INR",
+
+                paymentMethod:
+
+                    "UPI",
+
+                utr:
+
+                    cleanUTR,
 
                 paymentStatus:
-                    "PAID",
+
+                    "SUBMITTED",
 
                 verificationStatus:
+
                     "PENDING",
 
                 acknowledgementSent:
-                    false
 
+                    false
             });
 
         }
 
-
-        // ======================================================
-        // ERROR
-        // ======================================================
-
         catch (error) {
 
             console.error(
-                "❌ Payment verification / registration error:"
+                "❌ Registration error:"
             );
 
             console.error(
@@ -1983,48 +1981,111 @@ app.post(
             );
 
 
+            if (
+                error &&
+                error.code === 11000
+            ) {
+
+                return res.status(409).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "This UTR / Registration ID already exists."
+                });
+            }
+
+
             return res.status(500).json({
 
-                success: false,
+                success:
+                    false,
 
                 message:
-                    "Payment was received, but the registration could not be saved. Please contact the event coordinator."
-
+                    "Unable to save registration. Please try again."
             });
-
         }
-
     }
-
 );
+
+
 // ============================================================
-// ADMIN — GET PENDING REGISTRATIONS
-// ============================================================
-//
-// This endpoint is protected.
-// Only a logged-in administrator can access it.
-//
-// The Admin Dashboard calls this endpoint to display
-// registrations waiting for manual verification.
-//
+// MODULE 18 — ADMIN: GET ALL REGISTRATIONS
 // ============================================================
 
 app.get(
-
     "/api/admin/registrations",
-
     requireAdmin,
-
     async (req, res) => {
 
         try {
 
-            // ==================================================
-            // FETCH PENDING REGISTRATIONS
-            // ==================================================
+            await connectDatabase();
+
 
             const registrations =
+                await registrationsCollection
 
+                    .find({})
+
+                    .sort({
+                        createdAt: -1
+                    })
+
+                    .toArray();
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                count:
+                    registrations.length,
+
+                registrations:
+                    registrations
+            });
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Admin registration fetch error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to load registrations."
+            });
+        }
+    }
+);
+
+
+// ============================================================
+// MODULE 19 — ADMIN: GET PENDING REGISTRATIONS
+// ============================================================
+
+app.get(
+    "/api/admin/pending",
+    requireAdmin,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const registrations =
                 await registrationsCollection
 
                     .find({
@@ -2044,10 +2105,6 @@ app.get(
                     .toArray();
 
 
-            // ==================================================
-            // SEND RESPONSE
-            // ==================================================
-
             return res.json({
 
                 success:
@@ -2058,24 +2115,15 @@ app.get(
 
                 registrations:
                     registrations
-
             });
 
         }
 
-
-        // ======================================================
-        // ERROR
-        // ======================================================
-
         catch (error) {
 
             console.error(
-
-                "Admin registration fetch error:",
-
+                "Pending registration error:",
                 error
-
             );
 
 
@@ -2085,170 +2133,147 @@ app.get(
                     false,
 
                 message:
-                    "Unable to load registrations."
-
+                    "Unable to load pending registrations."
             });
-
         }
-
     }
-
 );
+
+
 // ============================================================
-// ACKNOWLEDGEMENT EMAIL FUNCTION
+// MODULE 20 — EMAIL TRANSPORTER
 // ============================================================
-//
-// This function sends the participant an email after the
-// administrator verifies the registration.
-//
-// It does NOT send an email when payment is made.
-// The email is sent ONLY after admin verification.
-//
+
+const emailTransporter =
+    nodemailer.createTransport({
+
+        host:
+            process.env.SMTP_HOST ||
+            "smtp.gmail.com",
+
+        port:
+            Number(
+                process.env.SMTP_PORT ||
+                465
+            ),
+
+        secure:
+            process.env.SMTP_SECURE !==
+            "false",
+
+        auth: {
+
+            user:
+                process.env.SMTP_USER,
+
+            pass:
+                process.env.SMTP_PASS
+        }
+    });
+
+
+// ============================================================
+// MODULE 21 — ACKNOWLEDGEMENT EMAIL
 // ============================================================
 
 async function sendAcknowledgementEmail(
     registration
 ) {
 
-    // ========================================================
-    // CHECK PARTICIPANT EMAIL
-    // ========================================================
+    const recipient =
+        registration.payerEmail;
+
 
     if (
-        !registration.payerEmail
+        !recipient
     ) {
 
         throw new Error(
             "Participant email address is missing."
         );
-
     }
 
 
-    // ========================================================
-    // PARTICIPANT NAMES
-    // ========================================================
+    // ----------------------------------------------------------
+    // GET PARTICIPANTS
+    // ----------------------------------------------------------
 
-    let participantNames =
-        "Participant";
+    const participantList = [];
 
 
     if (
-        Array.isArray(
-            registration.participants
-        ) &&
-        registration.participants.length > 0
+        registration.participant
     ) {
 
-        participantNames =
-
-            registration.participants
-
-                .map(
-                    participant =>
-                        participant.name ||
-                        "Participant"
-                )
-
-                .join(", ");
-
+        participantList.push(
+            registration.participant
+        );
     }
 
 
-    // ========================================================
-    // PAYMENT AMOUNT
-    // ========================================================
+    if (
+        registration.teamLeader
+    ) {
+
+        participantList.push(
+            registration.teamLeader
+        );
+    }
+
+
+    if (
+        registration.teamMember
+    ) {
+
+        participantList.push(
+            registration.teamMember
+        );
+    }
+
+
+    const participantNames =
+
+        participantList.length > 0
+
+            ? participantList
+                .map(
+                    participant =>
+                        participant.fullName ||
+                        participant.name ||
+                        "Participant"
+                )
+                .join(", ")
+
+            : "Participant";
+
 
     const amount =
-
-        registration.amount !== undefined &&
-        registration.amount !== null
+        registration.amount != null
 
             ? `₹${registration.amount}`
 
             : "—";
 
 
-    // ========================================================
-    // FROM NAME
-    // ========================================================
-
     const fromName =
-
         process.env.EMAIL_FROM_NAME ||
-
         "SPARK 2026";
 
 
-    // ========================================================
-    // SENDER EMAIL
-    // ========================================================
-
-    const fromEmail =
-        process.env.SMTP_USER;
-
-
-    // ========================================================
-    // EVENT INFORMATION
-    // ========================================================
-
-    const eventDate =
-
-        registration.eventDate ||
-
-        "As announced";
-
-
-    const eventTime =
-
-        registration.eventTime ||
-
-        "As announced";
-
-
-    const eventVenue =
-
-        registration.eventVenue ||
-
-        "Sathyabama Institute of Science and Technology";
-
-
-    // ========================================================
+    // ----------------------------------------------------------
     // SEND EMAIL
-    // ========================================================
+    // ----------------------------------------------------------
 
     await emailTransporter.sendMail({
 
-        // ----------------------------------------------------
-        // FROM
-        // ----------------------------------------------------
-
         from:
-
-            `"${fromName}" <${fromEmail}>`,
-
-
-        // ----------------------------------------------------
-        // TO
-        // ----------------------------------------------------
+            `"${fromName}" <${process.env.SMTP_USER}>`,
 
         to:
-
-            registration.payerEmail,
-
-
-        // ----------------------------------------------------
-        // SUBJECT
-        // ----------------------------------------------------
+            recipient,
 
         subject:
-
-            `SPARK 2026 - Registration Confirmed | ${registration.eventName}`,
-
-
-        // ====================================================
-        // PLAIN TEXT VERSION
-        // ====================================================
+            `SPARK 2026 — Registration Confirmed | ${registration.eventName}`,
 
         text:
 
@@ -2257,565 +2282,392 @@ async function sendAcknowledgementEmail(
 Your registration for SPARK 2026 has been successfully verified by the event administration team.
 
 REGISTRATION DETAILS
-------------------------------------------
-
+--------------------------------
 Registration ID : ${registration.registrationId}
-
 Event           : ${registration.eventName}
-
 Participation   : ${registration.participation || "—"}
-
 Team Name       : ${registration.teamName || "—"}
-
 Participants    : ${participantNames}
 
-
-EVENT INFORMATION
-------------------------------------------
-
-Date            : ${eventDate}
-
-Time            : ${eventTime}
-
-Venue           : ${eventVenue}
-
-
 PAYMENT DETAILS
-------------------------------------------
-
+--------------------------------
 Amount          : ${amount}
+Payment Method  : ${registration.paymentMethod || "UPI"}
+UPI ID          : ${registration.upiId || PAYMENT_CONFIG.upiId}
+UTR             : ${registration.utr || "—"}
+Payment Status  : VERIFIED
 
-Payment Status  : ${registration.paymentStatus || "PAID"}
-
-Payment ID      : ${registration.razorpayPaymentId || "—"}
-
-
-Your registration has now been officially verified.
+Your participation is now officially confirmed.
 
 Please keep your Registration ID safely for future reference.
 
 We look forward to welcoming you to SPARK 2026.
 
 Regards,
-
 SPARK 2026 Organising Team
-
 Department of Electronics and Communication Engineering
-
 Sathyabama Institute of Science and Technology
+Chennai`,
 
-Chennai
-`,
+        html:
 
-
-        // ====================================================
-        // HTML VERSION
-        // ====================================================
-
-        html: `
-
+`
 <!DOCTYPE html>
 
 <html>
 
 <head>
 
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-    <title>
-        SPARK 2026 Registration Confirmation
-    </title>
+<title>
+SPARK 2026 Registration Confirmation
+</title>
 
 </head>
 
 
 <body
-    style="
-        margin:0;
-        padding:0;
-        background:#f4f8ff;
-        font-family:Arial,Helvetica,sans-serif;
-        color:#16213e;
-    "
+style="
+margin:0;
+padding:0;
+background:#f4f8ff;
+font-family:Arial,Helvetica,sans-serif;
+color:#16213e;
+"
 >
 
 
-    <div
-        style="
-            max-width:650px;
-            margin:40px auto;
-            background:#ffffff;
-            border-radius:16px;
-            overflow:hidden;
-            box-shadow:0 10px 30px rgba(14,42,82,0.12);
-        "
-    >
-
-
-        <!-- ============================================
-             HEADER
-             ============================================ -->
+<div
+style="
+max-width:650px;
+margin:40px auto;
+background:#ffffff;
+border-radius:16px;
+overflow:hidden;
+box-shadow:0 10px 30px rgba(14,42,82,0.12);
+"
+>
+
 
-        <div
-            style="
-                background:linear-gradient(
-                    135deg,
-                    #081833,
-                    #1565c0
-                );
-                padding:30px;
-                text-align:center;
-                color:#ffffff;
-            "
-        >
+<!-- HEADER -->
 
-            <h1
-                style="
-                    margin:0;
-                    font-size:32px;
-                    letter-spacing:1px;
-                "
-            >
-                SPARK 2026
-            </h1>
+<div
+style="
+background:#081833;
+padding:30px;
+text-align:center;
+color:#ffffff;
+"
+>
 
+<h1
+style="
+margin:0;
+font-size:32px;
+"
+>
+SPARK 2026
+</h1>
 
-            <p
-                style="
-                    margin:8px 0 0;
-                    color:#dce8fa;
-                    font-size:16px;
-                "
-            >
-                Registration Confirmation
-            </p>
 
-        </div>
+<p
+style="
+margin:8px 0 0;
+color:#dce8fa;
+"
+>
+Registration Confirmation
+</p>
 
+</div>
 
 
-        <!-- ============================================
-             CONTENT
-             ============================================ -->
+<!-- BODY -->
 
-        <div
-            style="
-                padding:35px;
-            "
-        >
+<div
+style="
+padding:35px;
+"
+>
 
+<p>
+Dear
+<strong>
+${registration.payerName || "Participant"}
+</strong>,
+</p>
 
-            <p>
 
-                Dear
+<p>
 
-                <strong>
-                    ${registration.payerName || "Participant"}
-                </strong>,
+Your registration for
+<strong>
+SPARK 2026
+</strong>
 
-            </p>
+has been successfully verified by
+the event administration team.
 
+</p>
 
-            <p>
 
-                Your registration for
+<!-- REGISTRATION DETAILS -->
 
-                <strong>
-                    SPARK 2026
-                </strong>
+<div
+style="
+margin-top:25px;
+padding:22px;
+background:#f4f8ff;
+border-radius:12px;
+"
+>
 
-                has been successfully verified by
-                the event administration team.
+<h2
+style="
+color:#1565c0;
+"
+>
+Registration Details
+</h2>
 
-            </p>
 
+<p>
+<strong>
+Registration ID:
+</strong>
 
+${registration.registrationId}
 
-            <!-- ========================================
-                 REGISTRATION DETAILS
-                 ======================================== -->
+</p>
 
-            <div
-                style="
-                    margin-top:25px;
-                    padding:22px;
-                    background:#f4f8ff;
-                    border-radius:12px;
-                "
-            >
 
-                <h2
-                    style="
-                        margin-top:0;
-                        color:#1565c0;
-                        font-size:20px;
-                    "
-                >
-                    Registration Details
-                </h2>
+<p>
+<strong>
+Event:
+</strong>
 
+${registration.eventName}
 
-                <p>
+</p>
 
-                    <strong>
-                        Registration ID:
-                    </strong>
 
-                    ${registration.registrationId}
+<p>
+<strong>
+Participation:
+</strong>
 
-                </p>
+${registration.participation || "—"}
 
+</p>
 
-                <p>
 
-                    <strong>
-                        Event:
-                    </strong>
+<p>
+<strong>
+Team Name:
+</strong>
 
-                    ${registration.eventName}
+${registration.teamName || "—"}
 
-                </p>
+</p>
 
 
-                <p>
+<p>
+<strong>
+Participants:
+</strong>
 
-                    <strong>
-                        Participation:
-                    </strong>
+${participantNames}
 
-                    ${registration.participation || "—"}
+</p>
 
-                </p>
+</div>
 
 
-                <p>
+<!-- PAYMENT DETAILS -->
 
-                    <strong>
-                        Team Name:
-                    </strong>
+<div
+style="
+margin-top:20px;
+padding:22px;
+background:#f7fff8;
+border-radius:12px;
+"
+>
 
-                    ${registration.teamName || "—"}
+<h2
+style="
+color:#15803d;
+"
+>
+Payment Details
+</h2>
 
-                </p>
 
+<p>
+<strong>
+Amount:
+</strong>
 
-                <p>
+${amount}
 
-                    <strong>
-                        Participants:
-                    </strong>
+</p>
 
-                    ${participantNames}
 
-                </p>
+<p>
+<strong>
+Payment Method:
+</strong>
 
-            </div>
+${registration.paymentMethod || "UPI"}
 
+</p>
 
 
-            <!-- ========================================
-                 EVENT INFORMATION
-                 ======================================== -->
+<p>
+<strong>
+UTR:
+</strong>
 
-            <div
-                style="
-                    margin-top:20px;
-                    padding:22px;
-                    border:1px solid #e1e7f2;
-                    border-radius:12px;
-                "
-            >
+${registration.utr || "—"}
 
-                <h2
-                    style="
-                        margin-top:0;
-                        color:#1565c0;
-                        font-size:20px;
-                    "
-                >
-                    Event Information
-                </h2>
+</p>
 
 
-                <p>
+<p>
+<strong>
+Payment Status:
+</strong>
 
-                    <strong>
-                        Date:
-                    </strong>
+VERIFIED
 
-                    ${eventDate}
+</p>
 
-                </p>
+</div>
 
 
-                <p>
+<p
+style="
+margin-top:25px;
+"
+>
 
-                    <strong>
-                        Time:
-                    </strong>
+Your participation is now
+<strong>
+officially confirmed.
+</strong>
 
-                    ${eventTime}
+</p>
 
-                </p>
 
+<p>
 
-                <p>
+Please keep your
+<strong>
+Registration ID
+</strong>
+safe for future reference.
 
-                    <strong>
-                        Venue:
-                    </strong>
+</p>
 
-                    ${eventVenue}
 
-                </p>
+<p>
 
-            </div>
+We look forward to welcoming you
+to SPARK 2026.
 
+</p>
 
 
-            <!-- ========================================
-                 PAYMENT INFORMATION
-                 ======================================== -->
+<p>
 
-            <div
-                style="
-                    margin-top:20px;
-                    padding:22px;
-                    background:#f4f8ff;
-                    border-radius:12px;
-                "
-            >
+Regards,<br>
 
-                <h2
-                    style="
-                        margin-top:0;
-                        color:#1565c0;
-                        font-size:20px;
-                    "
-                >
-                    Payment Details
-                </h2>
+<strong>
+SPARK 2026 Organising Team
+</strong>
+<br>
 
+Department of Electronics and Communication Engineering
+<br>
 
-                <p>
+Sathyabama Institute of Science and Technology
+<br>
 
-                    <strong>
-                        Amount:
-                    </strong>
+Chennai
 
-                    ${amount}
+</p>
 
-                </p>
+</div>
 
-
-                <p>
-
-                    <strong>
-                        Payment Status:
-                    </strong>
-
-                    ${registration.paymentStatus || "PAID"}
-
-                </p>
-
-
-                <p>
-
-                    <strong>
-                        Payment ID:
-                    </strong>
-
-                    ${registration.razorpayPaymentId || "—"}
-
-                </p>
-
-            </div>
-
-
-
-            <!-- ========================================
-                 VERIFIED MESSAGE
-                 ======================================== -->
-
-            <div
-                style="
-                    margin-top:25px;
-                    padding:18px;
-                    background:#ecfdf5;
-                    border:1px solid #a7f3d0;
-                    border-radius:10px;
-                    color:#065f46;
-                    text-align:center;
-                "
-            >
-
-                <strong>
-
-                    ✓ Registration Verified Successfully
-
-                </strong>
-
-            </div>
-
-
-
-            <p
-                style="
-                    margin-top:28px;
-                "
-            >
-
-                Please keep your
-
-                <strong>
-                    Registration ID
-                </strong>
-
-                safely for future reference.
-
-            </p>
-
-
-            <p>
-
-                We look forward to welcoming you
-                to <strong>SPARK 2026</strong>.
-
-            </p>
-
-
-
-            <!-- ========================================
-                 SIGNATURE
-                 ======================================== -->
-
-            <p
-                style="
-                    margin-top:30px;
-                    line-height:1.7;
-                "
-            >
-
-                Regards,
-
-                <br>
-
-                <strong>
-                    SPARK 2026 Organising Team
-                </strong>
-
-                <br>
-
-                Department of Electronics and
-                Communication Engineering
-
-                <br>
-
-                Sathyabama Institute of Science
-                and Technology
-
-                <br>
-
-                Chennai
-
-            </p>
-
-        </div>
-
-
-
-        <!-- ============================================
-             FOOTER
-             ============================================ -->
-
-        <div
-            style="
-                padding:18px;
-                text-align:center;
-                background:#081833;
-                color:#dce8fa;
-                font-size:12px;
-            "
-        >
-
-            SPARK 2026 · Department of ECE
-
-        </div>
-
-
-    </div>
-
+</div>
 
 </body>
 
 </html>
-
 `
-
     });
-
 }
+
+
 // ============================================================
-// ADMIN — VERIFY REGISTRATION
-// ============================================================
-//
-// Flow:
-//
-// Admin clicks VERIFY
-//        ↓
-// Registration → VERIFIED
-//        ↓
-// Acknowledgement email sent
-//        ↓
-// acknowledgementSent → true
-//
-// If email fails:
-//
-// Registration remains VERIFIED
-// acknowledgementSent remains false
-//
-// This allows the email to be retried later.
-//
+// MODULE 22 — ADMIN: VERIFY PAYMENT
 // ============================================================
 
 app.post(
-
-    "/api/admin/registrations/:registrationId/verify",
-
+    "/api/admin/verify",
     requireAdmin,
-
     async (req, res) => {
 
         try {
 
-            // ==================================================
-            // GET REGISTRATION ID
-            // ==================================================
+            await connectDatabase();
+
 
             const registrationId =
+                cleanText(
+                    req.body.registrationId
+                );
 
-                req.params.registrationId;
+
+            const adminName =
+                cleanText(
+                    req.admin.username ||
+                    req.body.adminName
+                ) ||
+                "Admin";
 
 
-            // ==================================================
+            if (
+                !registrationId
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration ID is required."
+                });
+            }
+
+
+            // ------------------------------------------------
             // FIND REGISTRATION
-            // ==================================================
+            // ------------------------------------------------
 
             const registration =
-
                 await registrationsCollection.findOne({
 
                     registrationId:
                         registrationId
-
                 });
 
 
-            // ==================================================
-            // REGISTRATION NOT FOUND
-            // ==================================================
-
-            if (!registration) {
+            if (
+                !registration
+            ) {
 
                 return res.status(404).json({
 
@@ -2824,26 +2676,17 @@ app.post(
 
                     message:
                         "Registration not found."
-
                 });
-
             }
 
 
-            // ==================================================
-            // ALREADY VERIFIED + EMAIL ALREADY SENT
-            // ==================================================
+            // ------------------------------------------------
+            // ALREADY VERIFIED
+            // ------------------------------------------------
 
             if (
-
                 registration.verificationStatus ===
-                    "VERIFIED"
-
-                &&
-
-                registration.acknowledgementSent ===
-                    true
-
+                "VERIFIED"
             ) {
 
                 return res.json({
@@ -2852,38 +2695,40 @@ app.post(
                         true,
 
                     message:
-                        "Registration is already verified and acknowledgement email has already been sent.",
+                        "Registration is already verified.",
 
                     registrationId:
                         registrationId,
+
+                    paymentStatus:
+                        "VERIFIED",
 
                     verificationStatus:
                         "VERIFIED",
 
                     acknowledgementSent:
-                        true
-
+                        registration.acknowledgementSent === true
                 });
-
             }
 
 
-            // ==================================================
-            // VERIFY REGISTRATION
-            // ==================================================
+            // ------------------------------------------------
+            // UPDATE PAYMENT STATUS FIRST
+            // ------------------------------------------------
 
             await registrationsCollection.updateOne(
 
                 {
-
                     registrationId:
                         registrationId
-
                 },
 
                 {
 
                     $set: {
+
+                        paymentStatus:
+                            "VERIFIED",
 
                         verificationStatus:
                             "VERIFIED",
@@ -2892,56 +2737,59 @@ app.post(
                             new Date(),
 
                         verifiedBy:
-                            req.admin.username,
+                            adminName,
 
                         updatedAt:
                             new Date()
-
                     }
-
                 }
-
             );
 
 
-            // ==================================================
+            // ------------------------------------------------
             // GET UPDATED REGISTRATION
-            // ==================================================
+            // ------------------------------------------------
 
             const verifiedRegistration =
-
                 await registrationsCollection.findOne({
 
                     registrationId:
                         registrationId
-
                 });
 
 
-            // ==================================================
+            // ------------------------------------------------
             // SEND ACKNOWLEDGEMENT EMAIL
-            // ==================================================
+            // ------------------------------------------------
+
+            let acknowledgementSent =
+                false;
+
+
+            let emailMessage =
+                "Acknowledgement email not sent.";
+
 
             try {
 
                 await sendAcknowledgementEmail(
-
                     verifiedRegistration
-
                 );
 
 
-                // ==================================================
-                // EMAIL SUCCESS
-                // ==================================================
+                acknowledgementSent =
+                    true;
+
+
+                emailMessage =
+                    "Acknowledgement email sent successfully.";
+
 
                 await registrationsCollection.updateOne(
 
                     {
-
                         registrationId:
                             registrationId
-
                     },
 
                     {
@@ -2956,160 +2804,88 @@ app.post(
 
                             updatedAt:
                                 new Date()
-
                         }
-
                     }
-
                 );
-
-
-                // ==================================================
-                // CONSOLE LOG
-                // ==================================================
-
-                console.log(
-                    "=========================================="
-                );
-
-
-                console.log(
-                    "✅ REGISTRATION VERIFIED BY ADMIN"
-                );
-
-
-                console.log(
-
-                    `Registration ID: ${registrationId}`
-
-                );
-
-
-                console.log(
-
-                    `Verified By: ${req.admin.username}`
-
-                );
-
-
-                console.log(
-                    "Acknowledgement Email: SENT"
-                );
-
-
-                console.log(
-
-                    `Email: ${verifiedRegistration.payerEmail}`
-
-                );
-
-
-                console.log(
-                    "=========================================="
-                );
-
-
-                // ==================================================
-                // RESPONSE
-                // ==================================================
-
-                return res.json({
-
-                    success:
-                        true,
-
-                    message:
-                        "Registration verified and acknowledgement email sent successfully.",
-
-                    registrationId:
-                        registrationId,
-
-                    verificationStatus:
-                        "VERIFIED",
-
-                    acknowledgementSent:
-                        true
-
-                });
 
             }
-
-
-            // ======================================================
-            // EMAIL ERROR
-            // ======================================================
 
             catch (emailError) {
 
                 console.error(
-                    "❌ Acknowledgement email failed:"
-                );
-
-
-                console.error(
+                    "⚠️ Acknowledgement email error:",
                     emailError
                 );
 
 
-                // ==================================================
-                // IMPORTANT
-                // ==================================================
-                //
-                // The registration stays VERIFIED.
-                //
-                // We do NOT change it back to PENDING.
-                //
-                // acknowledgementSent remains false.
-                //
-                // This allows us to retry the email later.
-                //
-
-                console.log(
-                    "⚠️ Registration remains VERIFIED."
-                );
-
-
-                console.log(
-                    "⚠️ Acknowledgement email can be retried."
-                );
-
-
-                return res.json({
-
-                    success:
-                        true,
-
-                    message:
-                        "Registration verified successfully, but the acknowledgement email could not be sent.",
-
-                    registrationId:
-                        registrationId,
-
-                    verificationStatus:
-                        "VERIFIED",
-
-                    acknowledgementSent:
-                        false
-
-                });
-
+                emailMessage =
+                    "Payment verified, but acknowledgement email could not be sent.";
             }
 
+
+            // ------------------------------------------------
+            // LOG
+            // ------------------------------------------------
+
+            console.log(
+                "=========================================="
+            );
+
+            console.log(
+                "✅ PAYMENT VERIFIED"
+            );
+
+            console.log(
+                `Registration: ${registrationId}`
+            );
+
+            console.log(
+                `Verified By: ${adminName}`
+            );
+
+            console.log(
+                `Acknowledgement Email: ${
+                    acknowledgementSent
+                        ? "SENT"
+                        : "NOT SENT"
+                }`
+            );
+
+            console.log(
+                "=========================================="
+            );
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    "Payment verified successfully.",
+
+                emailMessage:
+                    emailMessage,
+
+                registrationId:
+                    registrationId,
+
+                paymentStatus:
+                    "VERIFIED",
+
+                verificationStatus:
+                    "VERIFIED",
+
+                acknowledgementSent:
+                    acknowledgementSent
+            });
+
         }
-
-
-        // ======================================================
-        // GENERAL ERROR
-        // ======================================================
 
         catch (error) {
 
             console.error(
-                "Admin verification error:"
-            );
-
-
-            console.error(
+                "Admin verification error:",
                 error
             );
 
@@ -3120,46 +2896,398 @@ app.post(
                     false,
 
                 message:
-                    "Unable to verify registration."
+                    "Unable to verify payment."
+            });
+        }
+    }
+);
 
+
+// ============================================================
+// MODULE 23 — ADMIN: REJECT PAYMENT
+// ============================================================
+
+app.post(
+    "/api/admin/reject",
+    requireAdmin,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const registrationId =
+                cleanText(
+                    req.body.registrationId
+                );
+
+
+            const adminName =
+                cleanText(
+                    req.admin.username ||
+                    req.body.adminName
+                ) ||
+                "Admin";
+
+
+            const reason =
+                cleanText(
+                    req.body.reason
+                ) ||
+                "Payment could not be verified.";
+
+
+            if (
+                !registrationId
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration ID is required."
+                });
+            }
+
+
+            const registration =
+                await registrationsCollection.findOne({
+
+                    registrationId:
+                        registrationId
+                });
+
+
+            if (
+                !registration
+            ) {
+
+                return res.status(404).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration not found."
+                });
+            }
+
+
+            // ------------------------------------------------
+            // UPDATE
+            // ------------------------------------------------
+
+            await registrationsCollection.updateOne(
+
+                {
+                    registrationId:
+                        registrationId
+                },
+
+                {
+
+                    $set: {
+
+                        paymentStatus:
+                            "REJECTED",
+
+                        verificationStatus:
+                            "REJECTED",
+
+                        verificationReason:
+                            reason,
+
+                        verifiedAt:
+                            new Date(),
+
+                        verifiedBy:
+                            adminName,
+
+                        acknowledgementSent:
+                            false,
+
+                        acknowledgementSentAt:
+                            null,
+
+                        updatedAt:
+                            new Date()
+                    }
+                }
+            );
+
+
+            console.log(
+                "=========================================="
+            );
+
+            console.log(
+                "❌ PAYMENT REJECTED"
+            );
+
+            console.log(
+                `Registration: ${registrationId}`
+            );
+
+            console.log(
+                `Reason: ${reason}`
+            );
+
+            console.log(
+                `Rejected By: ${adminName}`
+            );
+
+            console.log(
+                "=========================================="
+            );
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    "Payment rejected.",
+
+                registrationId:
+                    registrationId,
+
+                paymentStatus:
+                    "REJECTED",
+
+                verificationStatus:
+                    "REJECTED"
             });
 
         }
 
+        catch (error) {
+
+            console.error(
+                "Admin rejection error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to reject payment."
+            });
+        }
+    }
+);
+
+
+// ============================================================
+// MODULE 24 — GET SINGLE REGISTRATION
+// ============================================================
+
+app.get(
+    "/api/registration/:registrationId",
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const registrationId =
+                cleanText(
+                    req.params.registrationId
+                );
+
+
+            if (
+                !registrationId
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration ID is required."
+                });
+            }
+
+
+            const registration =
+                await registrationsCollection.findOne({
+
+                    registrationId:
+                        registrationId
+                });
+
+
+            if (
+                !registration
+            ) {
+
+                return res.status(404).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration not found."
+                });
+            }
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                registration:
+                    registration
+            });
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Registration lookup error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to retrieve registration."
+            });
+        }
+    }
+);
+
+
+// ============================================================
+// MODULE 25 — 404 HANDLER
+// ============================================================
+
+app.use(
+    (req, res) => {
+
+        return res.status(404).json({
+
+            success:
+                false,
+
+            message:
+                "API endpoint not found."
+        });
+    }
+);
+
+
+// ============================================================
+// MODULE 26 — GLOBAL ERROR HANDLER
+// ============================================================
+
+app.use(
+    (
+        error,
+        req,
+        res,
+        next
+    ) => {
+
+        console.error(
+            "Unhandled server error:"
+        );
+
+        console.error(
+            error
+        );
+
+
+        return res.status(500).json({
+
+            success:
+                false,
+
+            message:
+                "Internal server error."
+        });
+    }
+);
+
+
+// ============================================================
+// MODULE 27 — GRACEFUL SHUTDOWN
+// ============================================================
+
+async function shutdown(
+    signal
+) {
+
+    console.log(
+        `\n${signal} received. Shutting down...`
+    );
+
+
+    try {
+
+        await mongoClient.close();
+
+
+        console.log(
+            "✅ MongoDB connection closed."
+        );
+
+
+        process.exit(0);
+
     }
 
+    catch (error) {
+
+        console.error(
+            "❌ Shutdown error:",
+            error
+        );
+
+
+        process.exit(1);
+    }
+}
+
+
+process.on(
+    "SIGINT",
+    () => shutdown("SIGINT")
 );
+
+
+process.on(
+    "SIGTERM",
+    () => shutdown("SIGTERM")
+);
+
+
 // ============================================================
-// START SERVER
+// MODULE 28 — START SERVER
 // ============================================================
 
 async function startServer() {
 
     try {
 
-        // ========================================================
-        // CONNECT TO MONGODB
-        // ========================================================
-
         await connectDatabase();
 
-
-        // ========================================================
-        // VERIFY EMAIL CONFIGURATION
-        // ========================================================
-        //
-        // This only checks whether the SMTP server can be
-        // contacted.
-        //
-        // It DOES NOT send an email.
-        //
-
-        await verifyEmailTransporter();
-
-
-        // ========================================================
-        // START EXPRESS SERVER
-        // ========================================================
 
         app.listen(
 
@@ -3171,121 +3299,47 @@ async function startServer() {
                     "=========================================="
                 );
 
-
                 console.log(
-                    `SPARK 2026 server running on http://localhost:${PORT}`
+                    `🚀 SPARK 2026 server running on port ${PORT}`
                 );
 
-
                 console.log(
-                    "MongoDB: CONNECTED"
+                    "✅ MongoDB: CONNECTED"
                 );
 
+                console.log(
+                    "✅ Payment: UPI"
+                );
 
-                // ------------------------------------------------
-                // RAZORPAY STATUS
-                // ------------------------------------------------
+                console.log(
+                    "✅ UTR: EXACTLY 16 DIGITS"
+                );
 
-                if (
+                console.log(
+                    `✅ UPI ID: ${PAYMENT_CONFIG.upiId}`
+                );
 
-                    process.env.RAZORPAY_KEY_ID &&
+                console.log(
+                    "✅ Manual verification: ENABLED"
+                );
 
-                    process.env.RAZORPAY_KEY_SECRET
-
-                ) {
-
-                    console.log(
-                        "Razorpay: READY"
-                    );
-
-                }
-
-                else {
-
-                    console.log(
-                        "Razorpay: NOT CONFIGURED"
-                    );
-
-                }
-
-
-                // ------------------------------------------------
-                // ADMIN STATUS
-                // ------------------------------------------------
-
-                if (
-
-                    process.env.ADMIN_USERNAME &&
-
-                    process.env.ADMIN_PASSWORD_HASH &&
-
-                    process.env.JWT_SECRET
-
-                ) {
-
-                    console.log(
-                        "Admin Authentication: READY"
-                    );
-
-                }
-
-                else {
-
-                    console.log(
-                        "Admin Authentication: NOT CONFIGURED"
-                    );
-
-                }
-
-
-                // ------------------------------------------------
-                // EMAIL STATUS
-                // ------------------------------------------------
-
-                if (
-
-                    process.env.SMTP_USER &&
-
-                    process.env.SMTP_PASS
-
-                ) {
-
-                    console.log(
-                        "Acknowledgement Email: CONFIGURED"
-                    );
-
-                }
-
-                else {
-
-                    console.log(
-                        "Acknowledgement Email: NOT CONFIGURED"
-                    );
-
-                }
-
+                console.log(
+                    "✅ Admin authentication: ENABLED"
+                );
 
                 console.log(
                     "=========================================="
                 );
-
             }
-
         );
 
     }
 
-
-    // ==========================================================
-    // SERVER STARTUP ERROR
-    // ==========================================================
-
     catch (error) {
 
         console.error(
-            "❌ Server startup failed:"
+            "❌ Failed to start server:"
         );
-
 
         console.error(
             error
@@ -3293,51 +3347,12 @@ async function startServer() {
 
 
         process.exit(1);
-
     }
-
 }
 
 
 // ============================================================
-// VERCEL DATABASE INITIALIZATION
+// START SERVER
 // ============================================================
 
-if (process.env.VERCEL) {
-
-    connectDatabase()
-        .then(() => {
-            return verifyEmailTransporter();
-        })
-        .then(() => {
-            console.log("✅ Vercel server initialized.");
-            console.log("✅ MongoDB: CONNECTED");
-            console.log("✅ Email: READY");
-        })
-        .catch((error) => {
-            console.error(
-                "❌ Vercel initialization failed:"
-            );
-
-            console.error(error);
-        });
-
-}
-
-
-// ============================================================
-// START APPLICATION
-// ============================================================
-
-// Vercel needs the Express app to be exported.
-// Local development still uses app.listen().
-
-if (process.env.VERCEL) {
-
-    module.exports = app;
-
-} else {
-
-    startServer();
-
-}
+startServer();

@@ -10,9 +10,43 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>
-        SPARK 2026 | Admin Dashboard
-    </title>
+    <meta
+        name="description"
+        content="SPARK 2026 Admin Dashboard"
+    >
+
+    <meta
+        name="theme-color"
+        content="#071a33"
+    >
+
+    <title>SPARK 2026 | Admin Dashboard</title>
+
+
+    <!-- =====================================================
+         GOOGLE FONTS
+         ===================================================== -->
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <!-- =====================================================
+         ADMIN DASHBOARD CSS
+         ===================================================== -->
 
     <link
         rel="stylesheet"
@@ -28,51 +62,70 @@
          HEADER
          ===================================================== -->
 
-    <header class="admin-header">
+    <header class="dashboard-header">
 
-        <div class="brand">
-
-            <div class="brand-logo">
-                S
-            </div>
-
-            <div>
-
-                <h1>
-                    SPARK 2026
-                </h1>
-
-                <p>
-                    Admin Control Panel
-                </p>
-
-            </div>
-
-        </div>
+        <div class="header-inner">
 
 
-        <div class="header-right">
+            <!-- BRAND -->
 
-            <div class="admin-info">
+            <div class="dashboard-brand">
 
-                <span class="admin-label">
-                    Logged in as
-                </span>
+                <img
+                    src="images/sathyabama-logo.png"
+                    alt="Sathyabama Institute of Science and Technology"
+                    class="brand-logo"
+                >
 
-                <strong id="adminUsername">
-                    Admin
-                </strong>
+                <div class="brand-text">
+
+                    <h1>
+                        SPARK 2026
+                    </h1>
+
+                    <p>
+                        Administrator Dashboard
+                    </p>
+
+                </div>
 
             </div>
 
 
-            <button
-                id="logoutButton"
-                class="logout-button"
-                type="button"
-            >
-                Logout
-            </button>
+            <!-- ADMIN AREA -->
+
+            <div class="admin-area">
+
+                <div class="admin-user">
+
+                    <div class="admin-icon">
+                        👤
+                    </div>
+
+                    <div>
+
+                        <small>
+                            Logged in as
+                        </small>
+
+                        <strong id="adminUsername">
+                            Administrator
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="logoutButton"
+                    class="logout-button"
+                >
+                    Logout
+                </button>
+
+            </div>
 
         </div>
 
@@ -83,108 +136,49 @@
          MAIN DASHBOARD
          ===================================================== -->
 
-    <main class="dashboard-container">
+    <main class="dashboard-main">
 
 
         <!-- =================================================
-             PAGE TITLE
+             PAGE HEADING
              ================================================= -->
 
         <section class="page-heading">
 
             <div>
 
+                <div class="eyebrow">
+                    SPARK 2026 · ADMINISTRATION
+                </div>
+
                 <h2>
-                    Registration Management
+                    Registration Verification
                 </h2>
 
                 <p>
-                    Review participant payments and manually verify registrations.
+                    Review and verify participant registrations
+                    after successful payment.
                 </p>
 
             </div>
 
 
-            <button
-                id="refreshButton"
-                class="refresh-button"
-                type="button"
-            >
-                ↻ Refresh
-            </button>
+            <!-- PENDING COUNT -->
 
-        </section>
+            <div class="pending-stat">
 
+                <span class="pending-stat-label">
+                    Pending Verification
+                </span>
 
-        <!-- =================================================
-             STATISTICS
-             ================================================= -->
-
-        <section class="stats-grid">
-
-
-            <div class="stat-card">
-
-                <div class="stat-icon">
-                    ⏳
-                </div>
-
-                <div>
-
-                    <span>
-                        Pending Verification
-                    </span>
-
-                    <strong id="pendingCount">
-                        0
-                    </strong>
-
-                </div>
+                <span
+                    id="pendingCount"
+                    class="pending-stat-number"
+                >
+                    0
+                </span>
 
             </div>
-
-
-            <div class="stat-card">
-
-                <div class="stat-icon">
-                    🎯
-                </div>
-
-                <div>
-
-                    <span>
-                        Events
-                    </span>
-
-                    <strong>
-                        4
-                    </strong>
-
-                </div>
-
-            </div>
-
-
-            <div class="stat-card">
-
-                <div class="stat-icon">
-                    ₹
-                </div>
-
-                <div>
-
-                    <span>
-                        Fee / Participant
-                    </span>
-
-                    <strong>
-                        ₹200
-                    </strong>
-
-                </div>
-
-            </div>
-
 
         </section>
 
@@ -196,19 +190,43 @@
         <div
             id="dashboardMessage"
             class="dashboard-message"
+            role="status"
+            aria-live="polite"
         >
-            Loading registrations...
+            Checking administrator session...
         </div>
 
 
         <!-- =================================================
-             REGISTRATION LIST
+             TOOLBAR
+             ================================================= -->
+
+        <div class="dashboard-toolbar">
+
+            <button
+                type="button"
+                id="refreshButton"
+                class="refresh-button"
+            >
+                ↻ Refresh
+            </button>
+
+        </div>
+
+
+        <!-- =================================================
+             REGISTRATIONS
              ================================================= -->
 
         <section
             id="registrationsContainer"
-            class="registrations-container"
+            aria-label="Pending registrations"
         >
+
+            <!--
+                JavaScript dynamically inserts
+                registration cards here.
+            -->
 
         </section>
 
@@ -223,6 +241,9 @@
     <div
         id="detailsModal"
         class="modal hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
     >
 
         <div class="modal-box">
@@ -232,23 +253,14 @@
 
             <div class="modal-header">
 
-                <div>
-
-                    <span class="modal-small-title">
-                        Registration
-                    </span>
-
-                    <h2>
-                        Full Details
-                    </h2>
-
-                </div>
-
+                <h2 id="modalTitle">
+                    Registration Details
+                </h2>
 
                 <button
-                    id="closeModal"
-                    class="close-button"
                     type="button"
+                    id="closeModal"
+                    class="close-modal"
                     aria-label="Close"
                 >
                     ×
@@ -259,10 +271,12 @@
 
             <!-- MODAL CONTENT -->
 
-            <div
-                id="modalContent"
-                class="modal-content"
-            >
+            <div id="modalContent">
+
+                <!--
+                    JavaScript dynamically inserts
+                    registration details here.
+                -->
 
             </div>
 
@@ -273,7 +287,7 @@
 
 
     <!-- =====================================================
-         JAVASCRIPT
+         ADMIN DASHBOARD JAVASCRIPT
          ===================================================== -->
 
     <script src="admin-dashboard.js"></script>

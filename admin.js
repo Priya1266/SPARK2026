@@ -2,200 +2,588 @@
 // SPARK 2026 — ADMIN LOGIN
 // ============================================================
 
+// IMPORTANT:
+// Use the SAME backend URL as admin-dashboard.js.
+//
+// Frontend:
+// http://localhost:5500
+//
+// Backend:
+// http://localhost:3000
+// ============================================================
+
 const BACKEND_URL =
-    "http://127.0.0.1:3000";
+    "http://localhost:3000";
 
 
 // ============================================================
-// ELEMENTS
+// GET LOGIN FORM
 // ============================================================
+
+// Supports either:
+// id="adminLoginForm"
+// or
+// id="loginForm"
 
 const loginForm =
-    document.getElementById("adminLoginForm");
+    document.getElementById(
+        "adminLoginForm"
+    ) ||
+    document.getElementById(
+        "loginForm"
+    );
 
-const loginMessage =
-    document.getElementById("loginMessage");
+
+// ============================================================
+// GET USERNAME INPUT
+// ============================================================
+
+// Supports common IDs.
+
+const usernameInput =
+    document.getElementById(
+        "username"
+    ) ||
+    document.getElementById(
+        "adminUsername"
+    ) ||
+    document.getElementById(
+        "adminUsernameInput"
+    );
+
+
+// ============================================================
+// GET PASSWORD INPUT
+// ============================================================
+
+const passwordInput =
+    document.getElementById(
+        "password"
+    ) ||
+    document.getElementById(
+        "adminPassword"
+    ) ||
+    document.getElementById(
+        "adminPasswordInput"
+    );
+
+
+// ============================================================
+// GET LOGIN BUTTON
+// ============================================================
 
 const loginButton =
-    document.getElementById("loginButton");
+    document.getElementById(
+        "loginButton"
+    ) ||
+    document.getElementById(
+        "adminLoginButton"
+    );
 
 
 // ============================================================
-// LOGIN
+// GET MESSAGE ELEMENT
 // ============================================================
 
-loginForm.addEventListener(
-    "submit",
-    async function (event) {
-
-        event.preventDefault();
-
-
-        // --------------------------------------------------------
-        // GET INPUT VALUES
-        // --------------------------------------------------------
-
-        const username =
-            document
-                .getElementById("adminUsername")
-                .value
-                .trim();
-
-        const password =
-            document
-                .getElementById("adminPassword")
-                .value;
+const loginMessage =
+    document.getElementById(
+        "loginMessage"
+    ) ||
+    document.getElementById(
+        "errorMessage"
+    ) ||
+    document.getElementById(
+        "adminMessage"
+    );
 
 
-        // --------------------------------------------------------
-        // VALIDATION
-        // --------------------------------------------------------
+// ============================================================
+// SHOW MESSAGE
+// ============================================================
 
-        if (!username || !password) {
+function showMessage(
+    message,
+    type = "error"
+) {
 
-            loginMessage.textContent =
-                "Please enter username and password.";
+    if (!loginMessage) {
 
-            loginMessage.style.color =
-                "#dc2626";
+        console.log(
+            message
+        );
 
-            return;
-        }
+        return;
+    }
 
 
-        // --------------------------------------------------------
-        // LOGIN STATE
-        // --------------------------------------------------------
+    loginMessage.textContent =
+        message;
 
-        loginMessage.textContent =
-            "Logging in...";
+
+    loginMessage.style.display =
+        "block";
+
+
+    if (
+        type === "success"
+    ) {
 
         loginMessage.style.color =
-            "#2563eb";
+            "#16a34a";
 
-        loginButton.disabled =
-            true;
+    }
+
+    else {
+
+        loginMessage.style.color =
+            "#dc2626";
+    }
+}
 
 
-        try {
+// ============================================================
+// CHECK EXISTING ADMIN SESSION
+// ============================================================
 
-            // ====================================================
-            // SEND LOGIN REQUEST
-            // ====================================================
+async function checkExistingSession() {
 
-            const response =
-                await fetch(
-                    `${BACKEND_URL}/api/admin/login`,
-                    {
-                        method: "POST",
+    try {
 
-                        credentials: "include",
+        console.log(
+            "Checking existing admin session..."
+        );
 
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
 
-                        body:
-                            JSON.stringify({
-                                username: username,
-                                password: password
-                            })
+        const response =
+            await fetch(
+                `${BACKEND_URL}/api/admin/session`,
+                {
+                    method: "GET",
+
+                    // IMPORTANT
+                    credentials: "include",
+
+                    headers: {
+                        "Accept":
+                            "application/json"
                     }
-                );
+                }
+            );
 
 
-            // ====================================================
-            // READ RESPONSE
-            // ====================================================
+        if (
+            response.ok
+        ) {
 
             const data =
                 await response.json();
 
 
-            console.log(
-                "Admin login response:",
-                data
+            if (
+                data.success
+            ) {
+
+                console.log(
+                    "Existing admin session found."
+                );
+
+
+                // Already logged in.
+                // Go directly to dashboard.
+
+                window.location.href =
+                    "admin-dashboard.html";
+
+                return true;
+            }
+        }
+
+    }
+
+    catch (error) {
+
+        console.log(
+            "No existing admin session."
+        );
+    }
+
+
+    return false;
+}
+
+
+// ============================================================
+// ADMIN LOGIN
+// ============================================================
+
+async function loginAdmin(
+    event
+) {
+
+    event.preventDefault();
+
+
+    // --------------------------------------------------------
+    // GET VALUES
+    // --------------------------------------------------------
+
+    const username =
+        usernameInput
+            ? usernameInput.value.trim()
+            : "";
+
+    const password =
+        passwordInput
+            ? passwordInput.value
+            : "";
+
+
+    // --------------------------------------------------------
+    // VALIDATE
+    // --------------------------------------------------------
+
+    if (!username) {
+
+        showMessage(
+            "Please enter your username."
+        );
+
+        if (usernameInput) {
+
+            usernameInput.focus();
+        }
+
+        return;
+    }
+
+
+    if (!password) {
+
+        showMessage(
+            "Please enter your password."
+        );
+
+        if (passwordInput) {
+
+            passwordInput.focus();
+        }
+
+        return;
+    }
+
+
+    // --------------------------------------------------------
+    // DISABLE LOGIN BUTTON
+    // --------------------------------------------------------
+
+    if (loginButton) {
+
+        loginButton.disabled =
+            true;
+
+        loginButton.textContent =
+            "Logging in...";
+    }
+
+
+    showMessage(
+        "Authenticating...",
+        "success"
+    );
+
+
+    try {
+
+        console.log(
+            "Sending admin login request..."
+        );
+
+
+        // ====================================================
+        // LOGIN REQUEST
+        // ====================================================
+
+        const response =
+            await fetch(
+                `${BACKEND_URL}/api/admin/login`,
+                {
+                    method: "POST",
+
+                    // IMPORTANT
+                    credentials: "include",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        "Accept":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        username:
+                            username,
+
+                        password:
+                            password
+                    })
+                }
             );
 
 
-            // ====================================================
-            // LOGIN FAILED
-            // ====================================================
+        console.log(
+            "Login HTTP status:",
+            response.status
+        );
 
-            if (
-                !response.ok ||
-                !data.success
-            ) {
 
-                loginMessage.textContent =
-                    data.message ||
-                    "Invalid username or password.";
+        // ====================================================
+        // READ SERVER RESPONSE
+        // ====================================================
 
-                loginMessage.style.color =
-                    "#dc2626";
+        const data =
+            await response.json();
+
+
+        console.log(
+            "Login response:",
+            data
+        );
+
+
+        // ====================================================
+        // LOGIN FAILED
+        // ====================================================
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            showMessage(
+                data.message ||
+                "Invalid username or password."
+            );
+
+
+            if (loginButton) {
 
                 loginButton.disabled =
                     false;
 
-                return;
+                loginButton.textContent =
+                    "LOGIN";
             }
 
 
-            // ====================================================
-            // LOGIN SUCCESS
-            // ====================================================
-
-            loginMessage.textContent =
-                "Login successful! Opening dashboard...";
-
-            loginMessage.style.color =
-                "#16a34a";
-
-
-            // ----------------------------------------------------
-            // Give browser a moment to store the cookie
-            // ----------------------------------------------------
-
-            await new Promise(
-                resolve =>
-                    setTimeout(resolve, 300)
-            );
-
-
-            // ====================================================
-            // OPEN ADMIN DASHBOARD
-            // ====================================================
-
-            window.location.replace(
-                "admin-dashboard.html"
-            );
-
+            return;
         }
 
 
-        // ========================================================
-        // NETWORK / SERVER ERROR
-        // ========================================================
+        // ====================================================
+        // LOGIN SUCCESS
+        // ====================================================
 
-        catch (error) {
+        showMessage(
+            "Login successful. Opening dashboard...",
+            "success"
+        );
 
-            console.error(
-                "Admin login error:",
-                error
+
+        console.log(
+            "Admin login successful."
+        );
+
+
+        // ====================================================
+        // VERIFY THAT COOKIE SESSION WORKS
+        // ====================================================
+        //
+        // This is an extra safety check.
+        //
+        // The backend creates the HTTP-only
+        // spark_admin_token cookie during login.
+        //
+        // We immediately call /session to make
+        // sure the browser is actually sending it.
+        // ====================================================
+
+        const sessionResponse =
+            await fetch(
+                `${BACKEND_URL}/api/admin/session`,
+                {
+                    method: "GET",
+
+                    // VERY IMPORTANT
+                    credentials: "include",
+
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    }
+                }
             );
 
 
-            loginMessage.textContent =
-                "Unable to connect to the server. Make sure server.js is running.";
+        console.log(
+            "Session verification status:",
+            sessionResponse.status
+        );
 
-            loginMessage.style.color =
-                "#dc2626";
 
+        const sessionData =
+            await sessionResponse.json();
+
+
+        console.log(
+            "Session verification response:",
+            sessionData
+        );
+
+
+        // ====================================================
+        // COOKIE / SESSION FAILED
+        // ====================================================
+
+        if (
+            !sessionResponse.ok ||
+            !sessionData.success
+        ) {
+
+            showMessage(
+                "Login succeeded, but the admin session cookie was not accepted. Please use http://localhost:5500 and try again."
+            );
+
+
+            if (loginButton) {
+
+                loginButton.disabled =
+                    false;
+
+                loginButton.textContent =
+                    "LOGIN";
+            }
+
+
+            return;
+        }
+
+
+        // ====================================================
+        // EVERYTHING IS GOOD
+        // ====================================================
+
+        console.log(
+            "Admin session verified successfully."
+        );
+
+
+        window.location.href =
+            "admin-dashboard.html";
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Admin login error:",
+            error
+        );
+
+
+        showMessage(
+            "Unable to connect to the backend server. Please make sure server.js is running on port 3000."
+        );
+
+
+        if (loginButton) {
 
             loginButton.disabled =
                 false;
-        }
 
+            loginButton.textContent =
+                "LOGIN";
+        }
     }
-);
+}
+
+
+// ============================================================
+// LOGIN FORM EVENT
+// ============================================================
+
+if (loginForm) {
+
+    loginForm.addEventListener(
+        "submit",
+        loginAdmin
+    );
+
+}
+
+else {
+
+    console.error(
+        "Admin login form not found."
+    );
+}
+
+
+// ============================================================
+// ENTER KEY SUPPORT
+// ============================================================
+
+if (usernameInput) {
+
+    usernameInput.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key ===
+                "Enter"
+            ) {
+
+                if (passwordInput) {
+
+                    passwordInput.focus();
+                }
+            }
+        }
+    );
+}
+
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+
+async function initializeAdminLogin() {
+
+    console.log(
+        "========================================"
+    );
+
+    console.log(
+        "SPARK 2026 ADMIN LOGIN"
+    );
+
+    console.log(
+        "Backend:",
+        BACKEND_URL
+    );
+
+    console.log(
+        "========================================"
+    );
+
+
+    await checkExistingSession();
+}
+
+
+// ============================================================
+// START
+// ============================================================
+
+initializeAdminLogin();

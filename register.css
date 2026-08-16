@@ -1,541 +1,630 @@
-/* ============================================================
-   SPARK 2026 — REGISTRATION PAGE
-   register.css
-   ============================================================ */
+
+/* =========================================================
+   SPARK 2026 REGISTRATION
+   COMPLETE REGISTER.CSS
+   ========================================================= */
 
 
-/* ============================================================
-   ROOT VARIABLES
-   ============================================================ */
+/* =========================================================
+   1. GLOBAL RESET
+   ========================================================= */
 
-:root {
-
-    --navy: #0B2347;
-    --navy-dark: #07172F;
-
-    --blue: #1565C0;
-    --blue-light: #1E88E5;
-
-    --gold: #C99A2E;
-    --gold-light: #F3E3BB;
-
-    --white: #FFFFFF;
-    --bg: #F4F7FC;
-
-    --text: #17233C;
-    --muted: #667085;
-
-    --border: #E1E7F0;
-
-    --success: #16845B;
-    --error: #D64545;
-
-    --shadow-sm:
-        0 5px 20px rgba(11, 35, 71, 0.07);
-
-    --shadow-md:
-        0 12px 35px rgba(11, 35, 71, 0.10);
-
-    --shadow-lg:
-        0 20px 55px rgba(11, 35, 71, 0.14);
-
-    --radius: 18px;
-
-}
-
-
-/* ============================================================
-   RESET
-   ============================================================ */
-
-*,
-*::before,
-*::after {
-
+* {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
-
 }
 
 
 html {
-
     scroll-behavior: smooth;
-
 }
 
 
 body {
-
-    margin: 0;
-
-    background: var(--bg);
-
-    color: var(--text);
-
     font-family:
-        Inter,
+        "Inter",
+        "Segoe UI",
         Arial,
         sans-serif;
 
-    line-height: 1.6;
+    background:
+        #f5f7fb;
 
-    -webkit-font-smoothing: antialiased;
+    color:
+        #172033;
 
+    min-height:
+        100vh;
+
+    line-height:
+        1.6;
 }
 
 
 button,
 input,
-select,
-textarea {
-
-    font-family: inherit;
-
+select {
+    font-family:
+        inherit;
 }
 
 
 button {
-
-    cursor: pointer;
-
+    cursor:
+        pointer;
 }
 
 
 button:disabled {
+    cursor:
+        not-allowed;
 
-    cursor: not-allowed;
-
+    opacity:
+        0.55;
 }
 
 
 a {
+    text-decoration:
+        none;
 
-    text-decoration: none;
-
+    color:
+        inherit;
 }
 
 
-/* ============================================================
-   HEADER
-   ============================================================ */
+img {
+    max-width:
+        100%;
+
+    display:
+        block;
+}
+
+
+.hidden {
+    display:
+        none !important;
+}
+
+
+/* =========================================================
+   2. HEADER
+   ========================================================= */
 
 .register-header {
-
-    position: sticky;
-
-    top: 0;
-
-    z-index: 1000;
+    width:
+        100%;
 
     background:
-        rgba(255, 255, 255, 0.96);
+        #101828;
 
-    backdrop-filter:
-        blur(12px);
+    color:
+        #ffffff;
 
-    border-bottom:
-        1px solid var(--border);
+    position:
+        relative;
 
+    z-index:
+        10;
+
+    box-shadow:
+        0 4px 20px rgba(16, 24, 40, 0.12);
 }
 
 
 .header-container {
+    width:
+        min(1180px, 92%);
 
-    width: 92%;
+    min-height:
+        76px;
 
-    max-width: 1200px;
+    margin:
+        0 auto;
 
-    min-height: 72px;
+    display:
+        flex;
 
-    margin: 0 auto;
+    align-items:
+        center;
 
-    display: flex;
+    justify-content:
+        space-between;
 
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 20px;
-
+    gap:
+        20px;
 }
 
 
-/* ============================================================
-   BACK BUTTON
-   ============================================================ */
-
 .back-btn {
+    display:
+        inline-flex;
 
-    display: inline-flex;
+    align-items:
+        center;
 
-    align-items: center;
+    gap:
+        8px;
 
-    gap: 8px;
+    color:
+        #d0d5dd;
 
-    color: var(--blue);
+    font-size:
+        14px;
 
-    font-size: 14px;
-
-    font-weight: 700;
+    font-weight:
+        600;
 
     transition:
-        color 0.2s ease,
-        transform 0.2s ease;
-
+        0.2s ease;
 }
 
 
 .back-btn:hover {
-
-    color: var(--navy);
+    color:
+        #ffffff;
 
     transform:
         translateX(-3px);
-
 }
 
 
-/* ============================================================
-   BRAND
-   ============================================================ */
-
 .register-brand {
+    display:
+        flex;
 
-    display: flex;
+    align-items:
+        center;
 
-    align-items: center;
+    gap:
+        10px;
 
-    gap: 9px;
+    font-size:
+        22px;
 
-    font-weight: 800;
+    font-weight:
+        800;
 
+    letter-spacing:
+        0.5px;
 }
 
 
 .brand-icon {
+    width:
+        38px;
 
-    width: 34px;
+    height:
+        38px;
 
-    height: 34px;
+    border-radius:
+        10px;
 
-    display: grid;
+    display:
+        flex;
 
-    place-items: center;
+    align-items:
+        center;
 
-    border-radius: 10px;
+    justify-content:
+        center;
 
     background:
-        linear-gradient(
-            135deg,
-            var(--gold),
-            #E5BD58
-        );
+        #ffb703;
 
-    color: var(--navy);
+    color:
+        #101828;
 
-    font-size: 19px;
-
-}
-
-
-.brand-name {
-
-    color: var(--navy);
-
-    font-size: 21px;
-
-    letter-spacing: 0.03em;
-
+    font-size:
+        20px;
 }
 
 
 .brand-name span {
-
-    color: var(--gold);
-
-    margin-left: 2px;
-
+    color:
+        #ffb703;
 }
 
 
-/* ============================================================
-   REGISTRATION HERO
-   ============================================================ */
+/* =========================================================
+   3. REGISTRATION HERO
+   ========================================================= */
 
 .registration-hero {
-
-    position: relative;
-
-    overflow: hidden;
-
     background:
         linear-gradient(
             135deg,
-            var(--navy-dark),
-            var(--navy),
-            var(--blue)
+            #101828 0%,
+            #172b4d 100%
         );
 
-    color: var(--white);
+    color:
+        #ffffff;
 
-}
-
-
-.registration-hero::before {
-
-    content: "";
-
-    position: absolute;
-
-    width: 420px;
-
-    height: 420px;
-
-    border-radius: 50%;
-
-    background:
-        rgba(30, 136, 229, 0.18);
-
-    filter: blur(80px);
-
-    top: -230px;
-
-    left: -100px;
-
-}
-
-
-.registration-hero::after {
-
-    content: "";
-
-    position: absolute;
-
-    width: 360px;
-
-    height: 360px;
-
-    border-radius: 50%;
-
-    background:
-        rgba(201, 154, 46, 0.16);
-
-    filter: blur(80px);
-
-    right: -120px;
-
-    bottom: -230px;
-
+    padding:
+        70px 0 85px;
 }
 
 
 .hero-content {
+    width:
+        min(1180px, 92%);
 
-    position: relative;
+    margin:
+        0 auto;
 
-    z-index: 1;
-
-    width: 92%;
-
-    max-width: 1200px;
-
-    margin: 0 auto;
-
-    padding:
-        65px 0 55px;
-
-    text-align: center;
-
+    text-align:
+        center;
 }
 
 
 .hero-label {
-
-    margin: 0 0 10px;
-
-    color: #D6E4F8;
-
-    font-size: 12px;
-
-    font-weight: 800;
-
-    letter-spacing: 0.16em;
-
-}
-
-
-#eventTitle {
-
-    margin: 0;
-
-    font-family:
-        Rajdhani,
-        Inter,
-        Arial,
-        sans-serif;
+    color:
+        #ffb703;
 
     font-size:
-        clamp(
-            38px,
-            6vw,
-            68px
-        );
+        13px;
 
-    line-height: 1.05;
+    font-weight:
+        800;
 
-    font-weight: 800;
+    letter-spacing:
+        2px;
 
+    text-transform:
+        uppercase;
+
+    margin-bottom:
+        12px;
 }
 
 
-#eventSubtitle {
+.hero-content h1 {
+    font-size:
+        clamp(34px, 5vw, 58px);
 
-    max-width: 700px;
+    line-height:
+        1.1;
+
+    font-weight:
+        800;
+
+    margin-bottom:
+        15px;
+}
+
+
+.hero-subtitle {
+    color:
+        #d0d5dd;
+
+    font-size:
+        17px;
+
+    max-width:
+        650px;
 
     margin:
-        15px auto 0;
-
-    color: #D9E5F7;
-
-    font-size:
-        clamp(
-            15px,
-            2vw,
-            19px
-        );
-
+        0 auto 35px;
 }
 
 
-/* ============================================================
-   EVENT INFORMATION
-   ============================================================ */
+/* =========================================================
+   4. EVENT INFORMATION
+   ========================================================= */
 
 .event-info {
-
-    display: grid;
+    display:
+        grid;
 
     grid-template-columns:
         repeat(4, 1fr);
 
-    gap: 14px;
+    gap:
+        15px;
 
-    margin-top: 35px;
-
+    text-align:
+        left;
 }
 
 
 .info-box {
-
-    min-height: 82px;
-
-    padding: 15px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
-    text-align: left;
-
-    border:
-        1px solid
-        rgba(255, 255, 255, 0.14);
-
-    border-radius: 14px;
-
     background:
         rgba(255, 255, 255, 0.08);
 
-    backdrop-filter:
-        blur(10px);
+    border:
+        1px solid rgba(255, 255, 255, 0.12);
 
+    border-radius:
+        14px;
+
+    padding:
+        18px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        13px;
+
+    backdrop-filter:
+        blur(8px);
 }
 
 
 .info-icon {
+    width:
+        40px;
 
-    width: 40px;
+    height:
+        40px;
 
-    height: 40px;
+    flex-shrink:
+        0;
 
-    flex: 0 0 40px;
-
-    display: grid;
-
-    place-items: center;
-
-    border-radius: 10px;
+    border-radius:
+        10px;
 
     background:
-        rgba(255, 255, 255, 0.12);
+        rgba(255, 183, 3, 0.15);
 
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    font-size:
+        18px;
 }
 
 
 .info-box small {
+    display:
+        block;
 
-    display: block;
+    color:
+        #98a2b3;
 
-    margin-bottom: 2px;
+    font-size:
+        11px;
 
-    color: #B9C9DF;
+    font-weight:
+        700;
 
-    font-size: 11px;
+    text-transform:
+        uppercase;
 
-    font-weight: 700;
+    letter-spacing:
+        0.7px;
 
-    text-transform: uppercase;
-
-    letter-spacing: 0.06em;
-
+    margin-bottom:
+        2px;
 }
 
 
 .info-box strong {
+    display:
+        block;
 
-    display: block;
+    color:
+        #ffffff;
 
-    color: white;
+    font-size:
+        14px;
 
-    font-size: 14px;
-
+    line-height:
+        1.4;
 }
 
 
-/* ============================================================
-   COMMON CONTAINERS
-   ============================================================ */
+/* =========================================================
+   5. PROGRESS BAR
+   ========================================================= */
 
-.participation-container,
-.participant-container,
-.review-container,
-.payment-container,
-.success-container {
+.registration-progress {
+    background:
+        #ffffff;
 
-    width: 92%;
+    border-bottom:
+        1px solid #eaecf0;
 
-    max-width: 1050px;
-
-    margin: 0 auto;
-
+    padding:
+        22px 0;
 }
 
 
-/* ============================================================
-   COMMON SECTION
-   ============================================================ */
+.progress-container {
+    width:
+        min(850px, 92%);
+
+    margin:
+        0 auto;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+}
+
+
+.progress-step {
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    align-items:
+        center;
+
+    gap:
+        7px;
+
+    min-width:
+        90px;
+
+    color:
+        #98a2b3;
+
+    transition:
+        0.25s ease;
+}
+
+
+.step-number {
+    width:
+        34px;
+
+    height:
+        34px;
+
+    border-radius:
+        50%;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    border:
+        2px solid #d0d5dd;
+
+    background:
+        #ffffff;
+
+    font-size:
+        13px;
+
+    font-weight:
+        800;
+
+    transition:
+        0.25s ease;
+}
+
+
+.step-label {
+    font-size:
+        11px;
+
+    font-weight:
+        700;
+
+    white-space:
+        nowrap;
+}
+
+
+.progress-step.active {
+    color:
+        #101828;
+}
+
+
+.progress-step.active .step-number {
+    background:
+        #ffb703;
+
+    border-color:
+        #ffb703;
+
+    color:
+        #101828;
+
+    box-shadow:
+        0 0 0 5px rgba(255, 183, 3, 0.15);
+}
+
+
+.progress-step.completed {
+    color:
+        #12b76a;
+}
+
+
+.progress-step.completed .step-number {
+    background:
+        #12b76a;
+
+    border-color:
+        #12b76a;
+
+    color:
+        #ffffff;
+}
+
+
+.progress-line {
+    height:
+        2px;
+
+    flex:
+        1;
+
+    max-width:
+        130px;
+
+    background:
+        #eaecf0;
+
+    margin:
+        0 8px;
+
+    margin-bottom:
+        24px;
+
+    transition:
+        0.25s ease;
+}
+
+
+.progress-line.completed {
+    background:
+        #12b76a;
+}
+
+
+/* =========================================================
+   6. COMMON SECTION STYLES
+   ========================================================= */
 
 .participation-section,
 .participant-section,
 .review-section,
 .payment-section,
 .success-section {
-
     padding:
-        65px 0;
+        70px 0;
+}
 
+
+.participation-container,
+.participant-container,
+.review-container,
+.payment-container,
+.success-container {
+    width:
+        min(1050px, 92%);
+
+    margin:
+        0 auto;
 }
 
 
@@ -544,26 +633,41 @@ a {
 .review-heading,
 .payment-heading,
 .success-heading {
+    text-align:
+        center;
 
-    margin-bottom: 35px;
-
+    margin-bottom:
+        42px;
 }
 
 
 .section-tag {
+    display:
+        inline-block;
 
-    display: inline-block;
+    color:
+        #b77900;
 
-    margin-bottom: 8px;
+    background:
+        #fff4cc;
 
-    color: var(--gold);
+    border-radius:
+        50px;
 
-    font-size: 11px;
+    padding:
+        5px 12px;
 
-    font-weight: 800;
+    font-size:
+        11px;
 
-    letter-spacing: 0.14em;
+    font-weight:
+        800;
 
+    letter-spacing:
+        1px;
+
+    margin-bottom:
+        12px;
 }
 
 
@@ -572,26 +676,17 @@ a {
 .review-heading h2,
 .payment-heading h2,
 .success-heading h2 {
-
-    margin: 0;
-
-    color: var(--navy);
-
-    font-family:
-        Rajdhani,
-        Inter,
-        Arial,
-        sans-serif;
-
     font-size:
-        clamp(
-            30px,
-            4vw,
-            42px
-        );
+        clamp(28px, 4vw, 40px);
 
-    line-height: 1.1;
+    line-height:
+        1.2;
 
+    color:
+        #101828;
+
+    margin-bottom:
+        10px;
 }
 
 
@@ -600,2198 +695,2477 @@ a {
 .review-heading p,
 .payment-heading p,
 .success-heading p {
+    color:
+        #667085;
+
+    max-width:
+        650px;
 
     margin:
-        10px 0 0;
+        0 auto;
 
-    color: var(--muted);
-
+    font-size:
+        15px;
 }
 
 
-/* ============================================================
-   PARTICIPATION OPTIONS
-   ============================================================ */
+/* =========================================================
+   7. PARTICIPATION CARDS
+   ========================================================= */
 
 .participation-options {
-
-    display: grid;
+    display:
+        grid;
 
     grid-template-columns:
         repeat(2, 1fr);
 
-    gap: 20px;
+    gap:
+        22px;
 
+    max-width:
+        850px;
+
+    margin:
+        0 auto 25px;
 }
 
 
 .participation-card {
+    position:
+        relative;
 
-    position: relative;
-
-    min-height: 240px;
-
-    padding: 28px;
+    text-align:
+        left;
 
     border:
-        2px solid
-        var(--border);
+        2px solid #eaecf0;
 
-    border-radius: 20px;
+    border-radius:
+        20px;
 
-    background: white;
+    background:
+        #ffffff;
 
-    text-align: left;
+    padding:
+        30px;
 
-    color: var(--text);
-
-    box-shadow: var(--shadow-sm);
+    min-height:
+        240px;
 
     transition:
-        transform 0.2s ease,
-        border-color 0.2s ease,
-        box-shadow 0.2s ease;
+        0.25s ease;
 
+    box-shadow:
+        0 5px 20px rgba(16, 24, 40, 0.04);
 }
 
 
-.participation-card:hover:not(.disabled) {
+.participation-card:hover {
+    border-color:
+        #ffb703;
 
     transform:
-        translateY(-4px);
-
-    border-color:
-        var(--blue-light);
+        translateY(-3px);
 
     box-shadow:
-        var(--shadow-md);
-
+        0 12px 30px rgba(16, 24, 40, 0.09);
 }
 
 
 .participation-card.selected,
 .participation-card.active {
-
     border-color:
-        var(--blue);
-
-    box-shadow:
-        0 12px 35px
-        rgba(21, 101, 192, 0.15);
-
-}
-
-
-.participation-card.disabled {
-
-    opacity: 0.45;
-
-    cursor: not-allowed;
+        #ffb703;
 
     background:
-        #F7F8FA;
+        #fffaf0;
 
+    box-shadow:
+        0 0 0 4px rgba(255, 183, 3, 0.1);
 }
 
 
 .selection-check {
+    position:
+        absolute;
 
-    position: absolute;
+    top:
+        18px;
 
-    top: 18px;
+    right:
+        18px;
 
-    right: 18px;
+    width:
+        28px;
 
-    width: 27px;
+    height:
+        28px;
 
-    height: 27px;
+    border-radius:
+        50%;
 
-    display: grid;
+    display:
+        flex;
 
-    place-items: center;
+    align-items:
+        center;
 
-    border:
-        2px solid
-        var(--border);
+    justify-content:
+        center;
 
-    border-radius: 50%;
+    background:
+        #eaecf0;
 
-    color: white;
+    color:
+        #ffffff;
 
-    font-size: 14px;
+    font-size:
+        13px;
 
-    font-weight: 800;
+    opacity:
+        0;
 
+    transition:
+        0.2s ease;
 }
 
 
 .participation-card.selected
-.selection-check,
-.participation-card.active
 .selection-check {
-
-    border-color:
-        var(--blue);
+    opacity:
+        1;
 
     background:
-        var(--blue);
+        #ffb703;
 
+    color:
+        #101828;
 }
 
 
 .participation-icon {
+    width:
+        55px;
 
-    width: 58px;
+    height:
+        55px;
 
-    height: 58px;
-
-    display: grid;
-
-    place-items: center;
-
-    margin-bottom: 18px;
-
-    border-radius: 15px;
+    border-radius:
+        15px;
 
     background:
-        #EAF2FF;
+        #fff4cc;
 
-    font-size: 26px;
+    display:
+        flex;
 
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    font-size:
+        25px;
+
+    margin-bottom:
+        20px;
 }
 
 
-.participation-card h3 {
+.participation-card-content h3 {
+    font-size:
+        23px;
 
-    margin: 0;
+    color:
+        #101828;
 
-    color: var(--navy);
-
-    font-size: 23px;
-
+    margin-bottom:
+        5px;
 }
 
 
-.participation-card p {
+.participation-card-content p {
+    color:
+        #667085;
 
-    margin:
-        6px 0 20px;
+    font-size:
+        14px;
 
-    color: var(--muted);
-
-    font-size: 14px;
-
+    margin-bottom:
+        22px;
 }
 
 
 .participation-bottom {
+    display:
+        flex;
 
-    display: flex;
+    justify-content:
+        space-between;
 
-    align-items: center;
-
-    justify-content: space-between;
-
-    padding-top: 15px;
+    align-items:
+        center;
 
     border-top:
-        1px solid
-        var(--border);
+        1px solid #eaecf0;
 
-}
+    padding-top:
+        16px;
 
+    color:
+        #667085;
 
-.participation-bottom span {
+    font-size:
+        13px;
 
-    color: var(--muted);
-
-    font-size: 13px;
-
-    font-weight: 600;
-
+    font-weight:
+        600;
 }
 
 
 .participation-bottom strong {
+    color:
+        #101828;
 
-    color: var(--blue);
-
-    font-size: 17px;
-
+    font-size:
+        17px;
 }
 
 
-/* ============================================================
-   PARTICIPATION MESSAGE
-   ============================================================ */
+/* =========================================================
+   8. PARTICIPATION MESSAGE
+   ========================================================= */
 
 .participation-message {
+    max-width:
+        850px;
 
-    display: flex;
+    margin:
+        0 auto 30px;
 
-    align-items: flex-start;
-
-    gap: 12px;
-
-    margin-top: 20px;
-
-    padding: 15px 18px;
+    padding:
+        14px 18px;
 
     border:
-        1px solid
-        #DCE8F8;
+        1px solid #d0d5dd;
 
-    border-radius: 13px;
+    border-radius:
+        12px;
 
     background:
-        #F3F7FD;
+        #ffffff;
 
-    color: var(--muted);
+    display:
+        flex;
 
-}
+    gap:
+        10px;
 
+    align-items:
+        flex-start;
 
-.participation-message span {
+    color:
+        #475467;
 
-    flex: 0 0 auto;
-
+    font-size:
+        13px;
 }
 
 
 .participation-message p {
-
-    margin: 0;
-
-    font-size: 14px;
-
+    margin:
+        0;
 }
 
 
-/* ============================================================
-   TEAM NAME
-   ============================================================ */
-
-.team-name-box {
-
-    margin-bottom: 30px;
-
-    padding: 25px;
-
-    border:
-        1px solid
-        var(--border);
-
-    border-radius: 18px;
-
-    background: white;
-
-    box-shadow:
-        var(--shadow-sm);
-
-}
-
-
-.team-name-header {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 15px;
-
-    margin-bottom: 22px;
-
-}
-
-
-.team-name-icon {
-
-    width: 48px;
-
-    height: 48px;
-
-    display: grid;
-
-    place-items: center;
-
-    border-radius: 13px;
-
-    background:
-        #EAF2FF;
-
-    font-size: 22px;
-
-}
-
-
-.team-name-header h3 {
-
-    margin: 0;
-
-    color: var(--navy);
-
-    font-size: 21px;
-
-}
-
-
-.team-name-header p {
-
-    margin: 3px 0 0;
-
-    color: var(--muted);
-
-    font-size: 13px;
-
-}
-
-
-/* ============================================================
-   PARTICIPANT FORMS
-   ============================================================ */
-
-.participant-forms {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 22px;
-
-}
-
-
-.participant-card {
-
-    padding: 28px;
-
-    border:
-        1px solid
-        var(--border);
-
-    border-radius: 18px;
-
-    background: white;
-
-    box-shadow:
-        var(--shadow-sm);
-
-}
-
-
-.participant-card-header {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 16px;
-
-    margin-bottom: 25px;
-
-    padding-bottom: 20px;
-
-    border-bottom:
-        1px solid
-        var(--border);
-
-}
-
-
-.participant-number {
-
-    width: 48px;
-
-    height: 48px;
-
-    flex: 0 0 48px;
-
-    display: grid;
-
-    place-items: center;
-
-    border-radius: 13px;
-
-    background:
-        var(--navy);
-
-    color: white;
-
-    font-size: 15px;
-
-    font-weight: 800;
-
-}
-
-
-.role-badge {
-
-    display: inline-block;
-
-    margin-bottom: 3px;
-
-    color: var(--gold);
-
-    font-size: 10px;
-
-    font-weight: 800;
-
-    letter-spacing: 0.12em;
-
-}
-
-
-.participant-role h3 {
-
-    margin: 0;
-
-    color: var(--navy);
-
-    font-size: 21px;
-
-}
-
-
-.participant-role p {
-
-    margin: 2px 0 0;
-
-    color: var(--muted);
-
-    font-size: 13px;
-
-}
-
-
-/* ============================================================
-   FORM GRID
-   ============================================================ */
-
-.participant-form-grid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(2, 1fr);
-
-    gap: 20px;
-
-}
-
-
-.participant-field {
-
-    display: flex;
-
-    flex-direction: column;
-
-}
-
-
-.participant-field.full {
-
-    grid-column:
-        1 / -1;
-
-}
-
-
-.participant-field label {
-
-    margin-bottom: 7px;
-
-    color: var(--text);
-
-    font-size: 13px;
-
-    font-weight: 700;
-
-}
-
-
-.participant-field label span {
-
-    color: var(--error);
-
-}
-
-
-.participant-field input,
-.participant-field select {
-
-    width: 100%;
-
-    min-height: 48px;
-
-    padding:
-        12px 14px;
-
-    border:
-        1px solid
-        var(--border);
-
-    border-radius: 10px;
-
-    outline: none;
-
-    background: white;
-
-    color: var(--text);
-
-    font-size: 14px;
-
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease;
-
-}
-
-
-.participant-field input::placeholder {
-
-    color: #98A2B3;
-
-}
-
-
-.participant-field input:focus,
-.participant-field select:focus {
-
-    border-color:
-        var(--blue);
-
-    box-shadow:
-        0 0 0 3px
-        rgba(21, 101, 192, 0.10);
-
-}
-
-
-.participant-field input.error,
-.participant-field select.error {
-
-    border-color:
-        var(--error);
-
-    box-shadow:
-        0 0 0 3px
-        rgba(214, 69, 69, 0.08);
-
-}
-
-
-.field-error {
-
-    min-height: 18px;
-
-    margin-top: 4px;
-
-    color: var(--error);
-
-    font-size: 11px;
-
-}
-
-
-/* ============================================================
-   PARTICIPANT SUMMARY
-   ============================================================ */
-
-.participant-summary {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    margin-top: 25px;
-
-    overflow: hidden;
-
-    border:
-        1px solid
-        var(--border);
-
-    border-radius: 15px;
-
-    background: white;
-
-}
-
-
-.participant-summary-item {
-
-    padding:
-        20px;
-
-    border-right:
-        1px solid
-        var(--border);
-
-}
-
-
-.participant-summary-item:last-child {
-
-    border-right: none;
-
-}
-
-
-.participant-summary-item span {
-
-    display: block;
-
-    margin-bottom: 4px;
-
-    color: var(--muted);
-
-    font-size: 12px;
-
-}
-
-
-.participant-summary-item strong {
-
-    color: var(--navy);
-
-    font-size: 19px;
-
-}
-
-
-/* ============================================================
-   COMMON ACTIONS
-   ============================================================ */
+/* =========================================================
+   9. BUTTONS
+   ========================================================= */
 
 .participation-actions,
 .participant-actions,
 .review-actions,
 .payment-actions,
 .success-actions {
+    display:
+        flex;
 
-    display: flex;
+    justify-content:
+        space-between;
 
-    align-items: center;
+    align-items:
+        center;
 
-    justify-content: flex-end;
+    gap:
+        15px;
 
-    gap: 14px;
-
-    margin-top: 30px;
-
+    margin-top:
+        35px;
 }
 
 
 .continue-btn,
 .secondary-btn {
-
-    min-height: 50px;
+    min-height:
+        50px;
 
     padding:
-        13px 23px;
+        0 25px;
 
-    border-radius: 11px;
+    border-radius:
+        11px;
 
-    font-size: 14px;
+    font-size:
+        14px;
 
-    font-weight: 800;
+    font-weight:
+        750;
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    gap:
+        10px;
 
     transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        background 0.2s ease;
-
+        0.2s ease;
 }
 
 
 .continue-btn {
-
-    border: none;
+    border:
+        none;
 
     background:
-        linear-gradient(
-            135deg,
-            var(--blue),
-            var(--navy)
-        );
+        #ffb703;
 
-    color: white;
+    color:
+        #101828;
 
     box-shadow:
-        0 8px 22px
-        rgba(21, 101, 192, 0.20);
-
+        0 6px 15px rgba(255, 183, 3, 0.22);
 }
 
 
 .continue-btn:hover {
+    background:
+        #f0a900;
 
     transform:
         translateY(-2px);
 
     box-shadow:
-        0 12px 28px
-        rgba(21, 101, 192, 0.28);
-
-}
-
-
-.continue-btn span {
-
-    margin-left: 7px;
-
+        0 9px 20px rgba(255, 183, 3, 0.3);
 }
 
 
 .secondary-btn {
-
     border:
-        1px solid
-        var(--border);
+        1px solid #d0d5dd;
 
-    background: white;
+    background:
+        #ffffff;
 
-    color: var(--navy);
-
+    color:
+        #344054;
 }
 
 
 .secondary-btn:hover {
+    border-color:
+        #98a2b3;
 
     background:
-        #F7F9FC;
-
-    border-color:
-        #C8D2E2;
-
+        #f9fafb;
 }
 
 
-/* ============================================================
-   REVIEW EVENT CARD
-   ============================================================ */
+/* =========================================================
+   10. TEAM NAME
+   ========================================================= */
 
-.review-event-card {
-
-    margin-bottom: 22px;
-
-    padding: 25px;
-
-    border-radius: 18px;
-
+.team-name-box {
     background:
-        linear-gradient(
-            135deg,
-            var(--navy),
-            var(--blue)
-        );
+        #ffffff;
 
-    color: white;
+    border:
+        1px solid #eaecf0;
+
+    border-radius:
+        18px;
+
+    padding:
+        25px;
+
+    margin-bottom:
+        25px;
 
     box-shadow:
-        var(--shadow-md);
+        0 5px 20px rgba(16, 24, 40, 0.04);
+}
 
+
+.team-name-header {
+    display:
+        flex;
+
+    align-items:
+        flex-start;
+
+    gap:
+        15px;
+
+    margin-bottom:
+        25px;
+}
+
+
+.team-name-icon {
+    width:
+        48px;
+
+    height:
+        48px;
+
+    flex-shrink:
+        0;
+
+    border-radius:
+        12px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    background:
+        #fff4cc;
+
+    font-size:
+        21px;
+}
+
+
+.team-name-header h3 {
+    font-size:
+        20px;
+
+    color:
+        #101828;
+
+    margin-bottom:
+        3px;
+}
+
+
+.team-name-header p {
+    color:
+        #667085;
+
+    font-size:
+        13px;
+}
+
+
+/* =========================================================
+   11. PARTICIPANT CARDS
+   ========================================================= */
+
+.participant-forms {
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        22px;
+}
+
+
+.participant-card {
+    background:
+        #ffffff;
+
+    border:
+        1px solid #eaecf0;
+
+    border-radius:
+        18px;
+
+    padding:
+        28px;
+
+    box-shadow:
+        0 5px 20px rgba(16, 24, 40, 0.04);
+}
+
+
+.participant-card-header {
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        15px;
+
+    margin-bottom:
+        28px;
+
+    padding-bottom:
+        20px;
+
+    border-bottom:
+        1px solid #eaecf0;
+}
+
+
+.participant-number {
+    width:
+        48px;
+
+    height:
+        48px;
+
+    border-radius:
+        12px;
+
+    background:
+        #101828;
+
+    color:
+        #ffb703;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    font-size:
+        14px;
+
+    font-weight:
+        800;
+}
+
+
+.participant-role h3 {
+    color:
+        #101828;
+
+    font-size:
+        20px;
+
+    margin-top:
+        3px;
+}
+
+
+.participant-role p {
+    color:
+        #667085;
+
+    font-size:
+        13px;
+}
+
+
+.role-badge {
+    color:
+        #b77900;
+
+    background:
+        #fff4cc;
+
+    border-radius:
+        50px;
+
+    padding:
+        3px 8px;
+
+    font-size:
+        9px;
+
+    font-weight:
+        800;
+
+    letter-spacing:
+        0.8px;
+}
+
+
+.participant-form-grid {
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap:
+        20px;
+}
+
+
+/* =========================================================
+   12. FORM FIELDS
+   ========================================================= */
+
+.participant-field,
+.payment-field {
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        7px;
+}
+
+
+.participant-field label,
+.payment-field label {
+    color:
+        #344054;
+
+    font-size:
+        13px;
+
+    font-weight:
+        700;
+}
+
+
+.participant-field label span,
+.payment-field label span {
+    color:
+        #d92d20;
+
+    margin-left:
+        2px;
+}
+
+
+.participant-field input,
+.participant-field select,
+.payment-field input {
+    width:
+        100%;
+
+    min-height:
+        48px;
+
+    border:
+        1px solid #d0d5dd;
+
+    border-radius:
+        10px;
+
+    background:
+        #ffffff;
+
+    padding:
+        0 14px;
+
+    outline:
+        none;
+
+    color:
+        #101828;
+
+    font-size:
+        14px;
+
+    transition:
+        0.2s ease;
+}
+
+
+.participant-field select {
+    cursor:
+        pointer;
+}
+
+
+.participant-field input::placeholder,
+.payment-field input::placeholder {
+    color:
+        #98a2b3;
+}
+
+
+.participant-field input:focus,
+.participant-field select:focus,
+.payment-field input:focus {
+    border-color:
+        #ffb703;
+
+    box-shadow:
+        0 0 0 3px rgba(255, 183, 3, 0.12);
+}
+
+
+.participant-field input.error,
+.participant-field select.error,
+.payment-field input.error {
+    border-color:
+        #f04438;
+
+    box-shadow:
+        0 0 0 3px rgba(240, 68, 56, 0.08);
+}
+
+
+.field-error {
+    min-height:
+        17px;
+
+    color:
+        #d92d20;
+
+    font-size:
+        11px;
+
+    font-weight:
+        600;
+}
+
+
+.field-help {
+    color:
+        #667085;
+
+    font-size:
+        11px;
+}
+
+
+/* =========================================================
+   13. PARTICIPANT SUMMARY
+   ========================================================= */
+
+.participant-summary {
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap:
+        15px;
+
+    margin-top:
+        25px;
+
+    padding:
+        20px;
+
+    background:
+        #ffffff;
+
+    border:
+        1px solid #eaecf0;
+
+    border-radius:
+        15px;
+}
+
+
+.participant-summary-item {
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        3px;
+
+    text-align:
+        center;
+}
+
+
+.participant-summary-item span {
+    color:
+        #667085;
+
+    font-size:
+        11px;
+
+    text-transform:
+        uppercase;
+
+    font-weight:
+        700;
+}
+
+
+.participant-summary-item strong {
+    color:
+        #101828;
+
+    font-size:
+        19px;
+}
+
+
+/* =========================================================
+   14. REVIEW EVENT CARD
+   ========================================================= */
+
+.review-event-card {
+    background:
+        #101828;
+
+    color:
+        #ffffff;
+
+    border-radius:
+        18px;
+
+    padding:
+        25px;
+
+    margin-bottom:
+        20px;
 }
 
 
 .review-event-header {
+    display:
+        flex;
 
-    display: flex;
+    justify-content:
+        space-between;
 
-    align-items: center;
+    align-items:
+        flex-start;
 
-    justify-content: space-between;
+    gap:
+        20px;
 
-    gap: 20px;
-
+    margin-bottom:
+        25px;
 }
 
 
-.review-label {
+.review-label,
+.payment-label {
+    color:
+        #ffb703;
 
-    display: block;
+    font-size:
+        10px;
 
-    margin-bottom: 4px;
+    font-weight:
+        800;
 
-    color: #BFD2EB;
-
-    font-size: 10px;
-
-    font-weight: 800;
-
-    letter-spacing: 0.14em;
-
+    letter-spacing:
+        1.3px;
 }
 
 
 .review-event-header h3 {
+    font-size:
+        24px;
 
-    margin: 0;
-
-    font-size: 25px;
-
+    margin-top:
+        5px;
 }
 
 
 .review-event-status {
+    background:
+        rgba(255, 183, 3, 0.15);
+
+    color:
+        #ffcf5a;
 
     padding:
-        7px 12px;
+        6px 11px;
 
-    border-radius: 20px;
+    border-radius:
+        50px;
 
-    background:
-        rgba(255, 255, 255, 0.12);
+    font-size:
+        11px;
 
-    color: white;
-
-    font-size: 11px;
-
-    font-weight: 700;
-
+    font-weight:
+        700;
 }
 
 
 .review-event-details {
-
-    display: grid;
+    display:
+        grid;
 
     grid-template-columns:
-        repeat(2, 1fr);
+        repeat(3, 1fr);
 
-    gap: 15px;
+    gap:
+        15px;
+}
 
-    margin-top: 20px;
 
-    padding-top: 18px;
+.review-event-item {
+    padding:
+        15px;
 
-    border-top:
-        1px solid
-        rgba(255, 255, 255, 0.14);
+    background:
+        rgba(255, 255, 255, 0.06);
 
+    border-radius:
+        10px;
 }
 
 
 .review-event-item span {
+    display:
+        block;
 
-    display: block;
+    color:
+        #98a2b3;
 
-    color: #BFD2EB;
+    font-size:
+        11px;
 
-    font-size: 11px;
-
+    margin-bottom:
+        4px;
 }
 
 
 .review-event-item strong {
+    font-size:
+        13px;
 
-    display: block;
-
-    margin-top: 3px;
-
-    font-size: 14px;
-
+    color:
+        #ffffff;
 }
 
 
-/* ============================================================
-   REVIEW OVERVIEW
-   ============================================================ */
+/* =========================================================
+   15. REVIEW OVERVIEW
+   ========================================================= */
 
 .review-overview {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(4, 1fr);
-
-    margin-bottom: 35px;
-
-    overflow: hidden;
+    background:
+        #ffffff;
 
     border:
-        1px solid
-        var(--border);
+        1px solid #eaecf0;
 
-    border-radius: 16px;
+    border-radius:
+        16px;
 
-    background: white;
+    overflow:
+        hidden;
 
+    margin-bottom:
+        30px;
 }
 
 
 .review-overview-item {
+    display:
+        flex;
 
-    padding: 20px;
+    align-items:
+        center;
 
-    border-right:
-        1px solid
-        var(--border);
+    justify-content:
+        space-between;
 
+    gap:
+        20px;
+
+    padding:
+        17px 22px;
+
+    border-bottom:
+        1px solid #eaecf0;
 }
 
 
 .review-overview-item:last-child {
-
-    border-right: none;
-
+    border-bottom:
+        none;
 }
 
 
 .review-overview-item span {
+    color:
+        #667085;
 
-    display: block;
-
-    margin-bottom: 5px;
-
-    color: var(--muted);
-
-    font-size: 11px;
-
+    font-size:
+        13px;
 }
 
 
 .review-overview-item strong {
+    color:
+        #101828;
 
-    color: var(--navy);
+    font-size:
+        14px;
 
-    font-size: 17px;
-
+    text-align:
+        right;
 }
 
 
 .review-overview-item.total {
-
     background:
-        #F5F8FD;
-
+        #fffaf0;
 }
 
 
 .review-overview-item.total strong {
+    color:
+        #b77900;
 
-    color: var(--blue);
-
-    font-size: 20px;
-
+    font-size:
+        20px;
 }
 
 
-/* ============================================================
-   REVIEW PARTICIPANTS
-   ============================================================ */
+/* =========================================================
+   16. REVIEW PARTICIPANTS
+   ========================================================= */
 
 .review-participants-section {
-
-    margin-top: 25px;
-
+    margin-top:
+        30px;
 }
 
 
 .review-section-title {
+    display:
+        flex;
 
-    display: flex;
+    align-items:
+        flex-end;
 
-    align-items: flex-end;
+    justify-content:
+        space-between;
 
-    justify-content: space-between;
+    gap:
+        20px;
 
-    gap: 20px;
-
-    margin-bottom: 18px;
-
+    margin-bottom:
+        18px;
 }
 
 
 .review-section-title h3 {
+    color:
+        #101828;
 
-    margin: 0;
+    font-size:
+        22px;
 
-    color: var(--navy);
-
-    font-size: 24px;
-
+    margin-top:
+        3px;
 }
 
 
 .review-section-title > strong {
+    color:
+        #667085;
 
-    color: var(--muted);
-
-    font-size: 13px;
-
+    font-size:
+        12px;
 }
 
 
 .review-participants {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 18px;
-
-}
-
-
-.review-participant-card {
-
-    display: grid;
-
-    grid-template-columns:
-        60px 1fr;
-
-    gap: 18px;
-
-    padding: 24px;
-
-    border:
-        1px solid
-        var(--border);
-
-    border-radius: 17px;
-
-    background: white;
-
-    box-shadow:
-        var(--shadow-sm);
-
-}
-
-
-.review-number {
-
-    width: 50px;
-
-    height: 50px;
-
-    display: grid;
-
-    place-items: center;
-
-    border-radius: 13px;
-
-    background:
-        #EAF2FF;
-
-    color: var(--blue);
-
-    font-size: 14px;
-
-    font-weight: 800;
-
-}
-
-
-.review-info-header {
-
-    display: flex;
-
-    align-items: flex-start;
-
-    justify-content: space-between;
-
-    gap: 20px;
-
-    margin-bottom: 18px;
-
-}
-
-
-.review-role {
-
-    display: block;
-
-    margin-bottom: 3px;
-
-    color: var(--gold);
-
-    font-size: 10px;
-
-    font-weight: 800;
-
-    letter-spacing: 0.12em;
-
-}
-
-
-.review-info-header h4 {
-
-    margin: 0;
-
-    color: var(--navy);
-
-    font-size: 20px;
-
-}
-
-
-.review-status {
-
-    padding:
-        5px 9px;
-
-    border-radius: 20px;
-
-    background:
-        #EAF7F1;
-
-    color: var(--success);
-
-    font-size: 10px;
-
-    font-weight: 800;
-
-    white-space: nowrap;
-
-}
-
-
-.review-details {
-
-    display: grid;
+    display:
+        grid;
 
     grid-template-columns:
         repeat(2, 1fr);
 
-    gap: 14px;
-
+    gap:
+        18px;
 }
 
 
-.review-detail.full {
+.review-participant-card {
+    background:
+        #ffffff;
 
-    grid-column:
-        1 / -1;
+    border:
+        1px solid #eaecf0;
 
+    border-radius:
+        16px;
+
+    padding:
+        20px;
 }
 
 
-.review-detail label {
+.review-participant-header {
+    display:
+        flex;
 
-    display: block;
+    align-items:
+        center;
 
-    margin-bottom: 2px;
+    gap:
+        12px;
 
-    color: var(--muted);
+    margin-bottom:
+        18px;
 
-    font-size: 10px;
+    padding-bottom:
+        15px;
 
-    text-transform: uppercase;
-
-    letter-spacing: 0.05em;
-
+    border-bottom:
+        1px solid #eaecf0;
 }
 
 
-.review-detail strong {
+.review-participant-number {
+    width:
+        38px;
 
-    display: block;
+    height:
+        38px;
 
-    color: var(--text);
-
-    font-size: 13px;
-
-    word-break: break-word;
-
-}
-
-
-/* ============================================================
-   GRAND TOTAL
-   ============================================================ */
-
-.review-grand-total {
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 20px;
-
-    margin-top: 25px;
-
-    padding: 23px 25px;
-
-    border-radius: 16px;
+    border-radius:
+        10px;
 
     background:
-        var(--navy);
+        #fff4cc;
 
-    color: white;
+    color:
+        #b77900;
 
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    font-size:
+        11px;
+
+    font-weight:
+        800;
+}
+
+
+.review-participant-role {
+    color:
+        #b77900;
+
+    font-size:
+        9px;
+
+    font-weight:
+        800;
+
+    letter-spacing:
+        0.7px;
+}
+
+
+.review-participant-header h4 {
+    color:
+        #101828;
+
+    font-size:
+        17px;
+
+    margin-top:
+        1px;
+}
+
+
+.review-participant-details {
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        11px;
+}
+
+
+.review-detail-item {
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        1px;
+}
+
+
+.review-detail-item span {
+    color:
+        #98a2b3;
+
+    font-size:
+        10px;
+
+    text-transform:
+        uppercase;
+
+    font-weight:
+        700;
+}
+
+
+.review-detail-item strong {
+    color:
+        #344054;
+
+    font-size:
+        12px;
+
+    word-break:
+        break-word;
+}
+
+
+.review-empty {
+    background:
+        #ffffff;
+
+    border:
+        1px dashed #d0d5dd;
+
+    padding:
+        30px;
+
+    border-radius:
+        12px;
+
+    text-align:
+        center;
+
+    color:
+        #667085;
+}
+
+
+/* =========================================================
+   17. REVIEW GRAND TOTAL
+   ========================================================= */
+
+.review-grand-total {
+    margin-top:
+        25px;
+
+    padding:
+        22px;
+
+    background:
+        #101828;
+
+    color:
+        #ffffff;
+
+    border-radius:
+        16px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        20px;
 }
 
 
 .review-grand-total span {
+    display:
+        block;
 
-    display: block;
+    font-size:
+        16px;
 
-    font-size: 16px;
-
-    font-weight: 800;
-
+    font-weight:
+        700;
 }
 
 
 .review-grand-total small {
+    display:
+        block;
 
-    display: block;
+    color:
+        #98a2b3;
 
-    margin-top: 3px;
+    font-size:
+        11px;
 
-    color: #BFD2EB;
-
-    font-size: 11px;
-
+    margin-top:
+        3px;
 }
 
 
 .review-grand-total strong {
+    color:
+        #ffb703;
 
-    color: #F4D98A;
-
-    font-size: 27px;
-
+    font-size:
+        28px;
 }
 
 
-/* ============================================================
-   PAYMENT
-   ============================================================ */
+/* =========================================================
+   18. PAYMENT EVENT CARD
+   ========================================================= */
 
 .payment-event-card {
-
-    margin-bottom: 20px;
-
-    padding: 25px;
-
-    border-radius: 17px;
-
     background:
-        linear-gradient(
-            135deg,
-            var(--navy),
-            var(--blue)
-        );
+        #101828;
 
-    color: white;
+    color:
+        #ffffff;
 
+    border-radius:
+        18px;
+
+    padding:
+        25px;
+
+    margin-bottom:
+        18px;
 }
 
 
-.payment-label {
-
-    color: #BFD2EB;
-
-    font-size: 10px;
-
-    font-weight: 800;
-
-    letter-spacing: 0.14em;
-
+.payment-event-header {
+    margin-bottom:
+        20px;
 }
 
 
-.payment-event-card h3 {
+.payment-event-header h3 {
+    font-size:
+        24px;
 
-    margin:
-        5px 0 2px;
-
-    font-size: 27px;
-
+    margin-top:
+        5px;
 }
 
 
-.payment-event-card p {
+.payment-event-details {
+    display:
+        grid;
 
-    margin: 0;
+    grid-template-columns:
+        repeat(3, 1fr);
 
-    color: #D6E4F8;
-
-    font-size: 14px;
-
+    gap:
+        12px;
 }
 
+
+.payment-event-item {
+    background:
+        rgba(255, 255, 255, 0.06);
+
+    border-radius:
+        10px;
+
+    padding:
+        14px;
+}
+
+
+.payment-event-item span {
+    display:
+        block;
+
+    color:
+        #98a2b3;
+
+    font-size:
+        10px;
+
+    margin-bottom:
+        3px;
+}
+
+
+.payment-event-item strong {
+    color:
+        #ffffff;
+
+    font-size:
+        13px;
+}
+
+
+/* =========================================================
+   19. PAYMENT SUMMARY
+   ========================================================= */
 
 .payment-summary {
-
-    overflow: hidden;
+    background:
+        #ffffff;
 
     border:
-        1px solid
-        var(--border);
+        1px solid #eaecf0;
 
-    border-radius: 16px;
+    border-radius:
+        16px;
 
-    background: white;
+    overflow:
+        hidden;
 
+    margin-bottom:
+        25px;
 }
 
 
 .payment-summary-row {
+    display:
+        flex;
 
-    display: flex;
+    align-items:
+        center;
 
-    align-items: center;
+    justify-content:
+        space-between;
 
-    justify-content: space-between;
-
-    gap: 20px;
+    gap:
+        20px;
 
     padding:
         18px 22px;
 
     border-bottom:
-        1px solid
-        var(--border);
+        1px solid #eaecf0;
+}
 
+
+.payment-summary-row:last-child {
+    border-bottom:
+        none;
 }
 
 
 .payment-summary-row span {
+    color:
+        #667085;
 
-    color: var(--muted);
-
-    font-size: 14px;
-
+    font-size:
+        14px;
 }
 
 
 .payment-summary-row strong {
+    color:
+        #101828;
 
-    color: var(--navy);
-
-    font-size: 16px;
-
+    font-size:
+        16px;
 }
 
 
 .payment-summary-row.payment-total {
-
     background:
-        #F5F8FD;
-
-    border-bottom: none;
-
+        #fffaf0;
 }
 
 
 .payment-summary-row.payment-total span {
+    color:
+        #344054;
 
-    color: var(--navy);
-
-    font-weight: 800;
-
+    font-weight:
+        700;
 }
 
 
 .payment-summary-row.payment-total strong {
-
-    color: var(--blue);
-
-    font-size: 24px;
-
-}
-
-
-/* ============================================================
-   PAYMENT INFO
-   ============================================================ */
-
-.payment-info-box {
-
-    display: flex;
-
-    align-items: flex-start;
-
-    gap: 14px;
-
-    margin-top: 20px;
-
-    padding: 20px;
-
-    border:
-        1px solid
-        #DCE8F8;
-
-    border-radius: 15px;
-
-    background:
-        #F3F7FD;
-
-}
-
-
-.payment-info-icon {
-
-    width: 42px;
-
-    height: 42px;
-
-    flex: 0 0 42px;
-
-    display: grid;
-
-    place-items: center;
-
-    border-radius: 11px;
-
-    background:
-        white;
-
-}
-
-
-.payment-info-box h3 {
-
-    margin: 0;
-
-    color: var(--navy);
-
-    font-size: 16px;
-
-}
-
-
-.payment-info-box p {
-
-    margin:
-        3px 0 0;
-
-    color: var(--muted);
-
-    font-size: 13px;
-
-}
-
-
-.payment-method {
-
-    margin-top: 20px;
-
-    padding: 22px;
-
-    border:
-        1px solid
-        var(--border);
-
-    border-radius: 15px;
-
-    background: white;
-
-}
-
-
-.payment-method h3 {
-
-    margin:
-        2px 0;
-
-    color: var(--navy);
-
-    font-size: 19px;
-
-}
-
-
-.payment-method p {
-
-    margin: 0;
-
-    color: var(--blue);
-
-    font-weight: 800;
-
-}
-
-
-/* ============================================================
-   SUCCESS
-   ============================================================ */
-
-.success-section {
-
-    min-height:
-        calc(100vh - 72px);
-
-    display: flex;
-
-    align-items: center;
-
-}
-
-
-.success-container {
-
-    text-align: center;
-
-}
-
-
-.success-icon {
-
-    width: 80px;
-
-    height: 80px;
-
-    display: grid;
-
-    place-items: center;
-
-    margin: 0 auto 22px;
-
-    border-radius: 50%;
-
-    background:
-        #EAF7F1;
-
-    color: var(--success);
-
-    font-size: 38px;
-
-    font-weight: 800;
-
-}
-
-
-.success-heading {
-
-    max-width: 650px;
-
-    margin:
-        0 auto 30px;
-
-}
-
-
-.success-heading h2 {
-
-    margin:
-        0 0 10px;
-
-    color: var(--navy);
-
-    font-family:
-        Rajdhani,
-        Inter,
-        Arial,
-        sans-serif;
+    color:
+        #b77900;
 
     font-size:
-        clamp(
-            32px,
-            5vw,
-            48px
-        );
-
+        23px;
 }
 
 
-.registration-id-card {
+/* =========================================================
+   20. UPI PAYMENT CARD
+   ========================================================= */
 
-    max-width: 520px;
-
-    margin:
-        0 auto 20px;
-
-    padding: 25px;
+.upi-payment-card {
+    background:
+        #ffffff;
 
     border:
-        1px solid
-        var(--border);
+        1px solid #eaecf0;
 
-    border-radius: 17px;
+    border-radius:
+        20px;
 
-    background: white;
+    padding:
+        35px;
+
+    text-align:
+        center;
 
     box-shadow:
-        var(--shadow-md);
+        0 8px 30px rgba(16, 24, 40, 0.05);
 
+    margin-bottom:
+        25px;
 }
 
 
-.registration-id-card > span {
-
-    display: block;
-
-    margin-bottom: 5px;
-
-    color: var(--muted);
-
-    font-size: 10px;
-
-    font-weight: 800;
-
-    letter-spacing: 0.14em;
-
+.upi-payment-header {
+    margin-bottom:
+        25px;
 }
 
 
-.registration-id-card strong {
+.upi-payment-header h3 {
+    color:
+        #101828;
 
-    display: block;
-
-    color: var(--blue);
-
-    font-size: 25px;
-
-    letter-spacing: 0.06em;
-
-}
-
-
-.registration-id-card p {
+    font-size:
+        25px;
 
     margin:
-        6px 0 0;
-
-    color: var(--muted);
-
-    font-size: 12px;
-
+        4px 0 7px;
 }
 
 
-.success-details {
+.upi-payment-header p {
+    color:
+        #667085;
 
-    display: grid;
+    font-size:
+        13px;
 
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    max-width: 800px;
+    max-width:
+        520px;
 
     margin:
-        0 auto 20px;
+        0 auto;
+}
 
-    overflow: hidden;
+
+/* =========================================================
+   21. QR CODE
+   ========================================================= */
+
+.payment-qr-container {
+    width:
+        260px;
+
+    height:
+        260px;
+
+    margin:
+        0 auto 22px;
+
+    padding:
+        12px;
+
+    background:
+        #ffffff;
 
     border:
-        1px solid
-        var(--border);
+        1px solid #d0d5dd;
 
-    border-radius: 15px;
+    border-radius:
+        16px;
 
-    background: white;
+    display:
+        flex;
 
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    box-shadow:
+        0 5px 18px rgba(16, 24, 40, 0.08);
 }
 
 
-.success-detail {
+.payment-qr {
+    width:
+        100%;
 
-    padding: 18px;
+    height:
+        100%;
 
-    border-right:
-        1px solid
-        var(--border);
+    object-fit:
+        contain;
 
+    border-radius:
+        7px;
 }
 
 
-.success-detail:last-child {
+/* =========================================================
+   22. UPI ID
+   ========================================================= */
 
-    border-right: none;
+.upi-id-box {
+    width:
+        fit-content;
 
+    max-width:
+        100%;
+
+    margin:
+        0 auto 22px;
+
+    padding:
+        12px 22px;
+
+    border:
+        1px solid #ffdf80;
+
+    background:
+        #fffaf0;
+
+    border-radius:
+        50px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        12px;
 }
 
 
-.success-detail span {
+.upi-id-label {
+    color:
+        #667085;
 
-    display: block;
+    font-size:
+        11px;
 
-    color: var(--muted);
+    font-weight:
+        800;
 
-    font-size: 11px;
+    text-transform:
+        uppercase;
 
+    letter-spacing:
+        0.7px;
 }
 
 
-.success-detail strong {
+.upi-id-box strong {
+    color:
+        #101828;
 
-    display: block;
+    font-size:
+        14px;
 
-    margin-top: 4px;
-
-    color: var(--navy);
-
-    font-size: 16px;
-
+    word-break:
+        break-all;
 }
 
 
-.success-detail.total strong {
+/* =========================================================
+   23. PAYMENT INSTRUCTION
+   ========================================================= */
 
-    color: var(--blue);
-
-    font-size: 20px;
-
-}
-
-
-.success-message {
-
-    max-width: 650px;
+.payment-instruction {
+    max-width:
+        650px;
 
     margin:
         0 auto;
 
-    padding: 18px;
-
-    display: flex;
-
-    align-items: flex-start;
-
-    gap: 13px;
-
-    text-align: left;
-
-    border:
-        1px solid
-        #DCE8F8;
-
-    border-radius: 15px;
+    padding:
+        14px 17px;
 
     background:
-        #F3F7FD;
+        #f9fafb;
 
+    border:
+        1px solid #eaecf0;
+
+    border-radius:
+        11px;
+
+    display:
+        flex;
+
+    align-items:
+        flex-start;
+
+    gap:
+        10px;
+
+    text-align:
+        left;
 }
 
 
-.success-message-icon {
-
-    width: 40px;
-
-    height: 40px;
-
-    flex: 0 0 40px;
-
-    display: grid;
-
-    place-items: center;
-
-    border-radius: 10px;
-
-    background: white;
-
+.payment-instruction > span {
+    flex-shrink:
+        0;
 }
 
 
-.success-message h3 {
+.payment-instruction p {
+    color:
+        #667085;
 
-    margin: 0;
-
-    color: var(--navy);
-
-    font-size: 15px;
-
-}
-
-
-.success-message p {
+    font-size:
+        12px;
 
     margin:
-        3px 0 0;
-
-    color: var(--muted);
-
-    font-size: 13px;
-
+        0;
 }
 
 
-/* ============================================================
-   HIDDEN ATTRIBUTE
-   ============================================================ */
+/* =========================================================
+   24. PAYER DETAILS CARD
+   ========================================================= */
 
-[hidden] {
+.payer-details-card {
+    background:
+        #ffffff;
 
-    display: none !important;
+    border:
+        1px solid #eaecf0;
 
+    border-radius:
+        20px;
+
+    padding:
+        30px;
+
+    margin-bottom:
+        22px;
+
+    box-shadow:
+        0 5px 20px rgba(16, 24, 40, 0.04);
 }
 
 
-/* ============================================================
-   RESPONSIVE — TABLET
-   ============================================================ */
+.payer-details-header {
+    margin-bottom:
+        28px;
 
-@media (max-width: 850px) {
+    padding-bottom:
+        20px;
 
+    border-bottom:
+        1px solid #eaecf0;
+}
+
+
+.payer-details-header h3 {
+    color:
+        #101828;
+
+    font-size:
+        23px;
+
+    margin:
+        3px 0 5px;
+}
+
+
+.payer-details-header p {
+    color:
+        #667085;
+
+    font-size:
+        13px;
+}
+
+
+.payer-details-card .payment-field + .payment-field {
+    margin-top:
+        20px;
+}
+
+
+/* =========================================================
+   25. PAYMENT INFORMATION
+   ========================================================= */
+
+.payment-info-box {
+    display:
+        flex;
+
+    align-items:
+        flex-start;
+
+    gap:
+        15px;
+
+    padding:
+        20px;
+
+    background:
+        #eff8ff;
+
+    border:
+        1px solid #b2ddff;
+
+    border-radius:
+        14px;
+
+    margin-bottom:
+        20px;
+}
+
+
+.payment-info-icon {
+    width:
+        40px;
+
+    height:
+        40px;
+
+    flex-shrink:
+        0;
+
+    border-radius:
+        10px;
+
+    background:
+        #dbeeff;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    font-size:
+        18px;
+}
+
+
+.payment-info-box h3 {
+    color:
+        #175cd3;
+
+    font-size:
+        15px;
+
+    margin-bottom:
+        3px;
+}
+
+
+.payment-info-box p {
+    color:
+        #475467;
+
+    font-size:
+        12px;
+}
+
+
+/* =========================================================
+   26. PAYMENT PENDING MESSAGE
+   ========================================================= */
+
+.payment-pending-message {
+    display:
+        flex;
+
+    align-items:
+        flex-start;
+
+    gap:
+        13px;
+
+    padding:
+        17px 20px;
+
+    background:
+        #fffaeb;
+
+    border:
+        1px solid #fedf89;
+
+    border-radius:
+        13px;
+
+    margin-bottom:
+        20px;
+}
+
+
+.payment-pending-message > span {
+    font-size:
+        20px;
+}
+
+
+.payment-pending-message strong {
+    color:
+        #b54708;
+
+    font-size:
+        14px;
+}
+
+
+.payment-pending-message p {
+    color:
+        #667085;
+
+    font-size:
+        12px;
+
+    margin-top:
+        2px;
+}
+
+
+/* =========================================================
+   27. SUCCESS / PENDING CONFIRMATION
+   ========================================================= */
+
+.success-section {
+    min-height:
+        70vh;
+
+    background:
+        #f5f7fb;
+}
+
+
+.success-container {
+    max-width:
+        850px;
+
+    text-align:
+        center;
+}
+
+
+.success-icon {
+    width:
+        75px;
+
+    height:
+        75px;
+
+    margin:
+        0 auto 20px;
+
+    border-radius:
+        50%;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    background:
+        #dcfae6;
+
+    color:
+        #039855;
+
+    font-size:
+        35px;
+
+    font-weight:
+        800;
+
+    box-shadow:
+        0 0 0 8px rgba(18, 183, 106, 0.08);
+}
+
+
+.verification-status-card {
+    display:
+        flex;
+
+    align-items:
+        flex-start;
+
+    gap:
+        15px;
+
+    text-align:
+        left;
+
+    background:
+        #fffaeb;
+
+    border:
+        1px solid #fedf89;
+
+    border-radius:
+        16px;
+
+    padding:
+        22px;
+
+    margin-bottom:
+        25px;
+}
+
+
+.verification-status-icon {
+    width:
+        45px;
+
+    height:
+        45px;
+
+    flex-shrink:
+        0;
+
+    border-radius:
+        12px;
+
+    background:
+        #fff0c2;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    font-size:
+        21px;
+}
+
+
+.status-label {
+    color:
+        #b54708;
+
+    font-size:
+        10px;
+
+    font-weight:
+        800;
+
+    letter-spacing:
+        1px;
+}
+
+
+.verification-status-card h3 {
+    color:
+        #7a2e0b;
+
+    font-size:
+        20px;
+
+    margin:
+        2px 0;
+}
+
+
+.verification-status-card p {
+    color:
+        #667085;
+
+    font-size:
+        12px;
+}
+
+
+/* =========================================================
+   28. SUCCESS DETAILS
+   ========================================================= */
+
+.success-details {
+    background:
+        #ffffff;
+
+    border:
+        1px solid #eaecf0;
+
+    border-radius:
+        16px;
+
+    overflow:
+        hidden;
+
+    text-align:
+        left;
+
+    margin-bottom:
+        22px;
+}
+
+
+.success-detail-item {
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        20px;
+
+    padding:
+        17px 22px;
+
+    border-bottom:
+        1px solid #eaecf0;
+}
+
+
+.success-detail-item:last-child {
+    border-bottom:
+        none;
+}
+
+
+.success-detail-item span {
+    color:
+        #667085;
+
+    font-size:
+        12px;
+
+    font-weight:
+        600;
+}
+
+
+.success-detail-item strong {
+    color:
+        #101828;
+
+    font-size:
+        13px;
+
+    text-align:
+        right;
+
+    word-break:
+        break-word;
+}
+
+
+/* =========================================================
+   29. SUCCESS INFORMATION
+   ========================================================= */
+
+.success-info-box {
+    display:
+        flex;
+
+    align-items:
+        flex-start;
+
+    gap:
+        14px;
+
+    padding:
+        20px;
+
+    background:
+        #eff8ff;
+
+    border:
+        1px solid #b2ddff;
+
+    border-radius:
+        14px;
+
+    text-align:
+        left;
+
+    margin-bottom:
+        22px;
+}
+
+
+.success-info-icon {
+    font-size:
+        20px;
+
+    flex-shrink:
+        0;
+}
+
+
+.success-info-box h3 {
+    color:
+        #175cd3;
+
+    font-size:
+        15px;
+
+    margin-bottom:
+        4px;
+}
+
+
+.success-info-box p {
+    color:
+        #475467;
+
+    font-size:
+        12px;
+}
+
+
+/* =========================================================
+   30. FINAL STATUS
+   ========================================================= */
+
+.final-status {
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    gap:
+        8px;
+
+    color:
+        #027a48;
+
+    background:
+        #ecfdf3;
+
+    border:
+        1px solid #abefc6;
+
+    border-radius:
+        50px;
+
+    padding:
+        8px 15px;
+
+    font-size:
+        12px;
+
+    font-weight:
+        700;
+
+    margin-bottom:
+        20px;
+}
+
+
+.status-dot {
+    width:
+        8px;
+
+    height:
+        8px;
+
+    border-radius:
+        50%;
+
+    background:
+        #12b76a;
+}
+
+
+/* =========================================================
+   31. RESPONSIVE — TABLET
+   ========================================================= */
+
+@media (
+    max-width: 900px
+) {
 
     .event-info {
-
         grid-template-columns:
             repeat(2, 1fr);
-
     }
 
 
-    .review-overview {
+    .participation-options {
+        max-width:
+            700px;
+    }
 
+
+    .review-participants {
         grid-template-columns:
-            repeat(2, 1fr);
-
-    }
-
-
-    .review-overview-item:nth-child(2) {
-
-        border-right: none;
-
-    }
-
-
-    .review-overview-item:nth-child(-n + 2) {
-
-        border-bottom:
-            1px solid
-            var(--border);
-
-    }
-
-
-    .success-details {
-
-        grid-template-columns:
-            repeat(2, 1fr);
-
-    }
-
-
-    .success-detail:nth-child(2) {
-
-        border-right: none;
-
-    }
-
-
-    .success-detail:nth-child(-n + 2) {
-
-        border-bottom:
-            1px solid
-            var(--border);
-
+            1fr;
     }
 
 }
 
 
-/* ============================================================
-   RESPONSIVE — MOBILE
-   ============================================================ */
+/* =========================================================
+   32. RESPONSIVE — MOBILE
+   ========================================================= */
 
-@media (max-width: 650px) {
-
+@media (
+    max-width: 650px
+) {
 
     .header-container {
-
-        min-height: 64px;
-
+        min-height:
+            68px;
     }
 
 
     .register-brand {
-
-        display: none;
-
+        font-size:
+            18px;
     }
 
 
-    .hero-content {
+    .brand-icon {
+        width:
+            32px;
 
+        height:
+            32px;
+
+        font-size:
+            17px;
+    }
+
+
+    .back-btn {
+        font-size:
+            12px;
+    }
+
+
+    .registration-hero {
         padding:
-            50px 0 40px;
+            50px 0 60px;
+    }
 
+
+    .hero-content h1 {
+        font-size:
+            35px;
+    }
+
+
+    .hero-subtitle {
+        font-size:
+            14px;
     }
 
 
     .event-info {
-
         grid-template-columns:
             1fr;
-
     }
 
 
     .info-box {
-
-        min-height: 68px;
-
+        padding:
+            14px;
     }
 
+
+    /* Progress */
+
+    .progress-container {
+        width:
+            96%;
+    }
+
+
+    .progress-step {
+        min-width:
+            55px;
+    }
+
+
+    .step-label {
+        font-size:
+            8px;
+    }
+
+
+    .step-number {
+        width:
+            29px;
+
+        height:
+            29px;
+
+        font-size:
+            11px;
+    }
+
+
+    .progress-line {
+        margin:
+            0 3px;
+
+        margin-bottom:
+            22px;
+    }
+
+
+    /* Sections */
 
     .participation-section,
     .participant-section,
     .review-section,
     .payment-section,
     .success-section {
-
         padding:
             45px 0;
-
     }
-
-
-    .participation-options {
-
-        grid-template-columns:
-            1fr;
-
-    }
-
-
-    .participation-card {
-
-        min-height: 210px;
-
-    }
-
-
-    .participant-form-grid {
-
-        grid-template-columns:
-            1fr;
-
-        gap: 10px;
-
-    }
-
-
-    .participant-field.full {
-
-        grid-column:
-            auto;
-
-    }
-
-
-    .participant-card {
-
-        padding: 20px;
-
-    }
-
-
-    .participant-card-header {
-
-        align-items: flex-start;
-
-    }
-
-
-    .participant-summary {
-
-        grid-template-columns:
-            1fr;
-
-    }
-
-
-    .participant-summary-item {
-
-        border-right: none;
-
-        border-bottom:
-            1px solid
-            var(--border);
-
-    }
-
-
-    .participant-summary-item:last-child {
-
-        border-bottom: none;
-
-    }
-
-
-    .participation-actions,
-    .participant-actions,
-    .review-actions,
-    .payment-actions {
-
-        flex-direction: column-reverse;
-
-        align-items: stretch;
-
-    }
-
-
-    .continue-btn,
-    .secondary-btn {
-
-        width: 100%;
-
-        text-align: center;
-
-    }
-
-
-    .review-event-header {
-
-        align-items: flex-start;
-
-        flex-direction: column;
-
-    }
-
-
-    .review-event-details {
-
-        grid-template-columns:
-            1fr;
-
-    }
-
-
-    .review-overview {
-
-        grid-template-columns:
-            1fr;
-
-    }
-
-
-    .review-overview-item {
-
-        border-right: none;
-
-        border-bottom:
-            1px solid
-            var(--border);
-
-    }
-
-
-    .review-overview-item:last-child {
-
-        border-bottom: none;
-
-    }
-
-
-    .review-participant-card {
-
-        grid-template-columns:
-            1fr;
-
-        padding: 20px;
-
-    }
-
-
-    .review-number {
-
-        width: 44px;
-
-        height: 44px;
-
-    }
-
-
-    .review-info-header {
-
-        flex-direction: column;
-
-        gap: 8px;
-
-    }
-
-
-    .review-details {
-
-        grid-template-columns:
-            1fr;
-
-    }
-
-
-    .review-detail.full {
-
-        grid-column:
-            auto;
-
-    }
-
-
-    .review-grand-total {
-
-        align-items: flex-start;
-
-        flex-direction: column;
-
-    }
-
-
-    .review-grand-total strong {
-
-        font-size: 25px;
-
-    }
-
-
-    .payment-summary-row {
-
-        align-items: flex-start;
-
-        flex-direction: column;
-
-        gap: 5px;
-
-    }
-
-
-    .success-section {
-
-        min-height:
-            auto;
-
-    }
-
-
-    .success-details {
-
-        grid-template-columns:
-            1fr;
-
-    }
-
-
-    .success-detail {
-
-        border-right: none;
-
-        border-bottom:
-            1px solid
-            var(--border);
-
-    }
-
-
-    .success-detail:last-child {
-
-        border-bottom: none;
-
-    }
-
-
-    .success-message {
-
-        text-align: left;
-
-    }
-
-}
-
-
-/* ============================================================
-   SMALL MOBILE
-   ============================================================ */
-
-@media (max-width: 400px) {
 
 
     .participation-container,
@@ -2799,46 +3173,256 @@ a {
     .review-container,
     .payment-container,
     .success-container {
-
-        width: 94%;
-
+        width:
+            92%;
     }
 
 
-    #eventTitle {
+    /* Participation */
 
-        font-size: 38px;
+    .participation-options {
+        grid-template-columns:
+            1fr;
+    }
 
+
+    .participation-card {
+        min-height:
+            210px;
+
+        padding:
+            24px;
+    }
+
+
+    /* Participant form */
+
+    .participant-form-grid {
+        grid-template-columns:
+            1fr;
     }
 
 
     .participant-card {
+        padding:
+            20px;
+    }
 
-        padding: 17px;
+
+    .participant-card-header {
+        align-items:
+            flex-start;
+    }
+
+
+    .participant-summary {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    /* Actions */
+
+    .participation-actions,
+    .participant-actions,
+    .review-actions,
+    .payment-actions,
+    .success-actions {
+        flex-direction:
+            column-reverse;
+
+        align-items:
+            stretch;
+    }
+
+
+    .continue-btn,
+    .secondary-btn {
+        width:
+            100%;
+    }
+
+
+    /* Review */
+
+    .review-event-header {
+        flex-direction:
+            column;
+    }
+
+
+    .review-event-details {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .review-section-title {
+        align-items:
+            flex-start;
+
+        flex-direction:
+            column;
+    }
+
+
+    .review-grand-total {
+        flex-direction:
+            column;
+
+        align-items:
+            flex-start;
+    }
+
+
+    /* Payment */
+
+    .payment-event-details {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .upi-payment-card {
+        padding:
+            25px 17px;
+    }
+
+
+    .payment-qr-container {
+        width:
+            230px;
+
+        height:
+            230px;
+    }
+
+
+    .upi-id-box {
+        flex-direction:
+            column;
+
+        border-radius:
+            14px;
+
+        padding:
+            12px 16px;
+
+        gap:
+            4px;
+    }
+
+
+    .payer-details-card {
+        padding:
+            22px 17px;
+    }
+
+
+    .payment-info-box,
+    .success-info-box,
+    .verification-status-card {
+        padding:
+            17px;
+    }
+
+
+    /* Success */
+
+    .success-detail-item {
+        flex-direction:
+            column;
+
+        align-items:
+            flex-start;
+
+        gap:
+            4px;
+    }
+
+
+    .success-detail-item strong {
+        text-align:
+            left;
+    }
+
+}
+
+
+/* =========================================================
+   33. VERY SMALL MOBILE
+   ========================================================= */
+
+@media (
+    max-width: 400px
+) {
+
+    .back-btn {
+        font-size:
+            0;
 
     }
 
 
-    .team-name-box {
+    .back-btn::before {
+        content:
+            "← Home";
 
-        padding: 19px;
-
+        font-size:
+            12px;
     }
 
 
-    .review-event-card,
-    .payment-event-card {
-
-        padding: 20px;
-
+    .register-brand {
+        font-size:
+            16px;
     }
 
 
-    .registration-id-card {
-
-        padding: 20px;
-
+    .hero-content h1 {
+        font-size:
+            30px;
     }
 
 
+    .payment-qr-container {
+        width:
+            205px;
+
+        height:
+            205px;
+    }
+
+
+    .upi-id-box strong {
+        font-size:
+            12px;
+    }
+
+}
+
+
+/* =========================================================
+   34. ACCESSIBILITY / FOCUS
+   ========================================================= */
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline:
+        3px solid rgba(255, 183, 3, 0.4);
+
+    outline-offset:
+        2px;
+}
+
+
+/* =========================================================
+   35. HIDDEN ATTRIBUTE SUPPORT
+   ========================================================= */
+
+[hidden] {
+    display:
+        none !important;
 }
