@@ -2883,7 +2883,49 @@ span:nth-child(3) {
     }
 
 }
+/* =========================================================
+   POSTER DESIGNER
+   ========================================================= */
 
+.poster-designer-section {
+    width: 100%;
+    margin-top: 18px;
+    padding: 20px;
+    background:
+        rgba(255, 255, 255, 0.07);
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.12);
+    border-radius: 15px;
+}
+
+.poster-designer-section h4 {
+    margin: 0 0 14px;
+    color: #ffd34d;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.poster-designer-section .student-name-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.poster-designer-section .student-name-list span {
+    display: flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 10px 13px;
+    background:
+        rgba(255, 255, 255, 0.08);
+    border-radius: 9px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+}
 /* =========================================================
    REGISTRATION ORGANISERS
    ========================================================= */
@@ -2941,76 +2983,79 @@ span:nth-child(3) {
 }
 
 
-/* =========================================================
-   RESPONSIVE — MOBILE
-   ========================================================= */
-
 @media (max-width: 560px) {
 
     .student-organisers-card {
-
         padding: 20px;
-
     }
-
 
     .student-team-section {
-
         padding: 16px;
-
     }
-
 
     .student-name-list {
-
         grid-template-columns: 1fr;
-
     }
 
+    .poster-designer-section {
+        padding: 16px;
+    }
+
+    .poster-designer-section .student-name-list {
+        grid-template-columns: 1fr;
+    }
 
     .webmaster-name {
-
         width: 100%;
-
         min-width: 0;
-
         box-sizing: border-box;
-
     }
-
 }
 /* =========================================================
    WEBMASTER + STUDENT COORDINATORS
    ========================================================= */
 
+/* =========================================================
+   STUDENT TEAM LAYOUT
+   ========================================================= */
+
 .student-team-row {
-
     display: grid;
-
     grid-template-columns: 0.8fr 1.2fr;
-
+    grid-template-rows: auto auto;
     gap: 20px;
-
     width: 100%;
-
     margin-bottom: 35px;
-
+    align-items: start;
 }
 
+/* Webmaster — top left */
+.student-team-row .webmaster-section {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+/* Student Coordinators — right side */
+.student-team-row .student-coordinators-section {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+}
+
+/* Poster Designer — below Webmaster */
+.student-team-row .poster-designer-section {
+    grid-column: 1;
+    grid-row: 2;
+}
 
 /* =========================================================
    BOTH CARDS
    ========================================================= */
-
 .student-team-row
 .student-team-section {
-
     box-sizing: border-box;
-
-    height: 100%;
-
+    height: auto;
+    align-self: start;
 }
-
 
 /* =========================================================
    STUDENT COORDINATORS
@@ -3057,6 +3102,224 @@ span:nth-child(3) {
 
         grid-template-columns: 1fr;
 
+    }
+
+}
+/* =========================================================
+   SPARK 2026 — UPDATED STUDENT ORGANISERS LAYOUT
+   ========================================================= */
+
+/* Main layout */
+.student-organisers-layout {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    grid-template-rows: auto auto;
+    gap: 20px;
+    width: 100%;
+    align-items: start;
+}
+
+
+/* =========================================================
+   LEFT COLUMN
+   Webmaster + Poster Designer
+   ========================================================= */
+
+.student-organisers-left {
+    grid-column: 1;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+
+/* =========================================================
+   WEBMASTER
+   ========================================================= */
+
+.student-organisers-left .webmaster-section {
+    width: 100%;
+    margin-top: 0;
+    padding: 20px;
+}
+
+
+/* Keep Webmaster compact */
+.student-organisers-left .webmaster-name-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    width: 100%;
+}
+
+
+/* =========================================================
+   POSTER DESIGNER
+   ========================================================= */
+
+.student-organisers-left .poster-designer-section {
+    width: 100%;
+    margin-top: 0;
+    padding: 20px;
+}
+
+
+/* Poster Designer name */
+.student-organisers-left .poster-designer-section
+.student-name-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+
+
+/* =========================================================
+   STUDENT COORDINATORS
+   ========================================================= */
+
+.student-organisers-layout > .student-coordinators-section {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    margin-top: 0;
+    padding: 20px;
+    height: 100%;
+}
+
+
+/* Two-column coordinator names */
+.student-coordinators-section .student-name-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 18px;
+}
+
+
+/* Coordinator name cards */
+.student-coordinators-section .student-name-list span {
+    display: flex;
+    align-items: center;
+    min-height: 42px;
+}
+
+
+/* =========================================================
+   REGISTRATION
+   Full width below both columns
+   ========================================================= */
+
+.student-organisers-layout > .registration-section {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    margin-top: 0;
+    padding: 20px;
+}
+
+
+/* Registration names */
+.registration-section .student-name-list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+
+/* =========================================================
+   DESKTOP — COMPACT WEBMASTER
+   ========================================================= */
+
+@media (min-width: 901px) {
+
+    .student-organisers-left .webmaster-section {
+        padding-bottom: 18px;
+    }
+
+    .student-organisers-left .poster-designer-section {
+        padding-bottom: 18px;
+    }
+
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .student-organisers-layout {
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .student-coordinators-section .student-name-list {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .registration-section .student-name-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .student-organisers-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        gap: 15px;
+    }
+
+    .student-organisers-left {
+        grid-column: 1;
+        grid-row: auto;
+        gap: 15px;
+    }
+
+    .student-organisers-layout > .student-coordinators-section {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .student-organisers-layout > .registration-section {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .student-coordinators-section .student-name-list {
+        grid-template-columns: 1fr;
+    }
+
+    .registration-section .student-name-list {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 560px) {
+
+    .student-organisers-card {
+        padding: 20px;
+    }
+
+    .student-organisers-left .student-team-section,
+    .student-organisers-layout > .student-coordinators-section,
+    .student-organisers-layout > .registration-section {
+        padding: 16px;
     }
 
 }
