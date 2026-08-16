@@ -2585,23 +2585,32 @@ document.addEventListener("DOMContentLoaded", function () {
                         );
 
 
-                    let data;
+let data = null;
 
+const responseText = await response.text();
 
-                    try {
+console.log("HTTP STATUS:", response.status);
+console.log("RAW SERVER RESPONSE:", responseText);
 
-                        data =
-                            await response.json();
+if (!responseText || !responseText.trim()) {
+    throw new Error(
+        `Server returned an empty response. HTTP ${response.status}.`
+    );
+}
 
-                    }
-                    catch (jsonError) {
+try {
+    data = JSON.parse(responseText);
+}
+catch (jsonError) {
+    console.error(
+        "Server did not return JSON:",
+        responseText
+    );
 
-                        throw new Error(
-                            "Server returned an invalid response."
-                        );
-
-                    }
-
+    throw new Error(
+        `Server returned non-JSON response. HTTP ${response.status}. Check Vercel API deployment.`
+    );
+}
 
                     console.log(
                         "Server response:",
