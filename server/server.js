@@ -1,6 +1,8 @@
 // ============================================================
 // SPARK 2026 — REGISTRATION SERVER
-// UPI PAYMENT + 16-DIGIT UTR + MANUAL VERIFICATION + MONGODB
+// UPI PAYMENT + 16-DIGIT UTR + MONGODB
+// ADMIN LOGIN + ADMIN VERIFICATION
+// VERCEL COMPATIBLE
 // ============================================================
 
 require("dotenv").config();
@@ -9,6 +11,8 @@ const express = require("express");
 const crypto = require("crypto");
 const { MongoClient } = require("mongodb");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
@@ -47,6 +51,10 @@ const allowedOrigins = [
     "http://localhost:5500",
 
     "https://spark-4004.vercel.app",
+
+    "https://spark-2026-theta.vercel.app",
+
+    "https://priya1266.github.io",
 
     "https://sistsparkece26.com",
 
@@ -88,7 +96,7 @@ app.use(
 
         res.header(
             "Access-Control-Allow-Headers",
-            "Content-Type"
+            "Content-Type, Authorization"
         );
 
 
@@ -149,7 +157,7 @@ let databaseConnectionPromise =
 
 
 // ============================================================
-// MODULE 4 — CONNECT TO MONGODB
+// MODULE 4 — MONGODB CONNECTION
 // ============================================================
 
 async function connectDatabase() {
@@ -202,9 +210,9 @@ async function connectDatabase() {
                     );
 
 
-                // --------------------------------------------------
-                // UNIQUE REGISTRATION ID
-                // --------------------------------------------------
+                // ------------------------------------------------
+                // REGISTRATION ID INDEX
+                // ------------------------------------------------
 
                 await registrationsCollection.createIndex(
                     {
@@ -216,9 +224,9 @@ async function connectDatabase() {
                 );
 
 
-                // --------------------------------------------------
-                // UNIQUE UTR
-                // --------------------------------------------------
+                // ------------------------------------------------
+                // UTR INDEX
+                // ------------------------------------------------
 
                 try {
 
@@ -228,7 +236,6 @@ async function connectDatabase() {
                         },
                         {
                             unique: true,
-
                             partialFilterExpression: {
                                 utr: {
                                     $type: "string"
@@ -251,9 +258,9 @@ async function connectDatabase() {
                 }
 
 
-                // --------------------------------------------------
-                // VERIFICATION INDEX
-                // --------------------------------------------------
+                // ------------------------------------------------
+                // OTHER INDEXES
+                // ------------------------------------------------
 
                 await registrationsCollection.createIndex(
                     {
@@ -262,20 +269,12 @@ async function connectDatabase() {
                 );
 
 
-                // --------------------------------------------------
-                // EVENT INDEX
-                // --------------------------------------------------
-
                 await registrationsCollection.createIndex(
                     {
                         eventId: 1
                     }
                 );
 
-
-                // --------------------------------------------------
-                // DATE INDEX
-                // --------------------------------------------------
 
                 await registrationsCollection.createIndex(
                     {
@@ -311,11 +310,6 @@ async function connectDatabase() {
                     error.message
                 );
 
-                // IMPORTANT:
-                // Do not process.exit() on Vercel.
-                // Throw the error so the API request can
-                // return a proper server error.
-
                 throw error;
 
             }
@@ -340,10 +334,6 @@ async function connectDatabase() {
 
 const events = {
 
-    // ==========================================================
-    // IDEA FORGE
-    // ==========================================================
-
     ideaforge: {
 
         name:
@@ -360,10 +350,6 @@ const events = {
 
     },
 
-
-    // ==========================================================
-    // CIRCUIT CLASH
-    // ==========================================================
 
     circuitclash: {
 
@@ -382,10 +368,6 @@ const events = {
     },
 
 
-    // ==========================================================
-    // iQUEST
-    // ==========================================================
-
     iqquest: {
 
         name:
@@ -402,10 +384,6 @@ const events = {
 
     },
 
-
-    // ==========================================================
-    // CODESPRINT
-    // ==========================================================
 
     codesprint: {
 
@@ -442,12 +420,7 @@ const PAYMENT_CONFIG = {
 
 
 // ============================================================
-// MODULE 7 — HELPER FUNCTIONS
-// ============================================================
-
-
-// ============================================================
-// CLEAN TEXT
+// MODULE 7 — GENERAL HELPERS
 // ============================================================
 
 function cleanText(value) {
@@ -580,15 +553,10 @@ function validateParticipant(
     const requiredFields = [
 
         "fullName",
-
         "college",
-
         "department",
-
         "year",
-
         "phone",
-
         "email"
 
     ];
@@ -611,8 +579,6 @@ function validateParticipant(
     }
 
 
-    // PHONE
-
     if (
         !/^[6-9]\d{9}$/.test(
             participant.phone
@@ -624,13 +590,10 @@ function validateParticipant(
     }
 
 
-    // EMAIL
-
     if (
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
-            .test(
-                participant.email
-            )
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+            participant.email
+        )
     ) {
 
         return false;
@@ -675,7 +638,582 @@ function getParticipantCount(
 
 
 // ============================================================
-// MODULE 8 — HEALTH CHECK
+// MODULE 8 — ADMIN AUTHENTICATION
+// ============================================================
+//
+// VERCEL ENVIRONMENT VARIABLES REQUIRED:
+//
+// ADMIN_USERNAME
+// ADMIN_PASSWORD_HASH
+// JWT_SECRET
+//
+// Example:
+//
+// ADMIN_USERNAME = admin
+// ADMIN_PASSWORD_HASH = <bcrypt hash>
+// JWT_SECRET = <long random secret>
+//
+// IMPORTANT:
+// Never put the actual password inside this file.
+// ============================================================
+
+const ADMIN_USERNAME =
+    cleanText(
+        process.env.ADMIN_USERNAME
+    );
+
+
+const ADMIN_PASSWORD_HASH =
+    cleanText(
+        process.env.ADMIN_PASSWORD_HASH
+    );
+
+
+const JWT_SECRET =
+    cleanText(
+        process.env.JWT_SECRET
+    );
+
+
+const ADMIN_COOKIE_NAME =
+    "spark_admin_token";
+
+
+const isProduction =
+    process.env.NODE_ENV === "production" ||
+    Boolean(
+        process.env.VERCEL
+    );
+
+
+// ============================================================
+// CHECK ADMIN CONFIGURATION
+// ============================================================
+
+if (
+    !ADMIN_USERNAME
+) {
+
+    console.error(
+        "❌ ADMIN_USERNAME is missing."
+    );
+
+}
+
+
+if (
+    !ADMIN_PASSWORD_HASH
+) {
+
+    console.error(
+        "❌ ADMIN_PASSWORD_HASH is missing."
+    );
+
+}
+
+
+if (
+    !JWT_SECRET
+) {
+
+    console.error(
+        "❌ JWT_SECRET is missing."
+    );
+
+}
+
+
+// ============================================================
+// CREATE ADMIN JWT
+// ============================================================
+
+function createAdminToken(
+    username
+) {
+
+    return jwt.sign(
+
+        {
+            username:
+                username,
+
+            role:
+                "admin"
+
+        },
+
+        JWT_SECRET,
+
+        {
+            expiresIn:
+                "8h"
+        }
+
+    );
+
+}
+
+
+// ============================================================
+// READ ADMIN TOKEN
+// ============================================================
+
+function getAdminToken(
+    req
+) {
+
+    if (
+        req.cookies &&
+        req.cookies[ADMIN_COOKIE_NAME]
+    ) {
+
+        return req.cookies[
+            ADMIN_COOKIE_NAME
+        ];
+
+    }
+
+
+    // Optional Authorization fallback
+
+    const authorization =
+        req.headers.authorization;
+
+
+    if (
+        authorization &&
+        authorization.startsWith(
+            "Bearer "
+        )
+    ) {
+
+        return authorization.substring(
+            7
+        );
+
+    }
+
+
+    return null;
+
+}
+
+
+// ============================================================
+// VERIFY ADMIN TOKEN
+// ============================================================
+
+function verifyAdminToken(
+    token
+) {
+
+    if (
+        !token ||
+        !JWT_SECRET
+    ) {
+
+        return null;
+
+    }
+
+
+    try {
+
+        const decoded =
+            jwt.verify(
+                token,
+                JWT_SECRET
+            );
+
+
+        if (
+            decoded.role !==
+            "admin"
+        ) {
+
+            return null;
+
+        }
+
+
+        return decoded;
+
+    }
+    catch (error) {
+
+        return null;
+
+    }
+
+}
+
+
+// ============================================================
+// ADMIN AUTH MIDDLEWARE
+// ============================================================
+
+function requireAdmin(
+    req,
+    res,
+    next
+) {
+
+    const token =
+        getAdminToken(
+            req
+        );
+
+
+    const decoded =
+        verifyAdminToken(
+            token
+        );
+
+
+    if (
+        !decoded
+    ) {
+
+        return res.status(401).json({
+
+            success:
+                false,
+
+            authenticated:
+                false,
+
+            message:
+                "Admin authentication required."
+
+        });
+
+    }
+
+
+    req.admin =
+        decoded;
+
+
+    next();
+
+}
+
+
+// ============================================================
+// MODULE 9 — ADMIN LOGIN
+// ============================================================
+
+app.post(
+    "/api/admin/login",
+    async (req, res) => {
+
+        try {
+
+            const username =
+                cleanText(
+                    req.body.username
+                );
+
+
+            const password =
+                String(
+                    req.body.password ||
+                    ""
+                );
+
+
+            if (
+                !username ||
+                !password
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Username and password are required."
+
+                });
+
+            }
+
+
+            if (
+                !ADMIN_USERNAME ||
+                !ADMIN_PASSWORD_HASH ||
+                !JWT_SECRET
+            ) {
+
+                console.error(
+                    "❌ Admin authentication environment variables are not configured."
+                );
+
+
+                return res.status(500).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Admin authentication is not configured on the server."
+
+                });
+
+            }
+
+
+            // ----------------------------------------------------
+            // USERNAME CHECK
+            // ----------------------------------------------------
+
+            if (
+                username !==
+                ADMIN_USERNAME
+            ) {
+
+                return res.status(401).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Invalid username or password."
+
+                });
+
+            }
+
+
+            // ----------------------------------------------------
+            // PASSWORD CHECK
+            // ----------------------------------------------------
+
+            const passwordMatches =
+                await bcrypt.compare(
+                    password,
+                    ADMIN_PASSWORD_HASH
+                );
+
+
+            if (
+                !passwordMatches
+            ) {
+
+                return res.status(401).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Invalid username or password."
+
+                });
+
+            }
+
+
+            // ----------------------------------------------------
+            // CREATE JWT
+            // ----------------------------------------------------
+
+            const token =
+                createAdminToken(
+                    username
+                );
+
+
+            // ----------------------------------------------------
+            // SET SECURE HTTP-ONLY COOKIE
+            // ----------------------------------------------------
+
+            res.cookie(
+                ADMIN_COOKIE_NAME,
+                token,
+                {
+
+                    httpOnly:
+                        true,
+
+                    secure:
+                        isProduction,
+
+                    sameSite:
+                        "lax",
+
+                    maxAge:
+                        8 * 60 * 60 * 1000,
+
+                    path:
+                        "/"
+
+                }
+            );
+
+
+            console.log(
+                "=========================================="
+            );
+
+            console.log(
+                "✅ ADMIN LOGIN SUCCESS"
+            );
+
+            console.log(
+                `Admin: ${username}`
+            );
+
+            console.log(
+                "=========================================="
+            );
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    "Admin login successful.",
+
+                username:
+                    username
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "❌ Admin login error:"
+            );
+
+            console.error(
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to process admin login."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 10 — ADMIN SESSION
+// ============================================================
+
+app.get(
+    "/api/admin/session",
+    (req, res) => {
+
+        const token =
+            getAdminToken(
+                req
+            );
+
+
+        const decoded =
+            verifyAdminToken(
+                token
+            );
+
+
+        if (
+            !decoded
+        ) {
+
+            return res.status(401).json({
+
+                success:
+                    false,
+
+                authenticated:
+                    false,
+
+                message:
+                    "No valid admin session."
+
+            });
+
+        }
+
+
+        return res.json({
+
+            success:
+                true,
+
+            authenticated:
+                true,
+
+            username:
+                decoded.username,
+
+            role:
+                "admin"
+
+        });
+
+    }
+);
+
+
+// ============================================================
+// MODULE 11 — ADMIN LOGOUT
+// ============================================================
+
+app.post(
+    "/api/admin/logout",
+    (req, res) => {
+
+        res.clearCookie(
+            ADMIN_COOKIE_NAME,
+            {
+
+                httpOnly:
+                    true,
+
+                secure:
+                    isProduction,
+
+                sameSite:
+                    "lax",
+
+                path:
+                    "/"
+
+            }
+        );
+
+
+        return res.json({
+
+            success:
+                true,
+
+            message:
+                "Admin logged out successfully."
+
+        });
+
+    }
+);
+
+
+// ============================================================
+// MODULE 12 — HEALTH CHECK
 // ============================================================
 
 app.get(
@@ -711,7 +1249,7 @@ app.get(
 
 
 // ============================================================
-// MODULE 9 — GET EVENTS
+// MODULE 13 — GET EVENTS
 // ============================================================
 
 app.get(
@@ -727,18 +1265,24 @@ app.get(
                     [id, event]
                 ) => ({
 
-                    id,
+                    id:
+
+                        id,
 
                     name:
+
                         event.name,
 
                     participants:
+
                         event.participants,
 
                     feePerParticipant:
+
                         event.feePerParticipant,
 
                     totalFee:
+
                         event.participants *
                         event.feePerParticipant
 
@@ -761,7 +1305,7 @@ app.get(
 
 
 // ============================================================
-// MODULE 10 — PAYMENT DETAILS
+// MODULE 14 — PAYMENT DETAILS
 // ============================================================
 
 app.post(
@@ -909,8 +1453,10 @@ app.post(
 
     }
 );
+
+
 // ============================================================
-// MODULE 11 — CREATE REGISTRATION
+// MODULE 15 — CREATE REGISTRATION
 // ============================================================
 
 app.post(
@@ -931,9 +1477,9 @@ app.post(
             );
 
 
-            // ==================================================
+            // ----------------------------------------------------
             // READ REQUEST
-            // ==================================================
+            // ----------------------------------------------------
 
             const {
 
@@ -960,9 +1506,9 @@ app.post(
             } = req.body;
 
 
-            // ==================================================
-            // 1. EVENT VALIDATION
-            // ==================================================
+            // ----------------------------------------------------
+            // EVENT VALIDATION
+            // ----------------------------------------------------
 
             const cleanEventId =
                 cleanText(
@@ -993,9 +1539,9 @@ app.post(
             }
 
 
-            // ==================================================
-            // 2. PARTICIPATION VALIDATION
-            // ==================================================
+            // ----------------------------------------------------
+            // PARTICIPATION VALIDATION
+            // ----------------------------------------------------
 
             const cleanTeamSize =
                 cleanText(
@@ -1023,9 +1569,9 @@ app.post(
             }
 
 
-            // ==================================================
-            // 3. PARTICIPANT COUNT
-            // ==================================================
+            // ----------------------------------------------------
+            // PARTICIPANT COUNT
+            // ----------------------------------------------------
 
             const participantCount =
                 getParticipantCount(
@@ -1051,9 +1597,9 @@ app.post(
             }
 
 
-            // ==================================================
-            // 4. SERVER-SIDE AMOUNT
-            // ==================================================
+            // ----------------------------------------------------
+            // SERVER-SIDE AMOUNT
+            // ----------------------------------------------------
 
             const serverAmount =
                 participantCount *
@@ -1079,9 +1625,9 @@ app.post(
             }
 
 
-            // ==================================================
-            // 5. NORMALIZE PARTICIPANTS
-            // ==================================================
+            // ----------------------------------------------------
+            // NORMALIZE PARTICIPANTS
+            // ----------------------------------------------------
 
             let normalizedParticipant =
                 null;
@@ -1093,9 +1639,9 @@ app.post(
                 null;
 
 
-            // ==================================================
-            // INDIVIDUAL EVENT
-            // ==================================================
+            // ----------------------------------------------------
+            // INDIVIDUAL
+            // ----------------------------------------------------
 
             if (
                 cleanTeamSize ===
@@ -1130,9 +1676,9 @@ app.post(
             }
 
 
-            // ==================================================
-            // TEAM EVENT
-            // ==================================================
+            // ----------------------------------------------------
+            // TEAM
+            // ----------------------------------------------------
 
             if (
                 cleanTeamSize ===
@@ -1191,9 +1737,9 @@ app.post(
             }
 
 
-            // ==================================================
-            // 6. PAYER NAME
-            // ==================================================
+            // ----------------------------------------------------
+            // PAYER NAME
+            // ----------------------------------------------------
 
             const cleanPayerName =
                 cleanText(
@@ -1255,10 +1801,9 @@ app.post(
             }
 
 
-            // ==================================================
-            // 7. UTR VALIDATION
-            // EXACTLY 16 NUMERIC DIGITS
-            // ==================================================
+            // ----------------------------------------------------
+            // UTR VALIDATION
+            // ----------------------------------------------------
 
             const cleanUTR =
                 cleanText(
@@ -1303,9 +1848,9 @@ app.post(
             }
 
 
-            // ==================================================
-            // 8. CHECK DUPLICATE UTR
-            // ==================================================
+            // ----------------------------------------------------
+            // DUPLICATE UTR
+            // ----------------------------------------------------
 
             const existingUTR =
                 await registrationsCollection.findOne({
@@ -1336,9 +1881,9 @@ app.post(
             }
 
 
-            // ==================================================
-            // 9. GENERATE REGISTRATION ID
-            // ==================================================
+            // ----------------------------------------------------
+            // GENERATE REGISTRATION ID
+            // ----------------------------------------------------
 
             const registrationId =
                 generateRegistrationCode(
@@ -1346,9 +1891,9 @@ app.post(
                 );
 
 
-            // ==================================================
-            // 10. CREATE DATABASE RECORD
-            // ==================================================
+            // ----------------------------------------------------
+            // DATABASE RECORD
+            // ----------------------------------------------------
 
             const databaseRecord = {
 
@@ -1441,18 +1986,14 @@ app.post(
             };
 
 
-            // ==================================================
-            // 11. INSERT INTO MONGODB
-            // ==================================================
+            // ----------------------------------------------------
+            // INSERT
+            // ----------------------------------------------------
 
             await registrationsCollection.insertOne(
                 databaseRecord
             );
 
-
-            // ==================================================
-            // 12. SERVER LOG
-            // ==================================================
 
             console.log(
                 "=========================================="
@@ -1503,10 +2044,6 @@ app.post(
             );
 
 
-            // ==================================================
-            // 13. RESPONSE
-            // ==================================================
-
             return res.status(201).json({
 
                 success:
@@ -1556,10 +2093,6 @@ app.post(
             );
 
 
-            // --------------------------------------------------
-            // DUPLICATE INDEX ERROR
-            // --------------------------------------------------
-
             if (
                 error &&
                 error.code === 11000
@@ -1595,11 +2128,12 @@ app.post(
 
 
 // ============================================================
-// MODULE 12 — ADMIN: GET ALL REGISTRATIONS
+// MODULE 16 — ADMIN: GET ALL REGISTRATIONS
 // ============================================================
 
 app.get(
     "/api/admin/registrations",
+    requireAdmin,
     async (req, res) => {
 
         try {
@@ -1611,7 +2145,8 @@ app.get(
                 await registrationsCollection
                     .find({})
                     .sort({
-                        createdAt: -1
+                        createdAt:
+                            -1
                     })
                     .toArray();
 
@@ -1655,11 +2190,12 @@ app.get(
 
 
 // ============================================================
-// MODULE 13 — ADMIN: GET PENDING REGISTRATIONS
+// MODULE 17 — ADMIN: GET PENDING REGISTRATIONS
 // ============================================================
 
 app.get(
     "/api/admin/pending",
+    requireAdmin,
     async (req, res) => {
 
         try {
@@ -1723,11 +2259,12 @@ app.get(
 
 
 // ============================================================
-// MODULE 14 — ADMIN: VERIFY PAYMENT
+// MODULE 18 — ADMIN: VERIFY PAYMENT
 // ============================================================
 
 app.post(
     "/api/admin/verify",
+    requireAdmin,
     async (req, res) => {
 
         try {
@@ -1742,10 +2279,10 @@ app.post(
 
 
             const adminName =
-                cleanText(
-                    req.body.adminName
-                ) ||
-                "Admin";
+                req.admin &&
+                req.admin.username
+                    ? req.admin.username
+                    : "Admin";
 
 
             if (
@@ -1916,12 +2453,15 @@ app.post(
 
     }
 );
+
+
 // ============================================================
-// MODULE 15 — ADMIN: REJECT PAYMENT
+// MODULE 19 — ADMIN: REJECT PAYMENT
 // ============================================================
 
 app.post(
     "/api/admin/reject",
+    requireAdmin,
     async (req, res) => {
 
         try {
@@ -1936,10 +2476,10 @@ app.post(
 
 
             const adminName =
-                cleanText(
-                    req.body.adminName
-                ) ||
-                "Admin";
+                req.admin &&
+                req.admin.username
+                    ? req.admin.username
+                    : "Admin";
 
 
             const reason =
@@ -2097,7 +2637,7 @@ app.post(
 
 
 // ============================================================
-// MODULE 16 — GET SINGLE REGISTRATION
+// MODULE 20 — GET SINGLE REGISTRATION
 // ============================================================
 
 app.get(
@@ -2194,7 +2734,7 @@ app.get(
 
 
 // ============================================================
-// MODULE 17 — 404 HANDLER
+// MODULE 21 — 404 HANDLER
 // ============================================================
 
 app.use(
@@ -2215,7 +2755,7 @@ app.use(
 
 
 // ============================================================
-// MODULE 18 — GLOBAL ERROR HANDLER
+// MODULE 22 — GLOBAL ERROR HANDLER
 // ============================================================
 
 app.use(
@@ -2250,7 +2790,7 @@ app.use(
 
 
 // ============================================================
-// MODULE 19 — GRACEFUL SHUTDOWN
+// MODULE 23 — GRACEFUL SHUTDOWN
 // ============================================================
 
 async function shutdown(
@@ -2303,7 +2843,7 @@ process.on(
 
 
 // ============================================================
-// MODULE 20 — START LOCAL SERVER
+// MODULE 24 — LOCAL SERVER
 // ============================================================
 
 async function startServer() {
@@ -2346,6 +2886,10 @@ async function startServer() {
                 );
 
                 console.log(
+                    "✅ Admin authentication: ENABLED"
+                );
+
+                console.log(
                     "=========================================="
                 );
 
@@ -2372,24 +2916,16 @@ async function startServer() {
 
 
 // ============================================================
-// IMPORTANT — LOCAL VS VERCEL
+// LOCAL VS VERCEL
 // ============================================================
 //
 // LOCAL:
-//
-//     node server.js
-//
-//     require.main === module
-//     → startServer()
-//     → Express listens on PORT
+// node server.js
 //
 // VERCEL:
-//
-//     api/index.js
-//     → require("../server/server")
-//     → require.main !== module
-//     → startServer() is NOT called
-//     → Vercel handles the HTTP server
+// api/index.js
+// require("../server/server")
+// Vercel handles the HTTP server.
 //
 // ============================================================
 
