@@ -3277,7 +3277,6 @@ process.on(
     () => shutdown("SIGTERM")
 );
 
-
 // ============================================================
 // MODULE 28 — START SERVER
 // ============================================================
@@ -3287,7 +3286,6 @@ async function startServer() {
     try {
 
         await connectDatabase();
-
 
         app.listen(
 
@@ -3330,7 +3328,9 @@ async function startServer() {
                 console.log(
                     "=========================================="
                 );
+
             }
+
         );
 
     }
@@ -3345,14 +3345,50 @@ async function startServer() {
             error
         );
 
-
         process.exit(1);
+
     }
+
 }
 
 
 // ============================================================
-// START SERVER
+// MODULE 29 — VERCEL / LOCAL SERVER HANDLING
+// ============================================================
+//
+// LOCAL DEVELOPMENT:
+//
+//     node server.js
+//
+//     The condition below becomes true because this file
+//     is being executed directly.
+//     Therefore startServer() runs and Express listens
+//     on localhost:3000.
+//
+// VERCEL:
+//
+//     api/index.js
+//          ↓
+//     require("../server/server")
+//          ↓
+//     this file is imported instead of executed directly
+//          ↓
+//     startServer() is NOT called
+//          ↓
+//     Vercel handles the HTTP server
+//
 // ============================================================
 
-startServer();
+
+if (require.main === module) {
+
+    startServer();
+
+}
+
+
+// ============================================================
+// EXPORT EXPRESS APPLICATION FOR VERCEL
+// ============================================================
+
+module.exports = app;

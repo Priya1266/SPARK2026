@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
        MODULE 1 — CONFIGURATION
        ============================================================ */
 
-    const API_BASE_URL = "http://localhost:3000";
+    const API_BASE_URL = "";
 
     const PRICE_PER_PERSON = 200;
 
