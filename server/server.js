@@ -13,6 +13,7 @@ const { MongoClient } = require("mongodb");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
 
 const app = express();
 
@@ -898,7 +899,595 @@ function requireAdmin(
 
 }
 
+// ============================================================
+// MODULE 8.5 — ACKNOWLEDGEMENT EMAIL
+// ============================================================
+//
+// Email is sent ONLY after an admin verifies payment.
+//
+// Vercel Environment Variables required:
+//
+// SMTP_HOST
+// SMTP_PORT
+// SMTP_SECURE
+// SMTP_USER
+// SMTP_PASS
+// EMAIL_FROM_NAME
+//
+// For Gmail:
+// SMTP_PASS must be a Gmail App Password.
+// ============================================================
 
+
+const emailTransporter =
+    nodemailer.createTransport({
+
+        host:
+            process.env.SMTP_HOST ||
+            "smtp.gmail.com",
+
+        port:
+            Number(
+                process.env.SMTP_PORT ||
+                465
+            ),
+
+        secure:
+            process.env.SMTP_SECURE !==
+            "false",
+
+        auth: {
+
+            user:
+                process.env.SMTP_USER,
+
+            pass:
+                process.env.SMTP_PASS
+
+        }
+
+    });
+
+
+
+async function sendAcknowledgementEmail(
+    registration
+) {
+
+    // --------------------------------------------------------
+    // CHECK EMAIL
+    // --------------------------------------------------------
+
+    if (
+        !registration ||
+        !registration.payerEmail
+    ) {
+
+        throw new Error(
+            "Participant email address is missing."
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // COLLECT PARTICIPANT NAMES
+    // --------------------------------------------------------
+
+    const names = [];
+
+
+    if (
+        registration.participant &&
+        registration.participant.name
+    ) {
+
+        names.push(
+            registration.participant.name
+        );
+
+    }
+
+
+    if (
+        registration.teamLeader &&
+        registration.teamLeader.name
+    ) {
+
+        names.push(
+            registration.teamLeader.name
+        );
+
+    }
+
+
+    if (
+        registration.teamMember &&
+        registration.teamMember.name
+    ) {
+
+        names.push(
+            registration.teamMember.name
+        );
+
+    }
+
+
+    const participantNames =
+        names.length > 0
+            ? names.join(", ")
+            : (
+                registration.payerName ||
+                "Participant"
+            );
+
+
+    // --------------------------------------------------------
+    // AMOUNT
+    // --------------------------------------------------------
+
+    const amount =
+        registration.amount !== undefined &&
+        registration.amount !== null
+            ? `₹${registration.amount}`
+            : "—";
+
+
+    // --------------------------------------------------------
+    // EMAIL SENDER NAME
+    // --------------------------------------------------------
+
+    const fromName =
+        process.env.EMAIL_FROM_NAME ||
+        "SPARK 2026";
+
+
+    // ========================================================
+    // SEND EMAIL
+    // ========================================================
+
+    await emailTransporter.sendMail({
+
+        from:
+            `"${fromName}" <${process.env.SMTP_USER}>`,
+
+        to:
+            registration.payerEmail,
+
+        replyTo:
+            process.env.SMTP_USER,
+
+        subject:
+            `SPARK 2026 — Registration Confirmed | ${registration.eventName}`,
+
+
+        // ====================================================
+        // PLAIN TEXT VERSION
+        // ====================================================
+
+        text:
+
+`Dear ${registration.payerName || "Participant"},
+
+Your registration for SPARK 2026 has been successfully verified by the event administration team.
+
+
+REGISTRATION DETAILS
+--------------------------------
+
+Registration ID : ${registration.registrationId}
+
+Event           : ${registration.eventName}
+
+Participation   : ${registration.participation || "—"}
+
+Team Name       : ${registration.teamName || "—"}
+
+Participants    : ${participantNames}
+
+
+PAYMENT DETAILS
+--------------------------------
+
+Amount          : ${amount}
+
+Payment Method  : ${registration.paymentMethod || "UPI"}
+
+UTR             : ${registration.utr || "—"}
+
+Payment Status  : VERIFIED
+
+
+Your participation is now officially confirmed.
+
+Please keep your Registration ID safely for future reference.
+
+
+For any queries, contact:
+
+sparkece2026@gmail.com
+
+
+We look forward to welcoming you to SPARK 2026.
+
+
+Regards,
+
+SPARK 2026 Organising Team
+
+Department of Electronics and Communication Engineering
+
+Sathyabama Institute of Science and Technology
+
+Chennai`,
+
+
+        // ====================================================
+        // HTML VERSION
+        // ====================================================
+
+        html:
+
+`
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>
+SPARK 2026 Registration Confirmation
+</title>
+
+</head>
+
+
+<body style="
+margin:0;
+padding:0;
+background:#f4f8ff;
+font-family:Arial,Helvetica,sans-serif;
+color:#16213e;
+">
+
+
+<div style="
+max-width:650px;
+margin:40px auto;
+background:#ffffff;
+border-radius:16px;
+overflow:hidden;
+box-shadow:0 10px 30px rgba(14,42,82,0.12);
+">
+
+
+<!-- HEADER -->
+
+<div style="
+padding:28px;
+background:#1565c0;
+color:#ffffff;
+text-align:center;
+">
+
+<h1 style="
+margin:0;
+font-size:28px;
+">
+
+SPARK 2026
+
+</h1>
+
+
+<p style="
+margin:8px 0 0;
+">
+
+Registration Confirmation
+
+</p>
+
+</div>
+
+
+
+<!-- CONTENT -->
+
+<div style="
+padding:30px;
+">
+
+
+<p>
+
+Dear
+
+<strong>
+${registration.payerName || "Participant"}
+</strong>,
+
+</p>
+
+
+<p>
+
+Your registration for
+
+<strong>
+SPARK 2026
+</strong>
+
+has been successfully verified by the event administration team.
+
+</p>
+
+
+
+<!-- REGISTRATION DETAILS -->
+
+<div style="
+margin-top:20px;
+padding:20px;
+background:#f4f8ff;
+border-radius:12px;
+">
+
+<h2 style="
+margin-top:0;
+color:#1565c0;
+">
+
+Registration Details
+
+</h2>
+
+
+<p>
+
+<strong>
+Registration ID:
+</strong>
+
+${registration.registrationId}
+
+</p>
+
+
+<p>
+
+<strong>
+Event:
+</strong>
+
+${registration.eventName}
+
+</p>
+
+
+<p>
+
+<strong>
+Participation:
+</strong>
+
+${registration.participation || "—"}
+
+</p>
+
+
+<p>
+
+<strong>
+Team Name:
+</strong>
+
+${registration.teamName || "—"}
+
+</p>
+
+
+<p>
+
+<strong>
+Participants:
+</strong>
+
+${participantNames}
+
+</p>
+
+</div>
+
+
+
+<!-- PAYMENT DETAILS -->
+
+<div style="
+margin-top:20px;
+padding:20px;
+background:#f7fff8;
+border-radius:12px;
+">
+
+<h2 style="
+margin-top:0;
+color:#15803d;
+">
+
+Payment Details
+
+</h2>
+
+
+<p>
+
+<strong>
+Amount:
+</strong>
+
+${amount}
+
+</p>
+
+
+<p>
+
+<strong>
+Payment Method:
+</strong>
+
+${registration.paymentMethod || "UPI"}
+
+</p>
+
+
+<p>
+
+<strong>
+UTR:
+</strong>
+
+${registration.utr || "—"}
+
+</p>
+
+
+<p>
+
+<strong>
+Payment Status:
+</strong>
+
+VERIFIED
+
+</p>
+
+</div>
+
+
+
+<!-- SUCCESS -->
+
+<div style="
+margin-top:25px;
+padding:18px;
+background:#ecfdf5;
+border:1px solid #a7f3d0;
+border-radius:10px;
+color:#065f46;
+text-align:center;
+">
+
+<strong>
+
+✓ Registration Verified Successfully
+
+</strong>
+
+</div>
+
+
+
+<p style="
+margin-top:28px;
+">
+
+Please keep your
+
+<strong>
+Registration ID
+</strong>
+
+safely for future reference.
+
+</p>
+
+
+<p>
+
+For any queries, contact:
+
+<strong>
+sparkece2026@gmail.com
+</strong>
+
+</p>
+
+
+<p>
+
+We look forward to welcoming you to
+
+<strong>
+SPARK 2026
+</strong>.
+
+</p>
+
+
+
+<!-- PROFESSIONAL FOOTER -->
+
+<p style="
+margin-top:30px;
+line-height:1.7;
+">
+
+Regards,
+
+<br>
+
+<strong>
+SPARK 2026 Organising Team
+</strong>
+
+<br>
+
+Department of Electronics and Communication Engineering
+
+<br>
+
+Sathyabama Institute of Science and Technology
+
+<br>
+
+Chennai
+
+</p>
+
+
+</div>
+
+
+
+<!-- FOOTER BAR -->
+
+<div style="
+padding:18px;
+text-align:center;
+background:#081833;
+color:#dce8fa;
+font-size:12px;
+">
+
+SPARK 2026 · Department of ECE
+
+</div>
+
+
+</div>
+
+</body>
+
+</html>
+`
+
+    });
+
+}
 // ============================================================
 // MODULE 9 — ADMIN LOGIN
 // ============================================================
@@ -1947,11 +2536,16 @@ app.post(
                 upiId:
                     PAYMENT_CONFIG.upiId,
 
-                payerName:
-                    cleanPayerName,
+payerName:
+    cleanPayerName,
 
-                utr:
-                    cleanUTR,
+payerEmail:
+    cleanTeamSize === "individual"
+        ? normalizedParticipant.email
+        : normalizedTeamLeader.email,
+
+utr:
+    cleanUTR,
 
                 transactionId:
                     cleanUTR,
@@ -2257,14 +2851,17 @@ app.get(
     }
 );
 
-
 // ============================================================
 // MODULE 18 — ADMIN: VERIFY PAYMENT
 // ============================================================
 
+
 app.post(
+
     "/api/admin/verify",
+
     requireAdmin,
+
     async (req, res) => {
 
         try {
@@ -2272,11 +2869,19 @@ app.post(
             await connectDatabase();
 
 
+            // ----------------------------------------------------
+            // REGISTRATION ID
+            // ----------------------------------------------------
+
             const registrationId =
                 cleanText(
                     req.body.registrationId
                 );
 
+
+            // ----------------------------------------------------
+            // ADMIN NAME
+            // ----------------------------------------------------
 
             const adminName =
                 req.admin &&
@@ -2284,6 +2889,10 @@ app.post(
                     ? req.admin.username
                     : "Admin";
 
+
+            // ----------------------------------------------------
+            // VALIDATE REGISTRATION ID
+            // ----------------------------------------------------
 
             if (
                 !registrationId
@@ -2301,6 +2910,10 @@ app.post(
 
             }
 
+
+            // ----------------------------------------------------
+            // FIND REGISTRATION
+            // ----------------------------------------------------
 
             const registration =
                 await registrationsCollection.findOne({
@@ -2328,6 +2941,10 @@ app.post(
             }
 
 
+            // ====================================================
+            // ALREADY VERIFIED
+            // ====================================================
+
             if (
                 registration.verificationStatus ===
                 "VERIFIED"
@@ -2348,12 +2965,19 @@ app.post(
                         "VERIFIED",
 
                     verificationStatus:
-                        "VERIFIED"
+                        "VERIFIED",
+
+                    acknowledgementSent:
+                        registration.acknowledgementSent === true
 
                 });
 
             }
 
+
+            // ====================================================
+            // STEP 1 — VERIFY PAYMENT
+            // ====================================================
 
             await registrationsCollection.updateOne(
 
@@ -2363,6 +2987,7 @@ app.post(
                 },
 
                 {
+
                     $set: {
 
                         paymentStatus:
@@ -2387,26 +3012,173 @@ app.post(
             );
 
 
+            // ====================================================
+            // STEP 2 — GET UPDATED REGISTRATION
+            // ====================================================
+
+            const verifiedRegistration =
+                await registrationsCollection.findOne({
+
+                    registrationId:
+                        registrationId
+
+                });
+
+
+            // ====================================================
+            // STEP 3 — SEND EMAIL
+            // ====================================================
+
+            let acknowledgementSent =
+                false;
+
+
+            let emailError =
+                null;
+
+
+            try {
+
+                await sendAcknowledgementEmail(
+
+                    verifiedRegistration
+
+                );
+
+
+                acknowledgementSent =
+                    true;
+
+
+                // ------------------------------------------------
+                // SAVE EMAIL SENT STATUS
+                // ------------------------------------------------
+
+                await registrationsCollection.updateOne(
+
+                    {
+                        registrationId:
+                            registrationId
+                    },
+
+                    {
+
+                        $set: {
+
+                            acknowledgementSent:
+                                true,
+
+                            acknowledgementSentAt:
+                                new Date(),
+
+                            updatedAt:
+                                new Date()
+
+                        }
+
+                    }
+
+                );
+
+
+                console.log(
+                    "=========================================="
+                );
+
+
+                console.log(
+                    "📧 ACKNOWLEDGEMENT EMAIL SENT"
+                );
+
+
+                console.log(
+                    `Registration: ${registrationId}`
+                );
+
+
+                console.log(
+                    `Email: ${verifiedRegistration.payerEmail}`
+                );
+
+
+                console.log(
+                    "=========================================="
+                );
+
+            }
+
+
+            catch (
+                emailSendError
+            ) {
+
+                emailError =
+                    emailSendError.message;
+
+
+                console.error(
+                    "❌ ACKNOWLEDGEMENT EMAIL FAILED:"
+                );
+
+
+                console.error(
+                    emailSendError
+                );
+
+
+                // IMPORTANT:
+                //
+                // Payment remains VERIFIED.
+                //
+                // Email failure does NOT
+                // undo payment verification.
+
+            }
+
+
+            // ====================================================
+            // LOG RESULT
+            // ====================================================
+
             console.log(
                 "=========================================="
             );
+
 
             console.log(
                 "✅ PAYMENT VERIFIED"
             );
 
+
             console.log(
                 `Registration: ${registrationId}`
             );
+
 
             console.log(
                 `Verified By: ${adminName}`
             );
 
+
+            console.log(
+
+                `Acknowledgement Email: ${
+                    acknowledgementSent
+                        ? "SENT"
+                        : "NOT SENT"
+                }`
+
+            );
+
+
             console.log(
                 "=========================================="
             );
 
+
+            // ====================================================
+            // RESPONSE
+            // ====================================================
 
             return res.json({
 
@@ -2414,27 +3186,53 @@ app.post(
                     true,
 
                 message:
-                    "Payment verified successfully.",
+
+                    acknowledgementSent
+
+                        ? "Payment verified successfully. Acknowledgement email sent."
+
+                        : "Payment verified successfully, but the acknowledgement email could not be sent.",
+
 
                 registrationId:
                     registrationId,
 
+
                 paymentStatus:
                     "VERIFIED",
+
 
                 verificationStatus:
                     "VERIFIED",
 
+
                 acknowledgementSent:
-                    false
+                    acknowledgementSent,
+
+
+                emailError:
+
+                    acknowledgementSent
+
+                        ? null
+
+                        : emailError
 
             });
 
         }
-        catch (error) {
+
+
+        catch (
+            error
+        ) {
 
             console.error(
-                "Admin verification error:",
+                "❌ Admin verification error:"
+            );
+
+
+            console.error(
                 error
             );
 
@@ -2452,6 +3250,7 @@ app.post(
         }
 
     }
+
 );
 
 
