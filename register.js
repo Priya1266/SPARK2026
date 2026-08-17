@@ -2196,129 +2196,135 @@ if (utr) {
 
             utr.value =
                 utr.value
-                    .replace(
-                        /\D/g,
-                        ""
-                    )
-                    .slice(
-                        0,
-                        12
-                    );
+                    .replace(/\D/g, "")
+                    .slice(0, 12);
 
         }
     );
 
 }
-/* --------------------------------------------------------
-   UPI TRANSACTION ID
-   -------------------------------------------------------- */
 
-if (!transactionId) {
 
-    valid =
-        false;
+/* ============================================================
+   MODULE 22 — VALIDATE PAYMENT DETAILS
+   ============================================================ */
 
+function validatePaymentDetails() {
+
+    let valid = true;
+
+    const payer =
+        payerName
+            ? payerName.value.trim()
+            : "";
+
+    const transactionId =
+        utr
+            ? utr.value.trim()
+            : "";
+
+
+    /* --------------------------------------------------------
+       CLEAR PREVIOUS ERRORS
+       -------------------------------------------------------- */
+
+    if (payerNameError) {
+
+        payerNameError.textContent =
+            "";
+
+    }
 
     if (utrError) {
 
         utrError.textContent =
-            "UPI Transaction ID is required.";
+            "";
 
     }
 
-}
 
-else if (
-    !/^\d{12}$/.test(
-        transactionId
-    )
-) {
+    /* --------------------------------------------------------
+       PAYER NAME
+       -------------------------------------------------------- */
 
-    valid =
-        false;
+    if (!payer) {
 
+        valid = false;
 
-    if (utrError) {
+        if (payerNameError) {
 
-        utrError.textContent =
-            "UPI Transaction ID must contain exactly 12 digits.";
-
-    }
-
-}
-        /* --------------------------------------------------------
-           PAYER NAME
-           -------------------------------------------------------- */
-
-        if (!payer) {
-
-            valid =
-                false;
-
-
-            if (payerNameError) {
-
-                payerNameError.textContent =
-                    "Payer name is required.";
-
-            }
-
-        }
-        else if (
-            !/^[A-Za-z .'-]+$/.test(
-                payer
-            )
-        ) {
-
-            valid =
-                false;
-
-
-            if (payerNameError) {
-
-                payerNameError.textContent =
-                    "Enter a valid payer name.";
-
-            }
+            payerNameError.textContent =
+                "Payer name is required.";
 
         }
 
+    }
+    else if (
+        !/^[A-Za-z .'-]+$/.test(
+            payer
+        )
+    ) {
 
-/* --------------------------------------------------------
-   UPI TRANSACTION ID
-   -------------------------------------------------------- */
+        valid = false;
 
-if (!transactionId) {
+        if (payerNameError) {
 
-    valid =
-        false;
+            payerNameError.textContent =
+                "Enter a valid payer name.";
 
-    if (utrError) {
-
-        utrError.textContent =
-            "UPI Transaction ID is required.";
+        }
 
     }
 
-}
-else if (
-    !/^\d{12}$/.test(
-        transactionId
-    )
-) {
 
-    valid =
-        false;
+    /* --------------------------------------------------------
+       UPI TRANSACTION ID
+       -------------------------------------------------------- */
 
-    if (utrError) {
+    if (!transactionId) {
 
-        utrError.textContent =
-            "UPI Transaction ID must contain exactly 12 digits.";
+        valid = false;
+
+        if (utrError) {
+
+            utrError.textContent =
+                "UPI Transaction ID is required.";
+
+        }
+
+    }
+    else if (
+        !/^\d{12}$/.test(
+            transactionId
+        )
+    ) {
+
+        valid = false;
+
+        if (utrError) {
+
+            utrError.textContent =
+                "UPI Transaction ID must contain exactly 12 digits.";
+
+        }
 
     }
 
-}
 
+    return {
+
+        valid:
+            valid,
+
+        payerName:
+            payer,
+
+        utr:
+            transactionId
+
+    };
+
+}
     /* ============================================================
        MODULE 23 — BACK TO REVIEW
        ============================================================ */
