@@ -2390,52 +2390,52 @@ app.post(
             }
 
 
-            // ----------------------------------------------------
-            // UTR VALIDATION
-            // ----------------------------------------------------
+// ==================================================
+// 7. UPI TRANSACTION ID VALIDATION
+// EXACTLY 12 NUMERIC DIGITS
+// ==================================================
 
-            const cleanUTR =
-                cleanText(
-                    utr ||
-                    transactionId
-                );
-
-
-            if (
-                !cleanUTR
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "16-digit UTR / Transaction ID is required."
-
-                });
-
-            }
+const cleanUTR =
+    cleanText(
+        utr ||
+        transactionId
+    );
 
 
-            if (
-                !/^\d{16}$/.test(
-                    cleanUTR
-                )
-            ) {
+if (
+    !cleanUTR
+) {
 
-                return res.status(400).json({
+    return res.status(400).json({
 
-                    success:
-                        false,
+        success:
+            false,
 
-                    message:
-                        "UTR / Transaction ID must contain exactly 16 digits."
+        message:
+            "12-digit UPI Transaction ID is required."
 
-                });
+    });
 
-            }
+}
 
+
+if (
+    !/^\d{12}$/.test(
+        cleanUTR
+    )
+) {
+
+    return res.status(400).json({
+
+        success:
+            false,
+
+        message:
+            "UPI Transaction ID must contain exactly 12 digits."
+
+    });
+
+}
 
             // ----------------------------------------------------
             // DUPLICATE UTR
@@ -3673,7 +3673,7 @@ async function startServer() {
                 );
 
                 console.log(
-                    "✅ UTR: EXACTLY 16 DIGITS"
+                    "✅ UPI TRANSACTION ID: EXACTLY 12 DIGITS"
                 );
 
                 console.log(
