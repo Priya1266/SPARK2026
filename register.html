@@ -1399,50 +1399,43 @@
 
 
 
-                <!-- =========================================
-                     UTR
-                     ========================================= -->
+<!-- ========================================= 
+     UPI TRANSACTION ID
+     ========================================= -->
 
-                <div class="payment-field">
+<div class="payment-field">
 
-                    <label for="utr">
+    <label for="utr">
 
-                        16-Digit UTR / Transaction ID
+        12-Digit UPI Transaction ID
 
-                        <span>
-                            *
-                        </span>
+        <span>
+            *
+        </span>
 
-                    </label>
+    </label>
 
+    <input 
+        type="text" 
+        id="utr" 
+        name="utr" 
+        placeholder="Enter 12-digit UPI Transaction ID" 
+        maxlength="12"
+        minlength="12"
+        inputmode="numeric" 
+        autocomplete="off" 
+    >
 
-                    <input
-                        type="text"
-                        id="utr"
-                        name="utr"
-                        placeholder="Enter 16-digit UTR"
-                        maxlength="16"
-                        inputmode="numeric"
-                        autocomplete="off"
-                    >
+    <small class="field-help">
+        Enter exactly 12 numeric digits.
+    </small>
 
+    <small 
+        id="utrError" 
+        class="field-error"
+    ></small>
 
-                    <small class="field-help">
-                        Enter exactly 16 numeric digits.
-                    </small>
-
-
-                    <small
-                        id="utrError"
-                        class="field-error"
-                    ></small>
-
-                </div>
-
-
-            </div>
-
-
+</div>
 
             <!-- =============================================
                  MANUAL VERIFICATION INFORMATION

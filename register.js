@@ -2184,73 +2184,68 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
     }
+/* ============================================================
+   MODULE 21 — UPI TRANSACTION ID INPUT
+   ============================================================ */
+
+if (utr) {
+
+    utr.addEventListener(
+        "input",
+        function () {
+
+            utr.value =
+                utr.value
+                    .replace(
+                        /\D/g,
+                        ""
+                    )
+                    .slice(
+                        0,
+                        12
+                    );
+
+        }
+    );
+
+}
+/* --------------------------------------------------------
+   UPI TRANSACTION ID
+   -------------------------------------------------------- */
+
+if (!transactionId) {
+
+    valid =
+        false;
 
 
-    /* ============================================================
-       MODULE 21 — UTR INPUT
-       ============================================================ */
+    if (utrError) {
 
-    if (utr) {
-
-        utr.addEventListener(
-            "input",
-            function () {
-
-                utr.value =
-                    utr.value
-                        .replace(
-                            /\D/g,
-                            ""
-                        )
-                        .slice(
-                            0,
-                            16
-                        );
-
-            }
-        );
+        utrError.textContent =
+            "UPI Transaction ID is required.";
 
     }
 
+}
 
-    /* ============================================================
-       MODULE 22 — VALIDATE PAYMENT
-       ============================================================ */
+else if (
+    !/^\d{12}$/.test(
+        transactionId
+    )
+) {
 
-    function validatePaymentDetails() {
-
-        const payer =
-            payerName
-                ? payerName.value.trim()
-                : "";
-
-
-        const transactionId =
-            utr
-                ? utr.value.trim()
-                : "";
+    valid =
+        false;
 
 
-        let valid =
-            true;
+    if (utrError) {
 
+        utrError.textContent =
+            "UPI Transaction ID must contain exactly 12 digits.";
 
-        if (payerNameError) {
+    }
 
-            payerNameError.textContent =
-                "";
-
-        }
-
-
-        if (utrError) {
-
-            utrError.textContent =
-                "";
-
-        }
-
-
+}
         /* --------------------------------------------------------
            PAYER NAME
            -------------------------------------------------------- */
@@ -2289,59 +2284,40 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        /* --------------------------------------------------------
-           UTR
-           -------------------------------------------------------- */
+/* --------------------------------------------------------
+   UPI TRANSACTION ID
+   -------------------------------------------------------- */
 
-        if (!transactionId) {
+if (!transactionId) {
 
-            valid =
-                false;
+    valid =
+        false;
 
+    if (utrError) {
 
-            if (utrError) {
-
-                utrError.textContent =
-                    "UTR / Transaction ID is required.";
-
-            }
-
-        }
-        else if (
-            !/^\d{16}$/.test(
-                transactionId
-            )
-        ) {
-
-            valid =
-                false;
-
-
-            if (utrError) {
-
-                utrError.textContent =
-                    "UTR must contain exactly 16 digits.";
-
-            }
-
-        }
-
-
-        return {
-
-            valid:
-                valid,
-
-            payerName:
-                payer,
-
-            utr:
-                transactionId
-
-        };
+        utrError.textContent =
+            "UPI Transaction ID is required.";
 
     }
 
+}
+else if (
+    !/^\d{12}$/.test(
+        transactionId
+    )
+) {
+
+    valid =
+        false;
+
+    if (utrError) {
+
+        utrError.textContent =
+            "UPI Transaction ID must contain exactly 12 digits.";
+
+    }
+
+}
 
     /* ============================================================
        MODULE 23 — BACK TO REVIEW
@@ -2429,7 +2405,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ) {
 
                     alert(
-                        "Please enter the payer name and a valid 16-digit UTR."
+                        "Please enter the payer name and a valid 12-digit UPI Transaction ID."
                     );
 
                     return;
@@ -2978,7 +2954,7 @@ catch (jsonError) {
     );
 
     console.log(
-        "Payment: UPI + Manual 16-Digit UTR"
+        "Payment: UPI + Manual 12-Digit UPI Transaction ID"
     );
 
     console.log(
