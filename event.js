@@ -72,9 +72,9 @@ const events = {
 
         studentOrganisers: [
 
-            "Ms. Nitheesha K",
+            "Ms. Nitheesha Kommireddy",
 
-            "Ms. Kanagadurga",
+            "Ms. Kanaga durga P",
 
             "Ms. Akzhara B S",
 
@@ -173,11 +173,11 @@ const events = {
 
         studentOrganisers: [
 
-            "Ms. Poojashri",
+            "Ms. Poojasri P",
 
-            "Ms. Panchami",
+            "Ms. Panchami P",
 
-            "Ms. Nivedha",
+            "Ms. Nivedha Gnanodharan",
 
             "Ms. Janani",
 
