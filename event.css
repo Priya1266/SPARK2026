@@ -353,7 +353,199 @@ button {
     font-size: 16px;
 
 }
+/* ============================================================
+   REGISTRATION CAPACITY
+   ============================================================ */
 
+#eventCapacity {
+    padding-bottom: 28px;
+}
+
+
+#eventCapacity .event-capacity {
+    width: 100%;
+}
+
+
+.capacity-loading {
+    color: var(--muted);
+    font-size: 15px;
+}
+
+
+.capacity-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 12px;
+}
+
+
+.capacity-header strong {
+    color: var(--blue);
+    font-family:
+        'Rajdhani',
+        'Inter',
+        sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+
+.capacity-header span {
+    color: var(--navy);
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+
+/* Progress bar background */
+
+.capacity-bar {
+    width: 100%;
+    height: 12px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #E5EBF5;
+}
+
+
+/* Progress */
+
+.capacity-progress {
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--blue-light),
+            var(--blue)
+        );
+
+    transition:
+        width 0.6s ease;
+}
+
+
+/* Remaining slots */
+
+.capacity-text {
+    margin-top: 10px !important;
+
+    color: var(--muted);
+
+    font-size: 14px !important;
+
+    line-height: 1.5;
+}
+
+
+/* Almost full */
+
+.event-capacity.nearly-full
+.capacity-progress {
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--gold-light),
+            var(--gold)
+        );
+}
+
+
+/* FULL */
+
+.event-capacity.full {
+
+    padding: 4px 0;
+}
+
+
+.event-capacity.full
+.capacity-header strong {
+
+    color: #C62828;
+}
+
+
+.event-capacity.full
+.capacity-progress {
+
+    background: #C62828;
+}
+
+
+.event-capacity.full
+.capacity-text {
+
+    color: #C62828;
+
+    font-weight: 700;
+}
+
+
+/* Error */
+
+.capacity-error {
+
+    color: #C62828;
+
+    font-size: 14px;
+
+    font-weight: 600;
+}
+
+
+/* ============================================================
+   CAPACITY — RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 480px) {
+
+    .capacity-header {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 5px;
+
+    }
+
+
+    .capacity-header strong {
+
+        font-size: 19px;
+
+    }
+
+
+    .capacity-header span {
+
+        font-size: 13px;
+
+    }
+
+
+    .capacity-bar {
+
+        height: 10px;
+
+    }
+
+
+    .capacity-text {
+
+        font-size: 13px !important;
+
+    }
+
+}
 
 
 /* ============================================================

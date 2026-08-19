@@ -335,72 +335,88 @@ async function connectDatabase() {
 
 const events = {
 
-    ideaforge: {
+ideaforge: {
+    name:
+        "IdeaForge",
 
-        name:
-            "IdeaForge",
+    participants:
+        2,
 
-        participants:
-            2,
+    maxTeams:
+        30,
 
-        feePerParticipant:
-            200,
+    maxParticipants:
+        60,
 
-        code:
-            "IDF"
+    feePerParticipant:
+        200,
 
-    },
-
-
-    circuitclash: {
-
-        name:
-            "Circuit Clash",
-
-        participants:
-            2,
-
-        feePerParticipant:
-            200,
-
-        code:
-            "CC"
-
-    },
+    code:
+        "IDF"
+},
 
 
-    iqquest: {
+circuitclash: {
+    name:
+        "Circuit Clash",
 
-        name:
-            "iQuest",
+    participants:
+        2,
 
-        participants:
-            2,
+    maxTeams:
+        30,
 
-        feePerParticipant:
-            200,
+    maxParticipants:
+        60,
 
-        code:
-            "IQ"
+    feePerParticipant:
+        200,
 
-    },
+    code:
+        "CC"
+},
 
 
-    codesprint: {
+iqquest: {
+    name:
+        "iQuest",
 
-        name:
-            "CodeSprint",
+    participants:
+        2,
 
-        participants:
-            1,
+    maxTeams:
+        30,
 
-        feePerParticipant:
-            200,
+    maxParticipants:
+        60,
 
-        code:
-            "CS"
+    feePerParticipant:
+        200,
 
-    }
+    code:
+        "IQ"
+},
+
+
+codesprint: {
+    name:
+        "CodeSprint",
+
+    participants:
+        1,
+
+    maxTeams:
+        null,
+
+    maxParticipants:
+        60,
+
+    feePerParticipant:
+        200,
+
+    code:
+        "CS"
+}
 
 };
 
@@ -435,10 +451,173 @@ function cleanText(value) {
 
     }
 
-
     return String(
         value
     ).trim();
+
+}
+
+
+// ============================================================
+// MODULE 7A — EVENT CAPACITY HELPERS
+// ============================================================
+
+async function getEventCapacity(eventId) {
+
+    const event =
+        events[eventId];
+
+    if (!event) {
+
+        return null;
+
+    }
+
+
+const totalRegistrations =
+    await registrationsCollection.countDocuments({
+        eventId:
+            eventId,
+
+        verificationStatus:
+            {
+                $ne:
+                    "REJECTED"
+            }
+    });
+
+    const isTeamEvent =
+        event.participants > 1;
+
+
+    if (isTeamEvent) {
+
+        const registeredTeams =
+            totalRegistrations;
+
+        const registeredParticipants =
+            registeredTeams *
+            event.participants;
+
+        const remainingTeams =
+            Math.max(
+                0,
+                event.maxTeams -
+                registeredTeams
+            );
+
+        const remainingParticipants =
+            Math.max(
+                0,
+                event.maxParticipants -
+                registeredParticipants
+            );
+
+        return {
+
+            eventId:
+                eventId,
+
+            eventName:
+                event.name,
+
+            type:
+                "team",
+
+            registeredTeams:
+                registeredTeams,
+
+            registeredParticipants:
+                registeredParticipants,
+
+            maxTeams:
+                event.maxTeams,
+
+            maxParticipants:
+                event.maxParticipants,
+
+            remainingTeams:
+                remainingTeams,
+
+            remainingParticipants:
+                remainingParticipants,
+
+            percentage:
+                Math.min(
+                    100,
+                    Math.round(
+                        (
+                            registeredTeams /
+                            event.maxTeams
+                        ) * 100
+                    )
+                ),
+
+            full:
+                registeredTeams >=
+                event.maxTeams
+
+        };
+
+    }
+
+
+    const registeredParticipants =
+        totalRegistrations;
+
+    const remainingParticipants =
+        Math.max(
+            0,
+            event.maxParticipants -
+            registeredParticipants
+        );
+
+
+    return {
+
+        eventId:
+            eventId,
+
+        eventName:
+            event.name,
+
+        type:
+            "individual",
+
+        registeredTeams:
+            null,
+
+        registeredParticipants:
+            registeredParticipants,
+
+        maxTeams:
+            null,
+
+        maxParticipants:
+            event.maxParticipants,
+
+        remainingTeams:
+            null,
+
+        remainingParticipants:
+            remainingParticipants,
+
+        percentage:
+            Math.min(
+                100,
+                Math.round(
+                    (
+                        registeredParticipants /
+                        event.maxParticipants
+                    ) * 100
+                )
+            ),
+
+        full:
+            registeredParticipants >=
+            event.maxParticipants
+
+    };
 
 }
 
@@ -1892,7 +2071,69 @@ app.get(
     }
 );
 
+// ============================================================
+// MODULE — EVENT CAPACITY
+// ============================================================
 
+app.get(
+    "/api/event-capacity",
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const capacities =
+                await Promise.all(
+
+                    Object.keys(events)
+                        .map(
+                            async function (eventId) {
+
+                                return await getEventCapacity(
+                                    eventId
+                                );
+
+                            }
+                        )
+
+                );
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                events:
+                    capacities
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Event capacity error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to load event capacity."
+
+            });
+
+        }
+
+    }
+);
 // ============================================================
 // MODULE 14 — PAYMENT DETAILS
 // ============================================================
@@ -1978,6 +2219,37 @@ app.post(
                 });
 
             }
+            // ==========================================================
+// EVENT CAPACITY CHECK
+// ==========================================================
+
+const currentCapacity =
+    await getEventCapacity(
+        eventId
+    );
+
+
+if (
+    currentCapacity &&
+    currentCapacity.full
+) {
+
+    return res.status(409).json({
+
+        success:
+            false,
+
+        message:
+            currentCapacity.type ===
+            "team"
+
+                ? `${event.name} registration is full. Maximum ${event.maxTeams} teams are allowed.`
+
+                : `${event.name} registration is full. Maximum ${event.maxParticipants} participants are allowed.`
+
+    });
+
+}
 
 
             const amount =
@@ -2184,6 +2456,38 @@ app.post(
                 });
 
             }
+            // ==========================================================
+// EVENT CAPACITY CHECK
+// ==========================================================
+
+const currentCapacity =
+    await getEventCapacity(
+        cleanEventId
+    );
+
+
+if (
+    currentCapacity &&
+    currentCapacity.full
+) {
+
+    return res.status(409).json({
+
+        success:
+            false,
+
+        message:
+            currentCapacity.type ===
+            "team"
+
+                ? `${event.name} registration is full. Maximum ${event.maxTeams} teams are allowed.`
+
+                : `${event.name} registration is full. Maximum ${event.maxParticipants} participants are allowed.`
+
+    });
+
+}
+
 
 
             // ----------------------------------------------------
