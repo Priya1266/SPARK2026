@@ -36,7 +36,8 @@ const events = {
 
     ideaforge: {
 
-        title: "iDeaForge",
+        title:
+            "iDeaForge",
 
         subtitle:
             "National Idea Pitching Competition",
@@ -460,10 +461,13 @@ if (
                 </p>
 
                 <p>
+
                     Event ID:
+
                     <strong>
                         ${eventId || "missing"}
                     </strong>
+
                 </p>
 
                 <br>
@@ -488,7 +492,406 @@ if (
 // SELECT EVENT
 // ============================================================
 
-const event = events[eventId];
+const event =
+    events[eventId];
+
+
+// ============================================================
+// REGISTER BUTTON
+// ============================================================
+
+const registerBtn =
+    document.getElementById(
+        "registerBtn"
+    );
+
+
+// ============================================================
+// EVENT CAPACITY / REGISTRATION PROGRESS
+// ============================================================
+
+// IMPORTANT:
+// Do NOT use the old Vercel URL here.
+//
+// The event page and API are on the same domain.
+// Therefore we use:
+// /api/event-capacity
+
+const capacityContainer =
+    document.getElementById(
+        "eventCapacity"
+    );
+
+
+async function loadEventCapacity() {
+
+    if (!capacityContainer) {
+
+        return;
+
+    }
+
+
+    try {
+
+        capacityContainer.innerHTML = `
+
+            <div class="capacity-loading">
+
+                Checking registration status...
+
+            </div>
+
+        `;
+
+
+        // ----------------------------------------------------
+        // GET CAPACITY FROM SAME DOMAIN
+        // ----------------------------------------------------
+
+        const response =
+            await fetch(
+                "/api/event-capacity",
+                {
+                    method:
+                        "GET",
+
+                    cache:
+                        "no-store"
+                }
+            );
+
+
+        // ----------------------------------------------------
+        // CHECK HTTP RESPONSE
+        // ----------------------------------------------------
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Capacity API returned HTTP ${response.status}`
+            );
+
+        }
+
+
+        // ----------------------------------------------------
+        // READ JSON
+        // ----------------------------------------------------
+
+        const data =
+            await response.json();
+
+
+        console.log(
+            "Event capacity API response:",
+            data
+        );
+
+
+        // ----------------------------------------------------
+        // VALIDATE RESPONSE
+        // ----------------------------------------------------
+
+        if (
+            !data.success ||
+            !Array.isArray(data.events)
+        ) {
+
+            throw new Error(
+                "Invalid capacity response."
+            );
+
+        }
+
+
+        // ----------------------------------------------------
+        // FIND CURRENT EVENT
+        // ----------------------------------------------------
+
+        const currentEvent =
+            data.events.find(
+                function (item) {
+
+                    return (
+                        item.eventId ===
+                        eventId
+                    );
+
+                }
+            );
+
+
+        if (!currentEvent) {
+
+            throw new Error(
+                "Capacity information not found for " +
+                eventId
+            );
+
+        }
+
+
+        console.log(
+            "Current event capacity:",
+            currentEvent
+        );
+
+
+        // ====================================================
+        // REGISTRATION FULL
+        // ====================================================
+
+        if (
+            currentEvent.full
+        ) {
+
+            capacityContainer.innerHTML = `
+
+                <div class="event-capacity full">
+
+                    <div class="capacity-header">
+
+                        <strong>
+                            Registration Full
+                        </strong>
+
+                        <span>
+                            100%
+                        </span>
+
+                    </div>
+
+
+                    <div class="capacity-bar">
+
+                        <div
+                            class="capacity-progress"
+                            style="
+                                width:100%;
+                            "
+                        ></div>
+
+                    </div>
+
+
+                    <p class="capacity-text">
+
+                        ${
+                            currentEvent.type ===
+                            "team"
+
+                                ? `All ${currentEvent.maxTeams} team slots are filled.`
+
+                                : `All ${currentEvent.maxParticipants} participant slots are filled.`
+
+                        }
+
+                    </p>
+
+                </div>
+
+            `;
+
+
+            // Disable registration button
+
+            if (registerBtn) {
+
+                registerBtn.disabled =
+                    true;
+
+                registerBtn.innerText =
+                    "Registration Full";
+
+            }
+
+
+            return;
+
+        }
+
+
+        // ====================================================
+        // TEAM EVENT
+        // ====================================================
+
+        if (
+            currentEvent.type ===
+            "team"
+        ) {
+
+            capacityContainer.innerHTML = `
+
+                <div class="event-capacity">
+
+                    <div class="capacity-header">
+
+                        <strong>
+                            Registration Progress
+                        </strong>
+
+                        <span>
+
+                            ${
+                                currentEvent.registeredTeams
+                            }
+
+                            /
+
+                            ${
+                                currentEvent.maxTeams
+                            }
+
+                            Teams
+
+                        </span>
+
+                    </div>
+
+
+                    <div class="capacity-bar">
+
+                        <div
+                            class="capacity-progress"
+                            style="
+                                width:${currentEvent.percentage}%;
+                            "
+                        ></div>
+
+                    </div>
+
+
+                    <p class="capacity-text">
+
+                        ${
+                            currentEvent.remainingTeams
+                        }
+
+                        ${
+                            currentEvent.remainingTeams === 1
+                                ? "team"
+                                : "teams"
+                        }
+
+                        remaining
+
+                        ·
+
+                        ${
+                            currentEvent.registeredParticipants
+                        }
+
+                        /
+
+                        ${
+                            currentEvent.maxParticipants
+                        }
+
+                        participants registered
+
+                    </p>
+
+                </div>
+
+            `;
+
+
+            return;
+
+        }
+
+
+        // ====================================================
+        // INDIVIDUAL EVENT
+        // ====================================================
+
+        capacityContainer.innerHTML = `
+
+            <div class="event-capacity">
+
+                <div class="capacity-header">
+
+                    <strong>
+                        Registration Progress
+                    </strong>
+
+                    <span>
+
+                        ${
+                            currentEvent.registeredParticipants
+                        }
+
+                        /
+
+                        ${
+                            currentEvent.maxParticipants
+                        }
+
+                        Participants
+
+                    </span>
+
+                </div>
+
+
+                <div class="capacity-bar">
+
+                    <div
+                        class="capacity-progress"
+                        style="
+                            width:${currentEvent.percentage}%;
+                        "
+                    ></div>
+
+                </div>
+
+
+                <p class="capacity-text">
+
+                    ${
+                        currentEvent.remainingParticipants
+                    }
+
+                    ${
+                        currentEvent.remainingParticipants === 1
+                            ? "participant"
+                            : "participants"
+                    }
+
+                    remaining
+
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+
+    catch (error) {
+
+        console.error(
+            "Capacity loading error:",
+            error
+        );
+
+
+        capacityContainer.innerHTML = `
+
+            <div class="capacity-error">
+
+                Registration availability
+                could not be loaded.
+
+            </div>
+
+        `;
+
+    }
+
+}
 
 
 // ============================================================
@@ -496,82 +899,106 @@ const event = events[eventId];
 // ============================================================
 
 const eventTitle =
-    document.getElementById("eventTitle");
+    document.getElementById(
+        "eventTitle"
+    );
 
 if (eventTitle) {
 
     eventTitle.innerText =
         event.title;
+
 }
 
 
 const eventSubtitle =
-    document.getElementById("eventSubtitle");
+    document.getElementById(
+        "eventSubtitle"
+    );
 
 if (eventSubtitle) {
 
     eventSubtitle.innerText =
         event.subtitle;
+
 }
 
 
 const about =
-    document.getElementById("about");
+    document.getElementById(
+        "about"
+    );
 
 if (about) {
 
     about.innerText =
         event.about;
+
 }
 
 
 const teamSize =
-    document.getElementById("teamSize");
+    document.getElementById(
+        "teamSize"
+    );
 
 if (teamSize) {
 
     teamSize.innerText =
         event.participation;
+
 }
 
 
 const fee =
-    document.getElementById("fee");
+    document.getElementById(
+        "fee"
+    );
 
 if (fee) {
 
     fee.innerText =
         event.fee;
+
 }
 
 
 const venue =
-    document.getElementById("venue");
+    document.getElementById(
+        "venue"
+    );
 
 if (venue) {
 
     venue.innerText =
         event.venue;
+
 }
 
 
 const date =
-    document.getElementById("date");
+    document.getElementById(
+        "date"
+    );
 
 if (date) {
 
     date.innerText =
         event.date;
+
 }
 
 
 const time =
-    document.getElementById("time");
+    document.getElementById(
+        "time"
+    );
 
 if (time) {
 
     time.innerText =
         event.time;
+
 }
 
 
@@ -586,21 +1013,27 @@ const facultyList =
 
 if (facultyList) {
 
-    facultyList.innerHTML = "";
+    facultyList.innerHTML =
+        "";
 
     event.facultyCoordinators.forEach(
         function (name) {
 
             const li =
-                document.createElement("li");
+                document.createElement(
+                    "li"
+                );
 
             li.innerText =
                 name;
 
-            facultyList.appendChild(li);
+            facultyList.appendChild(
+                li
+            );
 
         }
     );
+
 }
 
 
@@ -615,21 +1048,27 @@ const studentList =
 
 if (studentList) {
 
-    studentList.innerHTML = "";
+    studentList.innerHTML =
+        "";
 
     event.studentOrganisers.forEach(
         function (name) {
 
             const li =
-                document.createElement("li");
+                document.createElement(
+                    "li"
+                );
 
             li.innerText =
                 name;
 
-            studentList.appendChild(li);
+            studentList.appendChild(
+                li
+            );
 
         }
     );
+
 }
 
 
@@ -642,10 +1081,12 @@ const focusTitleElement =
         "focusTitle"
     );
 
+
 const focusList =
     document.getElementById(
         "focusAreas"
     );
+
 
 if (
     focusTitleElement &&
@@ -655,21 +1096,27 @@ if (
     focusTitleElement.innerText =
         event.focusTitle;
 
-    focusList.innerHTML = "";
+    focusList.innerHTML =
+        "";
 
     event.focusAreas.forEach(
         function (area) {
 
             const li =
-                document.createElement("li");
+                document.createElement(
+                    "li"
+                );
 
             li.innerText =
                 area;
 
-            focusList.appendChild(li);
+            focusList.appendChild(
+                li
+            );
 
         }
     );
+
 }
 
 
@@ -678,25 +1125,33 @@ if (
 // ============================================================
 
 const ruleList =
-    document.getElementById("rules");
+    document.getElementById(
+        "rules"
+    );
 
 if (ruleList) {
 
-    ruleList.innerHTML = "";
+    ruleList.innerHTML =
+        "";
 
     event.rules.forEach(
         function (rule) {
 
             const li =
-                document.createElement("li");
+                document.createElement(
+                    "li"
+                );
 
             li.innerText =
                 rule;
 
-            ruleList.appendChild(li);
+            ruleList.appendChild(
+                li
+            );
 
         }
     );
+
 }
 
 
@@ -721,17 +1176,22 @@ if (coordinatorElement) {
         coordinatorParent.remove();
 
     }
+
 }
+
+
+// ============================================================
+// LOAD EVENT CAPACITY
+// ============================================================
+
+// Run after the page elements have been prepared.
+
+loadEventCapacity();
 
 
 // ============================================================
 // REGISTER BUTTON
 // ============================================================
-
-const registerBtn =
-    document.getElementById(
-        "registerBtn"
-    );
 
 if (registerBtn) {
 
@@ -744,6 +1204,7 @@ if (registerBtn) {
 
         }
     );
+
 }
 
 
