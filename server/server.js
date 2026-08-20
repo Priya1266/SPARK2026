@@ -2213,6 +2213,13 @@ const isTeamEvent =
     event.participants > 1;
 
 
+// Keep this variable available for the
+// registration document below.
+
+let cleanParticipant =
+    null;
+
+
 // ============================================================
 // INDIVIDUAL EVENT
 // ============================================================
@@ -2221,7 +2228,7 @@ if (
     !isTeamEvent
 ) {
 
-    const cleanParticipant =
+    cleanParticipant =
         normalizeParticipant(
             participant
         );
@@ -2266,7 +2273,6 @@ if (
     }
 
 }
-
             // ------------------------------------------------
             // TEAM LEADER
             // ------------------------------------------------
