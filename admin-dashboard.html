@@ -197,22 +197,65 @@
         </div>
 
 
-        <!-- =================================================
-             TOOLBAR
-             ================================================= -->
+<!-- =================================================
+     TOOLBAR
+     ================================================= -->
 
-        <div class="dashboard-toolbar">
+<div class="dashboard-toolbar">
 
-            <button
-                type="button"
-                id="refreshButton"
-                class="refresh-button"
-            >
-                ↻ Refresh
-            </button>
 
-        </div>
+    <!-- REFRESH -->
 
+    <button
+        type="button"
+        id="refreshButton"
+        class="refresh-button"
+    >
+        ↻ Refresh
+    </button>
+
+
+    <!-- =================================================
+         TRANSACTION ID SEARCH
+         ================================================= -->
+
+    <div class="transaction-search">
+
+        <input
+            type="text"
+            id="transactionSearchInput"
+            class="transaction-search-input"
+            placeholder="Enter 16-digit Transaction ID"
+            inputmode="numeric"
+            maxlength="16"
+            autocomplete="off"
+        >
+
+        <button
+            type="button"
+            id="transactionSearchButton"
+            class="transaction-search-button"
+        >
+            🔎 Search
+        </button>
+
+    </div>
+
+
+    <!-- =================================================
+         EXCEL EXPORT
+         ================================================= -->
+
+    <button
+        type="button"
+        id="exportExcelButton"
+        class="export-button"
+    >
+        📥 Export Excel
+    </button>
+
+
+</div>
 
         <!-- =================================================
              REGISTRATIONS

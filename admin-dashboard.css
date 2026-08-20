@@ -504,12 +504,22 @@ body {
 
     display: flex;
 
+    align-items: center;
+
     justify-content: flex-end;
+
+    gap: 10px;
 
     margin-bottom: 21px;
 
+    flex-wrap: wrap;
+
 }
 
+
+/* ============================================================
+   REFRESH BUTTON
+   ============================================================ */
 
 .refresh-button {
 
@@ -563,6 +573,207 @@ body {
 }
 
 
+/* ============================================================
+   TRANSACTION ID SEARCH
+   ============================================================ */
+
+.transaction-search {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+}
+
+
+.transaction-search-input {
+
+    width: 245px;
+
+    height: 38px;
+
+    padding:
+        9px 12px;
+
+    border:
+        1px solid
+        #cbd9e8;
+
+    border-radius: 8px;
+
+    background:
+        white;
+
+    color:
+        var(--text-dark);
+
+    font-family:
+        "IBM Plex Mono",
+        Consolas,
+        monospace;
+
+    font-size: 12px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+
+}
+
+
+.transaction-search-input::placeholder {
+
+    color:
+        #91a0b2;
+
+    font-family:
+        "Inter",
+        Arial,
+        sans-serif;
+
+}
+
+
+.transaction-search-input:focus {
+
+    border-color:
+        var(--blue);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(23, 105, 209, 0.10);
+
+}
+
+
+.transaction-search-button {
+
+    height: 38px;
+
+    padding:
+        0 15px;
+
+    border:
+        1px solid
+        var(--blue);
+
+    border-radius: 8px;
+
+    background:
+        var(--blue);
+
+    color:
+        white;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        0.2s ease;
+
+}
+
+
+.transaction-search-button:hover {
+
+    background:
+        var(--blue-dark);
+
+    border-color:
+        var(--blue-dark);
+
+    transform:
+        translateY(-1px);
+
+}
+
+
+.transaction-search-button:disabled {
+
+    opacity:
+        0.55;
+
+    cursor:
+        not-allowed;
+
+    transform:
+        none;
+
+}
+
+
+/* ============================================================
+   EXPORT EXCEL BUTTON
+   ============================================================ */
+
+.export-button {
+
+    height: 38px;
+
+    padding:
+        0 15px;
+
+    border:
+        1px solid
+        var(--green);
+
+    border-radius: 8px;
+
+    background:
+        var(--green);
+
+    color:
+        white;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 4px 10px
+        rgba(22, 133, 61, 0.15);
+
+    transition:
+        0.2s ease;
+
+}
+
+
+.export-button:hover {
+
+    background:
+        var(--green-dark);
+
+    border-color:
+        var(--green-dark);
+
+    transform:
+        translateY(-1px);
+
+}
+
+
+.export-button:disabled {
+
+    opacity:
+        0.55;
+
+    cursor:
+        not-allowed;
+
+    transform:
+        none;
+
+}
 /* ============================================================
    REGISTRATION CONTAINER
    ============================================================ */
@@ -1639,14 +1850,51 @@ body {
     }
 
 
-    .dashboard-toolbar {
+.dashboard-toolbar {
 
-        justify-content:
-            stretch;
+    flex-direction:
+        column;
 
-    }
+    align-items:
+        stretch;
+
+}
 
 
+.transaction-search {
+
+    width:
+        100%;
+
+}
+
+
+.transaction-search-input {
+
+    width:
+        100%;
+
+    flex:
+        1;
+
+}
+
+
+.transaction-search-button {
+
+    flex-shrink:
+        0;
+
+}
+
+
+.refresh-button,
+.export-button {
+
+    width:
+        100%;
+
+}
     .refresh-button {
 
         width:

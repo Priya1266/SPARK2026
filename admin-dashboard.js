@@ -11,8 +11,7 @@
     // BACKEND URL
     // ============================================================
 
-    const BACKEND_URL =
-        "";
+    const BACKEND_URL = "";
 
 
     // ============================================================
@@ -56,6 +55,20 @@
 
 
     // ============================================================
+    // NEW — TRANSACTION SEARCH ELEMENTS
+    // ============================================================
+
+    const transactionSearchInput =
+        $("transactionSearchInput");
+
+    const transactionSearchButton =
+        $("transactionSearchButton");
+
+    const exportExcelButton =
+        $("exportExcelButton");
+
+
+    // ============================================================
     // ESCAPE HTML
     // ============================================================
 
@@ -78,8 +91,11 @@
     function formatDate(value) {
 
         if (!value) {
+
             return "—";
+
         }
+
 
         try {
 
@@ -91,7 +107,9 @@
                 }
             );
 
-        } catch (error) {
+        }
+
+        catch (error) {
 
             return String(value);
 
@@ -101,12 +119,7 @@
 
 
     // ============================================================
-    // GET UTR
-    // ============================================================
-    // Supports:
-    // registration.utr
-    // registration.transactionId
-    // registration.paymentUtr
+    // GET UTR / TRANSACTION ID
     // ============================================================
 
     function getUTR(registration) {
@@ -338,6 +351,7 @@
                 dashboardMessage.textContent =
                     "No pending registrations.";
 
+
                 registrationsContainer.innerHTML = `
 
                     <div class="empty-state">
@@ -383,6 +397,7 @@
                         createRegistrationCard(
                             registration
                         );
+
 
                     registrationsContainer.appendChild(
                         card
@@ -448,6 +463,7 @@
                 <span>
                     ${escapeHTML(
                         participant.fullName ||
+                        participant.name ||
                         "—"
                     )}
                 </span>
@@ -604,6 +620,7 @@
 
                         ${escapeHTML(
                             registration.participation ||
+                            registration.teamSize ||
                             "—"
                         )}
 
@@ -957,6 +974,7 @@
                     <div class="detail-value">
                         ${escapeHTML(
                             registration.participation ||
+                            registration.teamSize ||
                             "—"
                         )}
                     </div>
@@ -1153,9 +1171,7 @@
                 </div>
 
 
-                <!-- ============================================
-                     UTR
-                     ============================================ -->
+                <!-- UTR -->
 
                 <div
                     class="detail-row"
@@ -1204,6 +1220,24 @@
                         ${escapeHTML(
                             registration.paymentStatus ||
                             "SUBMITTED"
+                        )}
+                    </div>
+
+                </div>
+
+
+                <!-- VERIFICATION STATUS -->
+
+                <div class="detail-row">
+
+                    <div class="detail-label">
+                        Verification Status
+                    </div>
+
+                    <div class="detail-value">
+                        ${escapeHTML(
+                            registration.verificationStatus ||
+                            "PENDING"
                         )}
                     </div>
 
@@ -1332,6 +1366,7 @@
             "hidden"
         );
 
+
         document.body.style.overflow =
             "";
 
@@ -1381,25 +1416,16 @@
 
             const response =
                 await fetch(
-                    `${BACKEND_URL}/api/admin/verify`,
+                    `${BACKEND_URL}/api/admin/registration/${encodeURIComponent(registrationId)}/verify`,
                     {
-                        method: "POST",
+                        method: "PATCH",
 
                         credentials: "include",
 
                         headers: {
                             "Content-Type":
                                 "application/json"
-                        },
-
-                        body:
-                            JSON.stringify({
-                                registrationId,
-
-                                adminName:
-                                    adminUsername.textContent ||
-                                    "Administrator"
-                            })
+                        }
                     }
                 );
 
@@ -1530,9 +1556,9 @@
 
             const response =
                 await fetch(
-                    `${BACKEND_URL}/api/admin/reject`,
+                    `${BACKEND_URL}/api/admin/registration/${encodeURIComponent(registrationId)}/reject`,
                     {
-                        method: "POST",
+                        method: "PATCH",
 
                         credentials: "include",
 
@@ -1543,14 +1569,10 @@
 
                         body:
                             JSON.stringify({
-                                registrationId,
 
                                 reason:
-                                    trimmedReason,
+                                    trimmedReason
 
-                                adminName:
-                                    adminUsername.textContent ||
-                                    "Administrator"
                             })
                     }
                 );
@@ -1616,6 +1638,702 @@
 
                 button.textContent =
                     "REJECT";
+
+            }
+
+        }
+
+    }
+
+
+    // ============================================================
+    // SEARCH BY TRANSACTION ID
+    // ============================================================
+
+    async function searchTransaction() {
+
+        if (!transactionSearchInput) {
+
+            return;
+
+        }
+
+
+        const transactionId =
+            transactionSearchInput.value.trim();
+
+
+        // --------------------------------------------------------
+        // VALIDATION
+        // --------------------------------------------------------
+
+        if (!transactionId) {
+
+            window.alert(
+                "Please enter the Transaction ID."
+            );
+
+            transactionSearchInput.focus();
+
+            return;
+
+        }
+
+
+        if (
+            !/^\d{16}$/.test(
+                transactionId
+            )
+        ) {
+
+            window.alert(
+                "Please enter a valid 16-digit Transaction ID."
+            );
+
+            transactionSearchInput.focus();
+
+            return;
+
+        }
+
+
+        if (transactionSearchButton) {
+
+            transactionSearchButton.disabled =
+                true;
+
+            transactionSearchButton.textContent =
+                "SEARCHING...";
+
+        }
+
+
+        dashboardMessage.textContent =
+            "Searching Transaction ID...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${BACKEND_URL}/api/admin/search-transaction?transactionId=${encodeURIComponent(transactionId)}`,
+                    {
+                        method: "GET",
+
+                        credentials: "include"
+                    }
+                );
+
+
+            // ----------------------------------------------------
+            // SESSION EXPIRED
+            // ----------------------------------------------------
+
+            if (
+                response.status === 401
+            ) {
+
+                window.location.href =
+                    "admin.html";
+
+                return;
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            // ----------------------------------------------------
+            // NOT FOUND
+            // ----------------------------------------------------
+
+            if (
+                response.status === 404
+            ) {
+
+                dashboardMessage.textContent =
+                    "No registration found for this Transaction ID.";
+
+
+                dashboardMessage.style.background =
+                    "#fff4f4";
+
+                dashboardMessage.style.borderColor =
+                    "#f0c4c4";
+
+                dashboardMessage.style.color =
+                    "#b42323";
+
+
+                window.alert(
+                    "No registration found for this Transaction ID."
+                );
+
+
+                return;
+
+            }
+
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
+                throw new Error(
+                    data.message ||
+                    "Unable to search Transaction ID."
+                );
+
+            }
+
+
+            // ----------------------------------------------------
+            // SHOW RESULT
+            // ----------------------------------------------------
+
+            dashboardMessage.textContent =
+                "Transaction found successfully.";
+
+
+            dashboardMessage.style.background =
+                "#eefbf3";
+
+            dashboardMessage.style.borderColor =
+                "#b7e4c7";
+
+            dashboardMessage.style.color =
+                "#16734a";
+
+
+            registrationsContainer.innerHTML =
+                "";
+
+
+            const registration =
+                data.registration;
+
+
+            const card =
+                createSearchResultCard(
+                    registration
+                );
+
+
+            registrationsContainer.appendChild(
+                card
+            );
+
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Transaction search error:",
+                error
+            );
+
+
+            dashboardMessage.textContent =
+                error.message ||
+                "Unable to search Transaction ID.";
+
+
+            dashboardMessage.style.background =
+                "#fff4f4";
+
+            dashboardMessage.style.borderColor =
+                "#f0c4c4";
+
+            dashboardMessage.style.color =
+                "#b42323";
+
+
+        }
+
+        finally {
+
+            if (transactionSearchButton) {
+
+                transactionSearchButton.disabled =
+                    false;
+
+                transactionSearchButton.textContent =
+                    "🔎 Search";
+
+            }
+
+        }
+
+    }
+
+
+    // ============================================================
+    // CREATE SEARCH RESULT CARD
+    // ============================================================
+
+    function createSearchResultCard(
+        registration
+    ) {
+
+        const card =
+            document.createElement("article");
+
+
+        card.className =
+            "registration-card";
+
+
+        const utr =
+            getUTR(registration);
+
+
+        const verificationStatus =
+            registration.verificationStatus ||
+            "PENDING";
+
+
+        let statusClass =
+            "pending-badge";
+
+
+        if (
+            verificationStatus ===
+            "VERIFIED"
+        ) {
+
+            statusClass =
+                "verified-badge";
+
+        }
+
+        else if (
+            verificationStatus ===
+            "REJECTED"
+        ) {
+
+            statusClass =
+                "rejected-badge";
+
+        }
+
+
+        const participants =
+
+            participantHTML(
+                registration.teamLeader,
+                "Team Leader"
+            )
+
+            +
+
+            participantHTML(
+                registration.teamMember,
+                "Team Member"
+            );
+
+
+        card.innerHTML = `
+
+            <div class="registration-header">
+
+                <div>
+
+                    <div class="registration-id">
+
+                        ${escapeHTML(
+                            registration.registrationId ||
+                            "—"
+                        )}
+
+                    </div>
+
+
+                    <div class="event-name">
+
+                        ${escapeHTML(
+                            registration.eventName ||
+                            "—"
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <span class="${statusClass}">
+
+                    ${escapeHTML(
+                        verificationStatus
+                    )}
+
+                </span>
+
+            </div>
+
+
+            <div class="registration-info">
+
+
+                <div class="info-item">
+
+                    <span class="info-label">
+                        Payer
+                    </span>
+
+                    <span class="info-value">
+
+                        ${escapeHTML(
+                            registration.payerName ||
+                            "—"
+                        )}
+
+                    </span>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <span class="info-label">
+                        Amount
+                    </span>
+
+                    <span class="info-value">
+
+                        ₹${escapeHTML(
+                            registration.amount ||
+                            0
+                        )}
+
+                    </span>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <span class="info-label">
+                        Transaction ID
+                    </span>
+
+                    <span class="info-value utr-value">
+
+                        ${escapeHTML(
+                            utr
+                        )}
+
+                    </span>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <span class="info-label">
+                        Payment Status
+                    </span>
+
+                    <span class="info-value">
+
+                        ${escapeHTML(
+                            registration.paymentStatus ||
+                            "—"
+                        )}
+
+                    </span>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <span class="info-label">
+                        Registered
+                    </span>
+
+                    <span class="info-value">
+
+                        ${escapeHTML(
+                            formatDate(
+                                registration.createdAt
+                            )
+                        )}
+
+                    </span>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="participants-section">
+
+                <h3>
+                    Participants
+                </h3>
+
+                ${
+                    participants ||
+
+                    `
+                        <p>
+                            No participant details available.
+                        </p>
+                    `
+                }
+
+            </div>
+
+
+            <div class="registration-actions">
+
+                <button
+                    type="button"
+                    class="view-button"
+                    data-action="view-search"
+                >
+                    View Full Details
+                </button>
+
+            </div>
+
+        `;
+
+
+        const viewButton =
+            card.querySelector(
+                '[data-action="view-search"]'
+            );
+
+
+        viewButton.addEventListener(
+            "click",
+            () => {
+
+                showDetails(
+                    registration
+                );
+
+            }
+        );
+
+
+        return card;
+
+    }
+
+
+    // ============================================================
+    // CLEAR SEARCH
+    // ============================================================
+
+    function clearTransactionSearch() {
+
+        if (
+            transactionSearchInput
+        ) {
+
+            transactionSearchInput.value =
+                "";
+
+        }
+
+
+        loadRegistrations();
+
+    }
+
+
+    // ============================================================
+    // EXPORT ALL REGISTRATIONS TO EXCEL
+    // ============================================================
+
+    async function exportRegistrations() {
+
+        if (exportExcelButton) {
+
+            exportExcelButton.disabled =
+                true;
+
+            exportExcelButton.textContent =
+                "📥 Exporting...";
+
+        }
+
+
+        dashboardMessage.textContent =
+            "Preparing Excel file...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${BACKEND_URL}/api/admin/export`,
+                    {
+                        method: "GET",
+
+                        credentials: "include"
+                    }
+                );
+
+
+            // ----------------------------------------------------
+            // SESSION EXPIRED
+            // ----------------------------------------------------
+
+            if (
+                response.status === 401
+            ) {
+
+                window.location.href =
+                    "admin.html";
+
+                return;
+
+            }
+
+
+            // ----------------------------------------------------
+            // API ERROR
+            // ----------------------------------------------------
+
+            if (!response.ok) {
+
+                let errorMessage =
+                    "Unable to export registrations.";
+
+
+                try {
+
+                    const data =
+                        await response.json();
+
+
+                    errorMessage =
+                        data.message ||
+                        errorMessage;
+
+                }
+
+                catch (error) {
+
+                    // Response was not JSON.
+
+                }
+
+
+                throw new Error(
+                    errorMessage
+                );
+
+            }
+
+
+            // ----------------------------------------------------
+            // DOWNLOAD XLSX
+            // ----------------------------------------------------
+
+            const blob =
+                await response.blob();
+
+
+            const downloadURL =
+                window.URL.createObjectURL(
+                    blob
+                );
+
+
+            const link =
+                document.createElement(
+                    "a"
+                );
+
+
+            link.href =
+                downloadURL;
+
+
+            link.download =
+                "SPARK2026_Registrations.xlsx";
+
+
+            document.body.appendChild(
+                link
+            );
+
+
+            link.click();
+
+
+            link.remove();
+
+
+            window.URL.revokeObjectURL(
+                downloadURL
+            );
+
+
+            dashboardMessage.textContent =
+                "Excel export completed successfully.";
+
+
+            dashboardMessage.style.background =
+                "#eefbf3";
+
+            dashboardMessage.style.borderColor =
+                "#b7e4c7";
+
+            dashboardMessage.style.color =
+                "#16734a";
+
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Excel export error:",
+                error
+            );
+
+
+            dashboardMessage.textContent =
+                error.message ||
+                "Unable to export registrations.";
+
+
+            dashboardMessage.style.background =
+                "#fff4f4";
+
+            dashboardMessage.style.borderColor =
+                "#f0c4c4";
+
+            dashboardMessage.style.color =
+                "#b42323";
+
+
+            window.alert(
+                error.message ||
+                "Unable to export registrations."
+            );
+
+        }
+
+        finally {
+
+            if (exportExcelButton) {
+
+                exportExcelButton.disabled =
+                    false;
+
+                exportExcelButton.textContent =
+                    "📥 Export Excel";
 
             }
 
@@ -1722,6 +2440,82 @@
         "click",
         closeDetailsModal
     );
+
+
+    // ------------------------------------------------------------
+    // TRANSACTION SEARCH
+    // ------------------------------------------------------------
+
+    if (
+        transactionSearchButton
+    ) {
+
+        transactionSearchButton.addEventListener(
+            "click",
+            searchTransaction
+        );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // TRANSACTION SEARCH — ENTER KEY
+    // ------------------------------------------------------------
+
+    if (
+        transactionSearchInput
+    ) {
+
+        transactionSearchInput.addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key === "Enter"
+                ) {
+
+                    event.preventDefault();
+
+                    searchTransaction();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // EXPORT EXCEL
+    // ------------------------------------------------------------
+
+    if (
+        exportExcelButton
+    ) {
+
+        exportExcelButton.addEventListener(
+            "click",
+            exportRegistrations
+        );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // DOUBLE-CLICK SEARCH INPUT TO CLEAR
+    // ------------------------------------------------------------
+
+    if (
+        transactionSearchInput
+    ) {
+
+        transactionSearchInput.addEventListener(
+            "dblclick",
+            clearTransactionSearch
+        );
+
+    }
 
 
     // ============================================================
