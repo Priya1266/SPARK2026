@@ -731,6 +731,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         false;
 
                 }
+
                 else {
 
                     card.hidden =
@@ -897,6 +898,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     "Enter the details of the team leader.";
 
             }
+
             else {
 
                 roleTitle =
@@ -911,6 +913,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
         }
+
         else {
 
             roleTitle =
@@ -1530,6 +1533,7 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
         }
+
         catch (error) {
 
             console.error(
@@ -1564,6 +1568,7 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
         }
+
         catch (error) {
 
             console.error(
@@ -1720,6 +1725,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
         }
+
         else {
 
             if (reviewTeamNameBox) {
@@ -1772,6 +1778,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 : "Team Member";
 
                     }
+
                     else {
 
                         role =
@@ -2026,7 +2033,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /* ============================================================
        MODULE 19 — UPDATE PAYMENT SUMMARY
-       
+
        IMPORTANT:
        This ONLY updates the EXISTING HTML.
 
@@ -2111,6 +2118,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
         }
+
         else {
 
             if (paymentTeamRow) {
@@ -2184,147 +2192,154 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
     }
-/* ============================================================
-   MODULE 21 — UPI TRANSACTION ID INPUT
-   ============================================================ */
-
-if (utr) {
-
-    utr.addEventListener(
-        "input",
-        function () {
-
-            utr.value =
-                utr.value
-                    .replace(/\D/g, "")
-                    .slice(0, 12);
-
-        }
-    );
-
-}
 
 
-/* ============================================================
-   MODULE 22 — VALIDATE PAYMENT DETAILS
-   ============================================================ */
+    /* ============================================================
+       MODULE 21 — UPI TRANSACTION ID INPUT
+       ============================================================ */
 
-function validatePaymentDetails() {
+    if (utr) {
 
-    let valid = true;
+        utr.addEventListener(
+            "input",
+            function () {
 
-    const payer =
-        payerName
-            ? payerName.value.trim()
-            : "";
+                utr.value =
+                    utr.value
+                        .replace(/\D/g, "")
+                        .slice(0, 12);
 
-    const transactionId =
-        utr
-            ? utr.value.trim()
-            : "";
-
-
-    /* --------------------------------------------------------
-       CLEAR PREVIOUS ERRORS
-       -------------------------------------------------------- */
-
-    if (payerNameError) {
-
-        payerNameError.textContent =
-            "";
-
-    }
-
-    if (utrError) {
-
-        utrError.textContent =
-            "";
+            }
+        );
 
     }
 
 
-    /* --------------------------------------------------------
-       PAYER NAME
-       -------------------------------------------------------- */
+    /* ============================================================
+       MODULE 22 — VALIDATE PAYMENT DETAILS
+       ============================================================ */
 
-    if (!payer) {
+    function validatePaymentDetails() {
 
-        valid = false;
+        let valid = true;
+
+        const payer =
+            payerName
+                ? payerName.value.trim()
+                : "";
+
+        const transactionId =
+            utr
+                ? utr.value.trim()
+                : "";
+
+
+        /* --------------------------------------------------------
+           CLEAR PREVIOUS ERRORS
+           -------------------------------------------------------- */
 
         if (payerNameError) {
 
             payerNameError.textContent =
-                "Payer name is required.";
+                "";
 
         }
 
-    }
-    else if (
-        !/^[A-Za-z .'-]+$/.test(
-            payer
-        )
-    ) {
-
-        valid = false;
-
-        if (payerNameError) {
-
-            payerNameError.textContent =
-                "Enter a valid payer name.";
-
-        }
-
-    }
-
-
-    /* --------------------------------------------------------
-       UPI TRANSACTION ID
-       -------------------------------------------------------- */
-
-    if (!transactionId) {
-
-        valid = false;
 
         if (utrError) {
 
             utrError.textContent =
-                "UPI Transaction ID is required.";
+                "";
 
         }
 
-    }
-    else if (
-        !/^\d{12}$/.test(
-            transactionId
-        )
-    ) {
 
-        valid = false;
+        /* --------------------------------------------------------
+           PAYER NAME
+           -------------------------------------------------------- */
 
-        if (utrError) {
+        if (!payer) {
 
-            utrError.textContent =
-                "UPI Transaction ID must contain exactly 12 digits.";
+            valid = false;
+
+            if (payerNameError) {
+
+                payerNameError.textContent =
+                    "Payer name is required.";
+
+            }
 
         }
 
+        else if (
+            !/^[A-Za-z .'-]+$/.test(
+                payer
+            )
+        ) {
+
+            valid = false;
+
+            if (payerNameError) {
+
+                payerNameError.textContent =
+                    "Enter a valid payer name.";
+
+            }
+
+        }
+
+
+        /* --------------------------------------------------------
+           UPI TRANSACTION ID
+           -------------------------------------------------------- */
+
+        if (!transactionId) {
+
+            valid = false;
+
+            if (utrError) {
+
+                utrError.textContent =
+                    "UPI Transaction ID is required.";
+
+            }
+
+        }
+
+        else if (
+            !/^\d{12}$/.test(
+                transactionId
+            )
+        ) {
+
+            valid = false;
+
+            if (utrError) {
+
+                utrError.textContent =
+                    "UPI Transaction ID must contain exactly 12 digits.";
+
+            }
+
+        }
+
+
+        return {
+
+            valid:
+                valid,
+
+            payerName:
+                payer,
+
+            utr:
+                transactionId
+
+        };
+
     }
 
 
-    return {
-
-        valid:
-            valid,
-
-        payerName:
-            payer,
-
-        utr:
-            transactionId
-
-    };
-
-}
     /* ============================================================
        MODULE 23 — BACK TO REVIEW
        ============================================================ */
@@ -2459,6 +2474,7 @@ function validatePaymentDetails() {
                             .participants[0];
 
                 }
+
                 else {
 
                     teamLeader =
@@ -2484,8 +2500,26 @@ function validatePaymentDetails() {
                     eventName:
                         registrationData.eventName,
 
+                    /*
+                     * IMPORTANT FIX:
+                     *
+                     * The server expects teamSize to be a NUMBER.
+                     *
+                     * OLD:
+                     * teamSize: registrationData.participation
+                     *
+                     * That sent:
+                     * "team" / "individual"
+                     *
+                     * CORRECT:
+                     * Send 2 for team events
+                     * Send 1 for individual events
+                     */
+
                     teamSize:
-                        registrationData.participation,
+                        Number(
+                            registrationData.participantCount
+                        ),
 
                     amount:
                         registrationData.totalAmount,
@@ -2526,7 +2560,14 @@ function validatePaymentDetails() {
                 );
 
                 console.log(
+                    "REQUEST DATA:",
                     requestData
+                );
+
+                console.log(
+                    "Team Size:",
+                    requestData.teamSize,
+                    typeof requestData.teamSize
                 );
 
                 console.log(
@@ -2567,32 +2608,56 @@ function validatePaymentDetails() {
                         );
 
 
-let data = null;
+                    let data = null;
 
-const responseText = await response.text();
+                    const responseText =
+                        await response.text();
 
-console.log("HTTP STATUS:", response.status);
-console.log("RAW SERVER RESPONSE:", responseText);
+                    console.log(
+                        "HTTP STATUS:",
+                        response.status
+                    );
 
-if (!responseText || !responseText.trim()) {
-    throw new Error(
-        `Server returned an empty response. HTTP ${response.status}.`
-    );
-}
+                    console.log(
+                        "RAW SERVER RESPONSE:",
+                        responseText
+                    );
 
-try {
-    data = JSON.parse(responseText);
-}
-catch (jsonError) {
-    console.error(
-        "Server did not return JSON:",
-        responseText
-    );
 
-    throw new Error(
-        `Server returned non-JSON response. HTTP ${response.status}. Check Vercel API deployment.`
-    );
-}
+                    if (
+                        !responseText ||
+                        !responseText.trim()
+                    ) {
+
+                        throw new Error(
+                            `Server returned an empty response. HTTP ${response.status}.`
+                        );
+
+                    }
+
+
+                    try {
+
+                        data =
+                            JSON.parse(
+                                responseText
+                            );
+
+                    }
+
+                    catch (jsonError) {
+
+                        console.error(
+                            "Server did not return JSON:",
+                            responseText
+                        );
+
+                        throw new Error(
+                            `Server returned non-JSON response. HTTP ${response.status}. Check Vercel API deployment.`
+                        );
+
+                    }
+
 
                     console.log(
                         "Server response:",
@@ -2668,6 +2733,7 @@ catch (jsonError) {
 
 
                 }
+
                 catch (error) {
 
                     console.error(
@@ -2813,6 +2879,7 @@ catch (jsonError) {
             }
 
         }
+
         else {
 
             if (successTeamRow) {
@@ -2969,7 +3036,6 @@ catch (jsonError) {
 
     console.log(
         "=========================================="
-
     );
 
 });
