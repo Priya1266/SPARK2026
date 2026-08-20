@@ -376,7 +376,6 @@ async function connectDatabase() {
 
 }
 
-
 // ============================================================
 // MODULE 5 — EVENT CONFIGURATION
 // ============================================================
@@ -386,7 +385,7 @@ const events = {
     ideaforge: {
 
         name:
-            "IdeaForge",
+            "iDeaForge",
 
         participants:
             2,
@@ -513,7 +512,6 @@ function cleanText(value) {
     ).trim();
 
 }
-
 
 // ============================================================
 // MODULE 7A — EVENT CAPACITY HELPERS
