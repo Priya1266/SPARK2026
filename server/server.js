@@ -2204,54 +2204,70 @@ app.post(
             }
 
 
-            // ------------------------------------------------
-            // PARTICIPANT DATA
-            // ------------------------------------------------
+// ------------------------------------------------
+// PARTICIPANT DATA
+// ------------------------------------------------
 
-            const cleanParticipant =
-                normalizeParticipant(
-                    participant
-                );
+// Team events use teamLeader/teamMember data.
+// Individual events use participant data.
 
-
-            if (
-                !cleanParticipant
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Participant details are required."
-
-                });
-
-            }
+const isTeamEvent =
+    event.participants > 1;
 
 
-            if (
-                !cleanParticipant.name ||
-                !cleanParticipant.college ||
-                !cleanParticipant.department ||
-                !cleanParticipant.year ||
-                !cleanParticipant.phone ||
-                !cleanParticipant.email
-            ) {
+// ============================================================
+// INDIVIDUAL EVENT
+// ============================================================
 
-                return res.status(400).json({
+if (
+    !isTeamEvent
+) {
 
-                    success:
-                        false,
+    const cleanParticipant =
+        normalizeParticipant(
+            participant
+        );
 
-                    message:
-                        "Complete participant details are required."
 
-                });
+    if (
+        !cleanParticipant
+    ) {
 
-            }
+        return res.status(400).json({
 
+            success:
+                false,
+
+            message:
+                "Participant details are required."
+
+        });
+
+    }
+
+
+    if (
+        !cleanParticipant.name ||
+        !cleanParticipant.college ||
+        !cleanParticipant.department ||
+        !cleanParticipant.year ||
+        !cleanParticipant.phone ||
+        !cleanParticipant.email
+    ) {
+
+        return res.status(400).json({
+
+            success:
+                false,
+
+            message:
+                "Complete participant details are required."
+
+        });
+
+    }
+
+}
 
             // ------------------------------------------------
             // TEAM LEADER
