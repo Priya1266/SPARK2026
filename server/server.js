@@ -1305,18 +1305,211 @@ async function sendVerificationEmail(
     }
 
 
-    const recipient =
-        registration.participation ===
-        "individual"
+    // ============================================================
+    // HELPERS
+    // ============================================================
 
-            ? cleanText(
-                registration.participant &&
-                registration.participant.email
+    function safeText(
+        value
+    ) {
+
+        return cleanText(
+            value
+        );
+
+    }
+
+
+    function escapeHTML(
+        value
+    ) {
+
+        return safeText(
+            value
+        )
+            .replace(
+                /&/g,
+                "&amp;"
             )
+            .replace(
+                /</g,
+                "&lt;"
+            )
+            .replace(
+                />/g,
+                "&gt;"
+            )
+            .replace(
+                /"/g,
+                "&quot;"
+            )
+            .replace(
+                /'/g,
+                "&#039;"
+            );
 
-            : cleanText(
+    }
+
+
+    function participantRows(
+        participant
+    ) {
+
+        if (
+            !participant
+        ) {
+
+            return `
+                <tr>
+                    <td colspan="2"
+                        style="
+                            padding:12px;
+                            color:#666666;
+                            text-align:center;
+                        ">
+                        No participant details available
+                    </td>
+                </tr>
+            `;
+
+        }
+
+
+        return `
+            <tr>
+                <td style="${labelStyle}">
+                    Name
+                </td>
+                <td style="${valueStyle}">
+                    ${escapeHTML(
+                        participant.name ||
+                        "—"
+                    )}
+                </td>
+            </tr>
+
+            <tr>
+                <td style="${labelStyle}">
+                    College
+                </td>
+                <td style="${valueStyle}">
+                    ${escapeHTML(
+                        participant.college ||
+                        "—"
+                    )}
+                </td>
+            </tr>
+
+            <tr>
+                <td style="${labelStyle}">
+                    Department
+                </td>
+                <td style="${valueStyle}">
+                    ${escapeHTML(
+                        participant.department ||
+                        "—"
+                    )}
+                </td>
+            </tr>
+
+            <tr>
+                <td style="${labelStyle}">
+                    Year
+                </td>
+                <td style="${valueStyle}">
+                    ${escapeHTML(
+                        participant.year ||
+                        "—"
+                    )}
+                </td>
+            </tr>
+
+            <tr>
+                <td style="${labelStyle}">
+                    Phone
+                </td>
+                <td style="${valueStyle}">
+                    ${escapeHTML(
+                        participant.phone ||
+                        "—"
+                    )}
+                </td>
+            </tr>
+
+            <tr>
+                <td style="${labelStyle}">
+                    Email
+                </td>
+                <td style="${valueStyle}">
+                    ${escapeHTML(
+                        participant.email ||
+                        "—"
+                    )}
+                </td>
+            </tr>
+        `;
+
+    }
+
+
+    // ============================================================
+    // BASIC DETAILS
+    // ============================================================
+
+    const registrationId =
+        safeText(
+            registration.registrationId
+        );
+
+
+    const eventName =
+        safeText(
+            registration.eventName
+        );
+
+
+    const teamName =
+        safeText(
+            registration.teamName
+        );
+
+
+    const payerName =
+        safeText(
+            registration.payerName
+        );
+
+
+    const amount =
+        registration.amount !==
+        undefined &&
+        registration.amount !==
+        null
+            ? `₹${registration.amount}`
+            : "—";
+
+
+    const utr =
+        safeText(
+            registration.utr ||
+            registration.transactionId
+        );
+
+
+    const isTeamEvent =
+        registration.participation !==
+            "individual";
+
+
+    const recipient =
+        isTeamEvent
+            ? safeText(
                 registration.teamLeader &&
                 registration.teamLeader.email
+            )
+            : safeText(
+                registration.participant &&
+                registration.participant.email
             );
 
 
@@ -1331,42 +1524,834 @@ async function sendVerificationEmail(
     }
 
 
-    const registrationId =
-        cleanText(
-            registration.registrationId
-        );
-
-
-    const eventName =
-        cleanText(
-            registration.eventName
-        );
-
+    // ============================================================
+    // EMAIL SUBJECT
+    // ============================================================
 
     const subject =
         `SPARK 2026 Payment Verified - ${registrationId}`;
 
 
-    const text =
-        [
-            "SPARK 2026",
+    // ============================================================
+    // COMMON EMAIL STYLES
+    // ============================================================
+
+    const labelStyle = `
+        padding:10px 12px;
+        background:#f7f7f7;
+        border-bottom:1px solid #e5e5e5;
+        color:#555555;
+        font-size:13px;
+        font-weight:600;
+        width:35%;
+        vertical-align:top;
+    `;
+
+
+    const valueStyle = `
+        padding:10px 12px;
+        border-bottom:1px solid #e5e5e5;
+        color:#222222;
+        font-size:13px;
+        vertical-align:top;
+    `;
+
+
+    // ============================================================
+    // PARTICIPANT / TEAM SECTION
+    // ============================================================
+
+    let participantSectionHTML =
+        "";
+
+
+    let participantText =
+        "";
+
+
+    if (
+        isTeamEvent
+    ) {
+
+        participantSectionHTML = `
+
+            <!-- TEAM DETAILS -->
+
+            <div style="
+                margin-top:24px;
+                margin-bottom:20px;
+            ">
+
+                <h2 style="
+                    margin:0 0 12px 0;
+                    font-size:18px;
+                    color:#111827;
+                ">
+                    Team Details
+                </h2>
+
+
+                <table
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    style="
+                        border-collapse:collapse;
+                        border:1px solid #e5e5e5;
+                        border-radius:8px;
+                        overflow:hidden;
+                    "
+                >
+
+                    <tr>
+                        <td style="${labelStyle}">
+                            Team Name
+                        </td>
+
+                        <td style="${valueStyle}">
+                            ${escapeHTML(
+                                teamName ||
+                                "—"
+                            )}
+                        </td>
+                    </tr>
+
+                </table>
+
+            </div>
+
+
+            <!-- TEAM LEADER -->
+
+            <div style="
+                margin-top:24px;
+                margin-bottom:20px;
+            ">
+
+                <h2 style="
+                    margin:0 0 12px 0;
+                    font-size:18px;
+                    color:#111827;
+                ">
+                    Team Leader
+                </h2>
+
+
+                <table
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    style="
+                        border-collapse:collapse;
+                        border:1px solid #e5e5e5;
+                    "
+                >
+
+                    ${participantRows(
+                        registration.teamLeader
+                    )}
+
+                </table>
+
+            </div>
+
+
+            <!-- TEAM MEMBER -->
+
+            <div style="
+                margin-top:24px;
+                margin-bottom:20px;
+            ">
+
+                <h2 style="
+                    margin:0 0 12px 0;
+                    font-size:18px;
+                    color:#111827;
+                ">
+                    Team Member
+                </h2>
+
+
+                <table
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    style="
+                        border-collapse:collapse;
+                        border:1px solid #e5e5e5;
+                    "
+                >
+
+                    ${participantRows(
+                        registration.teamMember
+                    )}
+
+                </table>
+
+            </div>
+
+        `;
+
+
+        participantText = [
+
+            "TEAM DETAILS",
+            "------------",
+            `Team Name: ${teamName || "—"}`,
             "",
-            "Your payment has been verified successfully.",
+            "TEAM LEADER",
+            "-----------",
+            `Name: ${
+                registration.teamLeader &&
+                registration.teamLeader.name ||
+                "—"
+            }`,
+            `College: ${
+                registration.teamLeader &&
+                registration.teamLeader.college ||
+                "—"
+            }`,
+            `Department: ${
+                registration.teamLeader &&
+                registration.teamLeader.department ||
+                "—"
+            }`,
+            `Year: ${
+                registration.teamLeader &&
+                registration.teamLeader.year ||
+                "—"
+            }`,
+            `Phone: ${
+                registration.teamLeader &&
+                registration.teamLeader.phone ||
+                "—"
+            }`,
+            `Email: ${
+                registration.teamLeader &&
+                registration.teamLeader.email ||
+                "—"
+            }`,
             "",
-            `Registration ID: ${registrationId}`,
-            `Event: ${eventName}`,
-            "",
-            "Payment status: VERIFIED",
-            "",
-            "Your registration is now confirmed.",
-            "",
-            "Please keep this Registration ID for future communication.",
-            "",
-            "SPARK 2026 Organizing Team"
+            "TEAM MEMBER",
+            "-----------",
+            `Name: ${
+                registration.teamMember &&
+                registration.teamMember.name ||
+                "—"
+            }`,
+            `College: ${
+                registration.teamMember &&
+                registration.teamMember.college ||
+                "—"
+            }`,
+            `Department: ${
+                registration.teamMember &&
+                registration.teamMember.department ||
+                "—"
+            }`,
+            `Year: ${
+                registration.teamMember &&
+                registration.teamMember.year ||
+                "—"
+            }`,
+            `Phone: ${
+                registration.teamMember &&
+                registration.teamMember.phone ||
+                "—"
+            }`,
+            `Email: ${
+                registration.teamMember &&
+                registration.teamMember.email ||
+                "—"
+            }`
+
         ].join(
             "\n"
         );
 
+    }
+
+    else {
+
+        participantSectionHTML = `
+
+            <!-- PARTICIPANT DETAILS -->
+
+            <div style="
+                margin-top:24px;
+                margin-bottom:20px;
+            ">
+
+                <h2 style="
+                    margin:0 0 12px 0;
+                    font-size:18px;
+                    color:#111827;
+                ">
+                    Participant Details
+                </h2>
+
+
+                <table
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    style="
+                        border-collapse:collapse;
+                        border:1px solid #e5e5e5;
+                    "
+                >
+
+                    ${participantRows(
+                        registration.participant
+                    )}
+
+                </table>
+
+            </div>
+
+        `;
+
+
+        participantText = [
+
+            "PARTICIPANT DETAILS",
+            "-------------------",
+            `Name: ${
+                registration.participant &&
+                registration.participant.name ||
+                "—"
+            }`,
+            `College: ${
+                registration.participant &&
+                registration.participant.college ||
+                "—"
+            }`,
+            `Department: ${
+                registration.participant &&
+                registration.participant.department ||
+                "—"
+            }`,
+            `Year: ${
+                registration.participant &&
+                registration.participant.year ||
+                "—"
+            }`,
+            `Phone: ${
+                registration.participant &&
+                registration.participant.phone ||
+                "—"
+            }`,
+            `Email: ${
+                registration.participant &&
+                registration.participant.email ||
+                "—"
+            }`
+
+        ].join(
+            "\n"
+        );
+
+    }
+
+
+    // ============================================================
+    // HTML EMAIL
+    // ============================================================
+
+    const html = `
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <meta
+        charset="UTF-8"
+    >
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        SPARK 2026 Payment Verified
+    </title>
+
+</head>
+
+
+<body style="
+    margin:0;
+    padding:0;
+    background:#f4f6f8;
+    font-family:Arial,Helvetica,sans-serif;
+    color:#222222;
+">
+
+
+<table
+    width="100%"
+    cellpadding="0"
+    cellspacing="0"
+    style="
+        background:#f4f6f8;
+        padding:30px 10px;
+    "
+>
+
+<tr>
+
+<td align="center">
+
+
+    <table
+        width="100%"
+        cellpadding="0"
+        cellspacing="0"
+        style="
+            max-width:650px;
+            background:#ffffff;
+            border-radius:12px;
+            overflow:hidden;
+            border:1px solid #e5e7eb;
+        "
+    >
+
+
+        <!-- HEADER -->
+
+        <tr>
+
+            <td style="
+                padding:28px 30px;
+                background:#111827;
+                color:#ffffff;
+            ">
+
+                <div style="
+                    font-size:24px;
+                    font-weight:700;
+                ">
+                    SPARK 2026
+                </div>
+
+                <div style="
+                    margin-top:6px;
+                    font-size:14px;
+                    color:#d1d5db;
+                ">
+                    Registration Confirmation
+                </div>
+
+            </td>
+
+        </tr>
+
+
+        <!-- SUCCESS -->
+
+        <tr>
+
+            <td style="
+                padding:28px 30px 10px 30px;
+            ">
+
+                <div style="
+                    display:inline-block;
+                    padding:7px 12px;
+                    background:#dcfce7;
+                    color:#166534;
+                    border-radius:20px;
+                    font-size:12px;
+                    font-weight:700;
+                ">
+                    PAYMENT VERIFIED
+                </div>
+
+
+                <h1 style="
+                    margin:16px 0 8px 0;
+                    font-size:24px;
+                    color:#111827;
+                ">
+                    Registration Confirmed
+                </h1>
+
+
+                <p style="
+                    margin:0;
+                    color:#555555;
+                    font-size:14px;
+                    line-height:1.6;
+                ">
+                    Your payment has been successfully verified
+                    by the SPARK 2026 event coordinator.
+                </p>
+
+            </td>
+
+        </tr>
+
+
+        <!-- REGISTRATION SUMMARY -->
+
+        <tr>
+
+            <td style="
+                padding:20px 30px;
+            ">
+
+                <h2 style="
+                    margin:0 0 12px 0;
+                    font-size:18px;
+                    color:#111827;
+                ">
+                    Registration Details
+                </h2>
+
+
+                <table
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    style="
+                        border-collapse:collapse;
+                        border:1px solid #e5e5e5;
+                    "
+                >
+
+                    <tr>
+
+                        <td style="${labelStyle}">
+                            Registration ID
+                        </td>
+
+                        <td style="${valueStyle}">
+                            <strong>
+                                ${escapeHTML(
+                                    registrationId ||
+                                    "—"
+                                )}
+                            </strong>
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td style="${labelStyle}">
+                            Event
+                        </td>
+
+                        <td style="${valueStyle}">
+                            ${escapeHTML(
+                                eventName ||
+                                "—"
+                            )}
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td style="${labelStyle}">
+                            Participation
+                        </td>
+
+                        <td style="${valueStyle}">
+                            ${
+                                isTeamEvent
+                                    ? "Team"
+                                    : "Individual"
+                            }
+                        </td>
+
+                    </tr>
+
+
+                    ${
+                        isTeamEvent
+                            ? `
+                    <tr>
+
+                        <td style="${labelStyle}">
+                            Team Size
+                        </td>
+
+                        <td style="${valueStyle}">
+                            ${escapeHTML(
+                                registration.teamSize ||
+                                "—"
+                            )}
+                        </td>
+
+                    </tr>
+                    `
+                            : ""
+                    }
+
+
+                    <tr>
+
+                        <td style="${labelStyle}">
+                            Amount Paid
+                        </td>
+
+                        <td style="${valueStyle}">
+                            <strong>
+                                ${escapeHTML(
+                                    amount
+                                )}
+                            </strong>
+                        </td>
+
+                    </tr>
+
+                </table>
+
+            </td>
+
+        </tr>
+
+
+        <!-- PARTICIPANT / TEAM DETAILS -->
+
+        <tr>
+
+            <td style="
+                padding:0 30px 10px 30px;
+            ">
+
+                ${participantSectionHTML}
+
+            </td>
+
+        </tr>
+
+
+        <!-- PAYMENT DETAILS -->
+
+        <tr>
+
+            <td style="
+                padding:10px 30px 25px 30px;
+            ">
+
+                <h2 style="
+                    margin:0 0 12px 0;
+                    font-size:18px;
+                    color:#111827;
+                ">
+                    Payment Details
+                </h2>
+
+
+                <table
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    style="
+                        border-collapse:collapse;
+                        border:1px solid #e5e5e5;
+                    "
+                >
+
+                    <tr>
+
+                        <td style="${labelStyle}">
+                            Payer Name
+                        </td>
+
+                        <td style="${valueStyle}">
+                            ${escapeHTML(
+                                payerName ||
+                                "—"
+                            )}
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td style="${labelStyle}">
+                            Payment Method
+                        </td>
+
+                        <td style="${valueStyle}">
+                            UPI
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td style="${labelStyle}">
+                            UTR / Transaction ID
+                        </td>
+
+                        <td style="${valueStyle}">
+                            <strong>
+                                ${escapeHTML(
+                                    utr ||
+                                    "—"
+                                )}
+                            </strong>
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td style="${labelStyle}">
+                            Payment Status
+                        </td>
+
+                        <td style="
+                            ${valueStyle}
+                            color:#15803d;
+                            font-weight:700;
+                        ">
+                            VERIFIED
+                        </td>
+
+                    </tr>
+
+                </table>
+
+            </td>
+
+        </tr>
+
+
+        <!-- IMPORTANT -->
+
+        <tr>
+
+            <td style="
+                padding:0 30px 30px 30px;
+            ">
+
+                <div style="
+                    padding:16px;
+                    background:#eff6ff;
+                    border:1px solid #bfdbfe;
+                    border-radius:8px;
+                    color:#1e40af;
+                    font-size:13px;
+                    line-height:1.6;
+                ">
+
+                    <strong>
+                        Important:
+                    </strong>
+
+                    Please keep your
+                    <strong>
+                        Registration ID
+                    </strong>
+                    for future communication
+                    regarding SPARK 2026.
+
+                </div>
+
+            </td>
+
+        </tr>
+
+
+        <!-- FOOTER -->
+
+        <tr>
+
+            <td style="
+                padding:20px 30px;
+                background:#f9fafb;
+                border-top:1px solid #e5e7eb;
+                text-align:center;
+                color:#6b7280;
+                font-size:12px;
+                line-height:1.6;
+            ">
+
+                SPARK 2026 Organizing Team
+
+                <br>
+
+                This is an automated confirmation email.
+                Please do not reply to this email.
+
+            </td>
+
+        </tr>
+
+
+    </table>
+
+
+</td>
+
+</tr>
+
+</table>
+
+
+</body>
+
+</html>
+
+    `;
+
+
+    // ============================================================
+    // PLAIN TEXT FALLBACK
+    // ============================================================
+
+    const text =
+        [
+            "SPARK 2026",
+            "",
+            "PAYMENT VERIFIED",
+            "================",
+            "",
+            "Your payment has been successfully verified.",
+            "",
+            `Registration ID: ${registrationId}`,
+            `Event: ${eventName}`,
+            `Participation: ${
+                isTeamEvent
+                    ? "Team"
+                    : "Individual"
+            }`,
+            `Amount Paid: ${amount}`,
+            "",
+            participantText,
+            "",
+            "PAYMENT DETAILS",
+            "---------------",
+            `Payer Name: ${payerName || "—"}`,
+            "Payment Method: UPI",
+            `UTR / Transaction ID: ${utr || "—"}`,
+            "Payment Status: VERIFIED",
+            "",
+            "Your registration is now confirmed.",
+            "",
+            "SPARK 2026 Organizing Team"
+
+        ].join(
+            "\n"
+        );
+
+
+    // ============================================================
+    // SEND EMAIL
+    // ============================================================
 
     await mailTransporter.sendMail({
 
@@ -1380,9 +2365,17 @@ async function sendVerificationEmail(
             subject,
 
         text:
-            text
+            text,
+
+        html:
+            html
 
     });
+
+
+    console.log(
+        `✅ Verification email sent successfully to ${recipient}`
+    );
 
 }
 // ============================================================
