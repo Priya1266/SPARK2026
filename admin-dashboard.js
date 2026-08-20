@@ -2,634 +2,762 @@
 // SPARK 2026 — ADMIN DASHBOARD
 // ============================================================
 
-(() => {
-
-    "use strict";
+"use strict";
 
 
-    // ============================================================
-    // BACKEND URL
-    // ============================================================
+// ============================================================
+// BACKEND URL
+// ============================================================
+//
+// Leave empty when frontend and backend use the same domain.
+//
+// If your frontend and backend are hosted separately,
+// change this to your backend URL.
+//
+// Example:
+// const BACKEND_URL = "https://your-backend-domain.com";
+//
+// ============================================================
 
-    const BACKEND_URL = "";
-
-
-    // ============================================================
-    // ELEMENT HELPER
-    // ============================================================
-
-    const $ = (id) =>
-        document.getElementById(id);
-
-
-    // ============================================================
-    // DOM ELEMENTS
-    // ============================================================
-
-    const registrationsContainer =
-        $("registrationsContainer");
-
-    const pendingCount =
-        $("pendingCount");
-
-    const dashboardMessage =
-        $("dashboardMessage");
-
-    const refreshButton =
-        $("refreshButton");
-
-    const logoutButton =
-        $("logoutButton");
-
-    const adminUsername =
-        $("adminUsername");
-
-    const detailsModal =
-        $("detailsModal");
-
-    const modalContent =
-        $("modalContent");
-
-    const closeModal =
-        $("closeModal");
+const BACKEND_URL = "";
 
 
-    // ============================================================
-    // NEW — TRANSACTION SEARCH ELEMENTS
-    // ============================================================
+// ============================================================
+// DOM ELEMENTS
+// ============================================================
 
-    const transactionSearchInput =
-        $("transactionSearchInput");
+const adminUsername =
+    document.getElementById("adminUsername");
 
-    const transactionSearchButton =
-        $("transactionSearchButton");
+const logoutButton =
+    document.getElementById("logoutButton");
 
-    const exportExcelButton =
-        $("exportExcelButton");
+const pendingCount =
+    document.getElementById("pendingCount");
+
+const dashboardMessage =
+    document.getElementById("dashboardMessage");
+
+const refreshButton =
+    document.getElementById("refreshButton");
+
+const transactionSearchInput =
+    document.getElementById("transactionSearchInput");
+
+const transactionSearchButton =
+    document.getElementById("transactionSearchButton");
+
+const exportExcelButton =
+    document.getElementById("exportExcelButton");
+
+const registrationsContainer =
+    document.getElementById("registrationsContainer");
+
+const detailsModal =
+    document.getElementById("detailsModal");
+
+const closeModal =
+    document.getElementById("closeModal");
+
+const modalContent =
+    document.getElementById("modalContent");
 
 
-    // ============================================================
-    // ESCAPE HTML
-    // ============================================================
+// ============================================================
+// STATE
+// ============================================================
 
-    function escapeHTML(value) {
+let registrations = [];
 
-        return String(value ?? "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+let currentRegistration = null;
 
+
+// ============================================================
+// HTML ESCAPE
+// ============================================================
+
+function escapeHTML(value) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
     }
 
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
-    // ============================================================
-    // FORMAT DATE
-    // ============================================================
 
-    function formatDate(value) {
+// ============================================================
+// DISPLAY VALUE
+// ============================================================
 
-        if (!value) {
+function displayValue(value) {
 
-            return "—";
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
+        return "—";
+    }
 
+    return escapeHTML(value);
+}
+
+
+// ============================================================
+// FORMAT CURRENCY
+// ============================================================
+
+function formatCurrency(value) {
+
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
+        return "₹0.00";
+    }
+
+    const amount = Number(value);
+
+    if (Number.isNaN(amount)) {
+        return escapeHTML(value);
+    }
+
+    return new Intl.NumberFormat(
+        "en-IN",
+        {
+            style: "currency",
+            currency: "INR",
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    ).format(amount);
+}
+
+
+// ============================================================
+// FORMAT DATE
+// ============================================================
+
+function formatDate(value) {
+
+    if (!value) {
+        return "—";
+    }
+
+    try {
+
+        const date = new Date(value);
+
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+            return displayValue(value);
         }
 
-
-        try {
-
-            return new Date(value).toLocaleString(
+        return escapeHTML(
+            date.toLocaleString(
                 "en-IN",
                 {
                     dateStyle: "medium",
                     timeStyle: "short"
                 }
-            );
+            )
+        );
 
-        }
+    }
+    catch (error) {
 
-        catch (error) {
+        return displayValue(value);
 
-            return String(value);
+    }
+}
 
-        }
+
+// ============================================================
+// DASHBOARD MESSAGE
+// ============================================================
+
+function showMessage(
+    message,
+    type = "info"
+) {
+
+    if (!dashboardMessage) {
+        return;
+    }
+
+    dashboardMessage.textContent =
+        message;
+
+    dashboardMessage.className =
+        "dashboard-message";
+
+    if (type === "success") {
+
+        dashboardMessage.classList.add(
+            "success"
+        );
+
+    }
+    else if (type === "error") {
+
+        dashboardMessage.classList.add(
+            "error"
+        );
+
+    }
+    else if (type === "warning") {
+
+        dashboardMessage.classList.add(
+            "warning"
+        );
+
+    }
+}
+
+
+// ============================================================
+// API REQUEST HELPER
+// ============================================================
+
+async function apiRequest(
+    endpoint,
+    options = {}
+) {
+
+    const requestOptions = {
+        credentials: "include",
+        ...options
+    };
+
+    requestOptions.headers = {
+        ...(options.headers || {})
+    };
+
+
+    if (options.body) {
+
+        requestOptions.headers[
+            "Content-Type"
+        ] = "application/json";
 
     }
 
 
-    // ============================================================
-    // GET UTR / TRANSACTION ID
-    // ============================================================
+    const response =
+        await fetch(
+            `${BACKEND_URL}${endpoint}`,
+            requestOptions
+        );
 
-    function getUTR(registration) {
 
-        return (
-            registration?.utr ||
-            registration?.transactionId ||
-            registration?.paymentUtr ||
-            "—"
+    let data = null;
+
+
+    try {
+
+        data =
+            await response.json();
+
+    }
+    catch (error) {
+
+        data = null;
+
+    }
+
+
+    if (
+        response.status === 401 ||
+        response.status === 403
+    ) {
+
+        window.location.href =
+            "admin-login.html";
+
+        throw new Error(
+            "Administrator session expired."
         );
 
     }
 
 
-    // ============================================================
-    // CHECK ADMIN SESSION
-    // ============================================================
+    if (!response.ok) {
 
-    async function checkAdminSession() {
+        throw new Error(
+            data?.message ||
+            `Request failed with status ${response.status}.`
+        );
 
-        try {
-
-            const response =
-                await fetch(
-                    `${BACKEND_URL}/api/admin/session`,
-                    {
-                        method: "GET",
-
-                        credentials: "include"
-                    }
-                );
+    }
 
 
-            // ----------------------------------------------------
-            // NOT LOGGED IN
-            // ----------------------------------------------------
-
-            if (response.status === 401) {
-
-                window.location.href =
-                    "admin.html";
-
-                return false;
-
-            }
+    return data;
+}
 
 
-            // ----------------------------------------------------
-            // API NOT FOUND
-            // ----------------------------------------------------
+// ============================================================
+// CHECK ADMIN SESSION
+// ============================================================
 
-            if (response.status === 404) {
+async function checkAdminSession() {
 
-                console.warn(
-                    "Admin session API not found."
-                );
+    try {
 
-                adminUsername.textContent =
-                    "Administrator";
-
-                return true;
-
-            }
+        showMessage(
+            "Checking administrator session..."
+        );
 
 
-            const data =
-                await response.json();
+        /*
+         * IMPORTANT:
+         * Your current server.js uses:
+         *
+         * GET /api/admin/session
+         */
+
+        const data =
+            await apiRequest(
+                "/api/admin/session"
+            );
 
 
-            // ----------------------------------------------------
-            // SESSION FAILED
-            // ----------------------------------------------------
-
-            if (!data.success) {
-
-                window.location.href =
-                    "admin.html";
-
-                return false;
-
-            }
+        const username =
+            data?.username ||
+            data?.admin?.username ||
+            "Administrator";
 
 
-            // ----------------------------------------------------
-            // SHOW ADMIN USERNAME
-            // ----------------------------------------------------
+        if (adminUsername) {
 
             adminUsername.textContent =
-                data.username ||
-                data.adminUsername ||
-                "Administrator";
-
-
-            return true;
+                username;
 
         }
 
-        catch (error) {
 
-            console.error(
-                "Admin session error:",
-                error
-            );
-
-
-            dashboardMessage.textContent =
-                "Unable to connect to the server.";
+        showMessage(
+            "Administrator session verified.",
+            "success"
+        );
 
 
-            dashboardMessage.style.background =
-                "#fff4f4";
-
-            dashboardMessage.style.borderColor =
-                "#f0c4c4";
-
-            dashboardMessage.style.color =
-                "#b42323";
-
-
-            return false;
-
-        }
+        return true;
 
     }
+    catch (error) {
+
+        console.error(
+            "Administrator session error:",
+            error
+        );
 
 
-    // ============================================================
-    // LOAD REGISTRATIONS
-    // ============================================================
+        if (
+            error.message !==
+            "Administrator session expired."
+        ) {
 
-    async function loadRegistrations() {
-
-        dashboardMessage.textContent =
-            "Loading registrations...";
-
-
-        dashboardMessage.style.background =
-            "";
-
-        dashboardMessage.style.borderColor =
-            "";
-
-        dashboardMessage.style.color =
-            "";
-
-
-        registrationsContainer.innerHTML =
-            "";
-
-
-        try {
-
-            const response =
-                await fetch(
-                    `${BACKEND_URL}/api/admin/pending`,
-                    {
-                        method: "GET",
-
-                        credentials: "include"
-                    }
-                );
-
-
-            // ----------------------------------------------------
-            // SESSION EXPIRED
-            // ----------------------------------------------------
-
-            if (response.status === 401) {
-
-                window.location.href =
-                    "admin.html";
-
-                return;
-
-            }
-
-
-            const data =
-                await response.json();
-
-
-            console.log(
-                "Pending registrations:",
-                data
-            );
-
-
-            // ----------------------------------------------------
-            // API ERROR
-            // ----------------------------------------------------
-
-            if (
-                !response.ok ||
-                !data.success
-            ) {
-
-                throw new Error(
-                    data.message ||
-                    "Unable to load registrations."
-                );
-
-            }
-
-
-            const registrations =
-                Array.isArray(
-                    data.registrations
-                )
-                    ? data.registrations
-                    : [];
-
-
-            // ----------------------------------------------------
-            // UPDATE COUNT
-            // ----------------------------------------------------
-
-            pendingCount.textContent =
-                registrations.length;
-
-
-            // ----------------------------------------------------
-            // NO REGISTRATIONS
-            // ----------------------------------------------------
-
-            if (
-                registrations.length === 0
-            ) {
-
-                dashboardMessage.textContent =
-                    "No pending registrations.";
-
-
-                registrationsContainer.innerHTML = `
-
-                    <div class="empty-state">
-
-                        <div class="empty-icon">
-                            ✓
-                        </div>
-
-                        <h3>
-                            All registrations are verified
-                        </h3>
-
-                        <p>
-                            There are currently no registrations
-                            waiting for payment verification.
-                        </p>
-
-                    </div>
-
-                `;
-
-                return;
-
-            }
-
-
-            // ----------------------------------------------------
-            // STATUS MESSAGE
-            // ----------------------------------------------------
-
-            dashboardMessage.textContent =
-                `${registrations.length} registration(s) awaiting payment verification.`;
-
-
-            // ----------------------------------------------------
-            // CREATE CARDS
-            // ----------------------------------------------------
-
-            registrations.forEach(
-                registration => {
-
-                    const card =
-                        createRegistrationCard(
-                            registration
-                        );
-
-
-                    registrationsContainer.appendChild(
-                        card
-                    );
-
-                }
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Registration loading error:",
-                error
-            );
-
-
-            dashboardMessage.textContent =
+            showMessage(
                 error.message ||
-                "Unable to load registrations.";
-
-
-            dashboardMessage.style.background =
-                "#fff4f4";
-
-            dashboardMessage.style.borderColor =
-                "#f0c4c4";
-
-            dashboardMessage.style.color =
-                "#b42323";
+                "Unable to verify administrator session.",
+                "error"
+            );
 
         }
 
+
+        return false;
     }
+}
 
 
-    // ============================================================
-    // PARTICIPANT HTML
-    // ============================================================
+// ============================================================
+// LOAD REGISTRATIONS
+// ============================================================
 
-    function participantHTML(
-        participant,
-        label
-    ) {
+async function loadRegistrations() {
 
-        if (!participant) {
+    if (registrationsContainer) {
 
-            return "";
+        registrationsContainer.innerHTML = `
+            <div class="empty-state">
 
-        }
+                <h3>
+                    Loading Registrations
+                </h3>
 
-
-        return `
-
-            <div class="participant-item">
-
-                <strong>
-                    ${escapeHTML(label)}
-                </strong>
-
-
-                <span>
-                    ${escapeHTML(
-                        participant.fullName ||
-                        participant.name ||
-                        "—"
-                    )}
-                </span>
-
-
-                <span>
-                    ${escapeHTML(
-                        participant.college ||
-                        "—"
-                    )}
-                </span>
-
-
-                <span>
-                    ${escapeHTML(
-                        participant.department ||
-                        "—"
-                    )}
-                </span>
-
-
-                <span>
-                    ${escapeHTML(
-                        participant.year ||
-                        "—"
-                    )}
-                </span>
-
-
-                <span>
-                    ${escapeHTML(
-                        participant.phone ||
-                        "—"
-                    )}
-                </span>
-
-
-                <span>
-                    ${escapeHTML(
-                        participant.email ||
-                        "—"
-                    )}
-                </span>
+                <p>
+                    Please wait while registrations are loaded.
+                </p>
 
             </div>
-
         `;
 
     }
 
 
-    // ============================================================
-    // CREATE REGISTRATION CARD
-    // ============================================================
+    try {
 
-    function createRegistrationCard(
-        registration
-    ) {
+        /*
+         * Current server endpoint:
+         *
+         * GET /api/admin/registrations
+         */
 
-        const card =
-            document.createElement("article");
-
-
-        card.className =
-            "registration-card";
-
-
-        // --------------------------------------------------------
-        // UTR
-        // --------------------------------------------------------
-
-        const utr =
-            getUTR(registration);
-
-
-        // --------------------------------------------------------
-        // PARTICIPANTS
-        // --------------------------------------------------------
-
-        const participants =
-
-            participantHTML(
-                registration.teamLeader,
-                "Team Leader"
-            )
-
-            +
-
-            participantHTML(
-                registration.teamMember,
-                "Team Member"
+        const data =
+            await apiRequest(
+                "/api/admin/registrations"
             );
 
 
-        // --------------------------------------------------------
-        // CARD HTML
-        // --------------------------------------------------------
+        let list = [];
 
-        card.innerHTML = `
 
-            <!-- ================================================
+        if (
+            Array.isArray(data)
+        ) {
+
+            list = data;
+
+        }
+        else if (
+            Array.isArray(
+                data?.registrations
+            )
+        ) {
+
+            list =
+                data.registrations;
+
+        }
+        else if (
+            Array.isArray(
+                data?.data
+            )
+        ) {
+
+            list =
+                data.data;
+
+        }
+
+
+        /*
+         * Server already returns PENDING registrations.
+         *
+         * We keep this additional filter as protection
+         * on the frontend.
+         */
+
+        registrations =
+            list.filter(
+                registration =>
+                    String(
+                        registration?.verificationStatus ||
+                        "PENDING"
+                    ).toUpperCase() ===
+                    "PENDING"
+            );
+
+
+        updatePendingCount();
+
+        renderRegistrations();
+
+
+        showMessage(
+            `Loaded ${registrations.length} pending registration${registrations.length === 1 ? "" : "s"}.`,
+            "success"
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            "Load registrations error:",
+            error
+        );
+
+
+        registrations = [];
+
+        updatePendingCount();
+
+
+        if (registrationsContainer) {
+
+            registrationsContainer.innerHTML = `
+                <div class="empty-state">
+
+                    <h3>
+                        Unable to Load Registrations
+                    </h3>
+
+                    <p>
+                        ${escapeHTML(
+                            error.message ||
+                            "Please try again."
+                        )}
+                    </p>
+
+                </div>
+            `;
+
+        }
+
+
+        showMessage(
+            error.message ||
+            "Unable to load registrations.",
+            "error"
+        );
+
+    }
+}
+
+
+// ============================================================
+// UPDATE PENDING COUNT
+// ============================================================
+
+function updatePendingCount() {
+
+    if (pendingCount) {
+
+        pendingCount.textContent =
+            String(
+                registrations.length
+            );
+
+    }
+}
+
+
+// ============================================================
+// RENDER REGISTRATIONS
+// ============================================================
+
+function renderRegistrations() {
+
+    if (!registrationsContainer) {
+        return;
+    }
+
+
+    if (registrations.length === 0) {
+
+        registrationsContainer.innerHTML = `
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    ✓
+                </div>
+
+                <h3>
+                    No Pending Registrations
+                </h3>
+
+                <p>
+                    There are currently no registrations
+                    waiting for verification.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    registrationsContainer.innerHTML =
+        registrations
+            .map(
+                registration =>
+                    createRegistrationCard(
+                        registration
+                    )
+            )
+            .join("");
+
+
+    attachRegistrationEvents();
+}
+
+
+// ============================================================
+// CREATE REGISTRATION CARD
+// ============================================================
+
+function createRegistrationCard(
+    registration
+) {
+
+    const registrationId =
+        registration.registrationId ||
+        registration._id ||
+        "—";
+
+
+    const eventName =
+        registration.eventName ||
+        registration.eventId ||
+        "—";
+
+
+    const teamName =
+        registration.teamName ||
+        "Individual";
+
+
+    const payerName =
+        registration.payerName ||
+        registration.teamLeader?.name ||
+        "—";
+
+
+    const transactionId =
+        registration.transactionId ||
+        registration.utr ||
+        "—";
+
+
+    const amount =
+        registration.amount ??
+        registration.totalAmount ??
+        0;
+
+
+    let participants = [];
+
+
+    if (
+        Array.isArray(
+            registration.participants
+        )
+    ) {
+
+        participants =
+            registration.participants;
+
+    }
+    else {
+
+        /*
+         * Your current server stores teamLeader,
+         * teamMember and participant separately.
+         *
+         * Build the participant list for display.
+         */
+
+        if (
+            registration.participation ===
+            "team"
+        ) {
+
+            if (
+                registration.teamLeader
+            ) {
+
+                participants.push(
+                    registration.teamLeader
+                );
+
+            }
+
+            if (
+                registration.teamMember
+            ) {
+
+                participants.push(
+                    registration.teamMember
+                );
+
+            }
+
+        }
+        else if (
+            registration.participant
+        ) {
+
+            participants.push(
+                registration.participant
+            );
+
+        }
+
+    }
+
+
+    const participantCount =
+        participants.length ||
+        Number(
+            registration.teamSize
+        ) ||
+        0;
+
+
+    const upiId =
+        registration.upiId ||
+        "9940464883@ptaxis";
+
+
+    return `
+        <article
+            class="registration-card"
+            data-registration-id="${escapeHTML(
+                registrationId
+            )}"
+        >
+
+            <!-- =========================================
                  CARD HEADER
-                 ================================================ -->
+                 ========================================= -->
 
             <div class="registration-header">
 
                 <div>
 
                     <div class="registration-id">
-
-                        ${escapeHTML(
-                            registration.registrationId ||
-                            "—"
+                        ${displayValue(
+                            registrationId
                         )}
-
                     </div>
 
-
                     <div class="event-name">
-
-                        ${escapeHTML(
-                            registration.eventName ||
-                            "—"
+                        ${displayValue(
+                            eventName
                         )}
-
                     </div>
 
                 </div>
 
 
-                <span class="pending-badge">
+                <div class="pending-badge">
                     PENDING
-                </span>
+                </div>
 
             </div>
 
 
-            <!-- ================================================
+            <!-- =========================================
                  REGISTRATION INFORMATION
-                 ================================================ -->
+                 ========================================= -->
 
             <div class="registration-info">
 
-
-                <!-- PARTICIPATION -->
-
-                <div class="info-item">
-
-                    <span class="info-label">
-                        Participation
-                    </span>
-
-                    <span class="info-value">
-
-                        ${escapeHTML(
-                            registration.participation ||
-                            registration.teamSize ||
-                            "—"
-                        )}
-
-                    </span>
-
-                </div>
-
-
-                <!-- TEAM NAME -->
 
                 <div class="info-item">
 
@@ -638,18 +766,43 @@
                     </span>
 
                     <span class="info-value">
-
-                        ${escapeHTML(
-                            registration.teamName ||
-                            "—"
+                        ${displayValue(
+                            teamName
                         )}
-
                     </span>
 
                 </div>
 
 
-                <!-- AMOUNT -->
+                <div class="info-item">
+
+                    <span class="info-label">
+                        Payer Name
+                    </span>
+
+                    <span class="info-value">
+                        ${displayValue(
+                            payerName
+                        )}
+                    </span>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <span class="info-label">
+                        Participants
+                    </span>
+
+                    <span class="info-value">
+                        ${escapeHTML(
+                            participantCount
+                        )}
+                    </span>
+
+                </div>
+
 
                 <div class="info-item">
 
@@ -658,18 +811,13 @@
                     </span>
 
                     <span class="info-value">
-
-                        ₹${escapeHTML(
-                            registration.amount ||
-                            0
+                        ${formatCurrency(
+                            amount
                         )}
-
                     </span>
 
                 </div>
 
-
-                <!-- UPI -->
 
                 <div class="info-item">
 
@@ -678,1337 +826,9 @@
                     </span>
 
                     <span class="info-value upi-value">
-
-                        ${escapeHTML(
-                            registration.upiId ||
-                            "9940464883@ptaxis"
+                        ${displayValue(
+                            upiId
                         )}
-
-                    </span>
-
-                </div>
-
-
-                <!-- PAYER -->
-
-                <div class="info-item">
-
-                    <span class="info-label">
-                        Payer
-                    </span>
-
-                    <span class="info-value">
-
-                        ${escapeHTML(
-                            registration.payerName ||
-                            "—"
-                        )}
-
-                    </span>
-
-                </div>
-
-
-                <!-- UTR -->
-
-                <div class="info-item">
-
-                    <span class="info-label">
-                        UTR
-                    </span>
-
-                    <span class="info-value utr-value">
-
-                        ${escapeHTML(
-                            utr
-                        )}
-
-                    </span>
-
-                </div>
-
-
-                <!-- PAYMENT STATUS -->
-
-                <div class="info-item">
-
-                    <span class="info-label">
-                        Payment
-                    </span>
-
-                    <span class="info-value">
-
-                        ${escapeHTML(
-                            registration.paymentStatus ||
-                            "SUBMITTED"
-                        )}
-
-                    </span>
-
-                </div>
-
-
-                <!-- REGISTERED -->
-
-                <div class="info-item">
-
-                    <span class="info-label">
-                        Registered
-                    </span>
-
-                    <span class="info-value">
-
-                        ${escapeHTML(
-                            formatDate(
-                                registration.createdAt
-                            )
-                        )}
-
-                    </span>
-
-                </div>
-
-
-            </div>
-
-
-            <!-- ================================================
-                 PARTICIPANTS
-                 ================================================ -->
-
-            <div class="participants-section">
-
-                <h3>
-                    Participants
-                </h3>
-
-
-                ${
-                    participants ||
-
-                    `
-                        <p>
-                            No participant details available.
-                        </p>
-                    `
-                }
-
-            </div>
-
-
-            <!-- ================================================
-                 ACTION BUTTONS
-                 ================================================ -->
-
-            <div class="registration-actions">
-
-
-                <button
-                    type="button"
-                    class="view-button"
-                    data-action="view"
-                >
-                    View Full Details
-                </button>
-
-
-                <button
-                    type="button"
-                    class="verify-button"
-                    data-action="verify"
-                >
-                    VERIFY PAYMENT
-                </button>
-
-
-                <button
-                    type="button"
-                    class="reject-button"
-                    data-action="reject"
-                >
-                    REJECT
-                </button>
-
-
-            </div>
-
-        `;
-
-
-        // ========================================================
-        // VIEW DETAILS
-        // ========================================================
-
-        const viewButton =
-            card.querySelector(
-                '[data-action="view"]'
-            );
-
-
-        viewButton.addEventListener(
-            "click",
-            () => {
-
-                showDetails(
-                    registration
-                );
-
-            }
-        );
-
-
-        // ========================================================
-        // VERIFY
-        // ========================================================
-
-        const verifyButton =
-            card.querySelector(
-                '[data-action="verify"]'
-            );
-
-
-        verifyButton.addEventListener(
-            "click",
-            () => {
-
-                verifyRegistration(
-                    registration.registrationId,
-                    card
-                );
-
-            }
-        );
-
-
-        // ========================================================
-        // REJECT
-        // ========================================================
-
-        const rejectButton =
-            card.querySelector(
-                '[data-action="reject"]'
-            );
-
-
-        rejectButton.addEventListener(
-            "click",
-            () => {
-
-                rejectRegistration(
-                    registration.registrationId,
-                    card
-                );
-
-            }
-        );
-
-
-        return card;
-
-    }
-
-
-    // ============================================================
-    // SHOW FULL DETAILS
-    // ============================================================
-
-    function showDetails(
-        registration
-    ) {
-
-        const utr =
-            getUTR(registration);
-
-
-        modalContent.innerHTML = `
-
-            <!-- ================================================
-                 REGISTRATION
-                 ================================================ -->
-
-            <div class="modal-section">
-
-                <h3>
-                    Registration
-                </h3>
-
-
-                <div class="detail-row">
-
-                    <div class="detail-label">
-                        Registration ID
-                    </div>
-
-                    <div class="detail-value">
-                        ${escapeHTML(
-                            registration.registrationId ||
-                            "—"
-                        )}
-                    </div>
-
-                </div>
-
-
-                <div class="detail-row">
-
-                    <div class="detail-label">
-                        Event
-                    </div>
-
-                    <div class="detail-value">
-                        ${escapeHTML(
-                            registration.eventName ||
-                            "—"
-                        )}
-                    </div>
-
-                </div>
-
-
-                <div class="detail-row">
-
-                    <div class="detail-label">
-                        Participation
-                    </div>
-
-                    <div class="detail-value">
-                        ${escapeHTML(
-                            registration.participation ||
-                            registration.teamSize ||
-                            "—"
-                        )}
-                    </div>
-
-                </div>
-
-
-                <div class="detail-row">
-
-                    <div class="detail-label">
-                        Team Name
-                    </div>
-
-                    <div class="detail-value">
-                        ${escapeHTML(
-                            registration.teamName ||
-                            "—"
-                        )}
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- ================================================
-                 EVENT DETAILS
-                 ================================================ -->
-
-            <div class="modal-section">
-
-                <h3>
-                    Event Details
-                </h3>
-
-
-                <div class="detail-row">
-
-                    <div class="detail-label">
-                        Event Date
-                    </div>
-
-                    <div class="detail-value">
-                        ${escapeHTML(
-                            registration.eventDate ||
-                            "—"
-                        )}
-                    </div>
-
-                </div>
-
-
-                <div class="detail-row">
-
-                    <div class="detail-label">
-                        Event Time
-                    </div>
-
-                    <div class="detail-value">
-                        ${escapeHTML(
-                            registration.eventTime ||
-                            "—"
-                        )}
-                    </div>
-
-                </div>
-
-
-                <div class="detail-row">
-
-                    <div class="detail-label">
-                        Venue
-                    </div>
-
-                    <div class="detail-value">
-                        ${escapeHTML(
-                            registration.eventVenue ||
-                            "—"
-                        )}
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- ================================================
-                 PAYER INFORMATION
-                 ================================================ -->
-
-            <div class="modal-section">
-
-                <h3>
-                    Payer Information
-                </h3>
-
-
-                <div class="detail-row">
-
-                    <div class="detail-label">
-                        Payer Name
-                    </div>
-
-                    <div class="detail-value">
-                        ${escapeHTML(
-                            registration.payerName ||
-                            "—"
-                        )}
-                    </div>
-
-                </div>
-
-
-                <div class="detail-row">
-
-                    <div class="detail-label">
-                        Payer Email
-                    </div>
-
-                    <div class="detail-value">
-                        ${escapeHTML(
-                            registration.payerEmail ||
-                            registration.teamLeader?.email ||
-                            "—"
-                        )}
-                    </div>
-
-                </div>
-
-
-                <div class="detail-row">
-
-                    <div class="detail-label">
-                        Payer Phone
-                    </div>
-
-                    <div class="detail-value">
-                        ${escapeHTML(
-                            registration.payerPhone ||
-                            registration.teamLeader?.phone ||
-                            "—"
-                        )}
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- ================================================
-                 PAYMENT INFORMATION
-                 ================================================ -->
-
-            <div class="modal-section">
-
-                <h3>
-                    Payment Verification
-                </h3>
-
-
-                <!-- AMOUNT -->
-
-                <div class="detail-row">
-
-                    <div class="detail-label">
-                        Amount
-                    </div>
-
-                    <div class="detail-value">
-                        ₹${escapeHTML(
-                            registration.amount ||
-                            0
-                        )}
-                    </div>
-
-                </div>
-
-
-                <!-- UPI -->
-
-                <div class="detail-row">
-
-                    <div class="detail-label">
-                        UPI ID
-                    </div>
-
-                    <div class="detail-value">
-                        ${escapeHTML(
-                            registration.upiId ||
-                            "9940464883@ptaxis"
-                        )}
-                    </div>
-
-                </div>
-
-
-                <!-- UTR -->
-
-                <div
-                    class="detail-row"
-                    style="
-                        background:#f0f7ff;
-                        padding:14px;
-                        border-radius:10px;
-                        margin-top:10px;
-                    "
-                >
-
-                    <div
-                        class="detail-label"
-                        style="font-weight:800;"
-                    >
-                        UTR / Transaction ID
-                    </div>
-
-
-                    <div
-                        class="detail-value"
-                        style="
-                            color:#075fc3;
-                            font-family:monospace;
-                            font-weight:800;
-                            word-break:break-all;
-                        "
-                    >
-                        ${escapeHTML(
-                            utr
-                        )}
-                    </div>
-
-                </div>
-
-
-                <!-- PAYMENT STATUS -->
-
-                <div class="detail-row">
-
-                    <div class="detail-label">
-                        Payment Status
-                    </div>
-
-                    <div class="detail-value">
-                        ${escapeHTML(
-                            registration.paymentStatus ||
-                            "SUBMITTED"
-                        )}
-                    </div>
-
-                </div>
-
-
-                <!-- VERIFICATION STATUS -->
-
-                <div class="detail-row">
-
-                    <div class="detail-label">
-                        Verification Status
-                    </div>
-
-                    <div class="detail-value">
-                        ${escapeHTML(
-                            registration.verificationStatus ||
-                            "PENDING"
-                        )}
-                    </div>
-
-                </div>
-
-
-                <!-- RAZORPAY ORDER -->
-
-                ${
-                    registration.razorpayOrderId
-                        ? `
-
-                            <div class="detail-row">
-
-                                <div class="detail-label">
-                                    Razorpay Order ID
-                                </div>
-
-                                <div class="detail-value">
-                                    ${escapeHTML(
-                                        registration.razorpayOrderId
-                                    )}
-                                </div>
-
-                            </div>
-
-                        `
-                        : ""
-                }
-
-
-                <!-- RAZORPAY PAYMENT -->
-
-                ${
-                    registration.razorpayPaymentId
-                        ? `
-
-                            <div class="detail-row">
-
-                                <div class="detail-label">
-                                    Razorpay Payment ID
-                                </div>
-
-                                <div class="detail-value">
-                                    ${escapeHTML(
-                                        registration.razorpayPaymentId
-                                    )}
-                                </div>
-
-                            </div>
-
-                        `
-                        : ""
-                }
-
-            </div>
-
-
-            <!-- ================================================
-                 PARTICIPANTS
-                 ================================================ -->
-
-            <div class="modal-section">
-
-                <h3>
-                    Participants
-                </h3>
-
-
-                ${
-                    participantHTML(
-                        registration.teamLeader,
-                        "Team Leader"
-                    )
-                }
-
-
-                ${
-                    participantHTML(
-                        registration.teamMember,
-                        "Team Member"
-                    )
-                }
-
-
-                ${
-                    !registration.teamLeader &&
-                    !registration.teamMember
-
-                        ? `
-                            <p>
-                                No participant details available.
-                            </p>
-                        `
-
-                        : ""
-                }
-
-            </div>
-
-        `;
-
-
-        // --------------------------------------------------------
-        // OPEN MODAL
-        // --------------------------------------------------------
-
-        detailsModal.classList.remove(
-            "hidden"
-        );
-
-
-        document.body.style.overflow =
-            "hidden";
-
-    }
-
-
-    // ============================================================
-    // CLOSE MODAL
-    // ============================================================
-
-    function closeDetailsModal() {
-
-        detailsModal.classList.add(
-            "hidden"
-        );
-
-
-        document.body.style.overflow =
-            "";
-
-    }
-
-
-    // ============================================================
-    // VERIFY PAYMENT
-    // ============================================================
-
-    async function verifyRegistration(
-        registrationId,
-        card
-    ) {
-
-        const confirmed =
-            window.confirm(
-                "Have you checked the UTR against the bank statement and confirmed that the payment is valid?"
-            );
-
-
-        if (!confirmed) {
-
-            return;
-
-        }
-
-
-        const button =
-            card.querySelector(
-                '[data-action="verify"]'
-            );
-
-
-        if (button) {
-
-            button.disabled =
-                true;
-
-            button.textContent =
-                "VERIFYING...";
-
-        }
-
-
-        try {
-
-            const response =
-                await fetch(
-                    `${BACKEND_URL}/api/admin/registration/${encodeURIComponent(registrationId)}/verify`,
-                    {
-                        method: "PATCH",
-
-                        credentials: "include",
-
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        }
-                    }
-                );
-
-
-            if (response.status === 401) {
-
-                window.location.href =
-                    "admin.html";
-
-                return;
-
-            }
-
-
-            const data =
-                await response.json();
-
-
-            if (
-                !response.ok ||
-                !data.success
-            ) {
-
-                throw new Error(
-                    data.message ||
-                    "Unable to verify payment."
-                );
-
-            }
-
-
-            window.alert(
-                "Payment verified successfully."
-            );
-
-
-            closeDetailsModal();
-
-
-            await loadRegistrations();
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Verification error:",
-                error
-            );
-
-
-            window.alert(
-                error.message ||
-                "Unable to verify payment."
-            );
-
-
-            if (button) {
-
-                button.disabled =
-                    false;
-
-                button.textContent =
-                    "VERIFY PAYMENT";
-
-            }
-
-        }
-
-    }
-
-
-    // ============================================================
-    // REJECT PAYMENT
-    // ============================================================
-
-    async function rejectRegistration(
-        registrationId,
-        card
-    ) {
-
-        const reason =
-            window.prompt(
-                "Enter the reason for rejecting this payment:"
-            );
-
-
-        if (reason === null) {
-
-            return;
-
-        }
-
-
-        const trimmedReason =
-            reason.trim();
-
-
-        if (!trimmedReason) {
-
-            window.alert(
-                "Please enter a rejection reason."
-            );
-
-            return;
-
-        }
-
-
-        const button =
-            card.querySelector(
-                '[data-action="reject"]'
-            );
-
-
-        if (button) {
-
-            button.disabled =
-                true;
-
-            button.textContent =
-                "REJECTING...";
-
-        }
-
-
-        try {
-
-            const response =
-                await fetch(
-                    `${BACKEND_URL}/api/admin/registration/${encodeURIComponent(registrationId)}/reject`,
-                    {
-                        method: "PATCH",
-
-                        credentials: "include",
-
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
-
-                        body:
-                            JSON.stringify({
-
-                                reason:
-                                    trimmedReason
-
-                            })
-                    }
-                );
-
-
-            if (response.status === 401) {
-
-                window.location.href =
-                    "admin.html";
-
-                return;
-
-            }
-
-
-            const data =
-                await response.json();
-
-
-            if (
-                !response.ok ||
-                !data.success
-            ) {
-
-                throw new Error(
-                    data.message ||
-                    "Unable to reject payment."
-                );
-
-            }
-
-
-            window.alert(
-                "Payment rejected successfully."
-            );
-
-
-            closeDetailsModal();
-
-
-            await loadRegistrations();
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Rejection error:",
-                error
-            );
-
-
-            window.alert(
-                error.message ||
-                "Unable to reject payment."
-            );
-
-
-            if (button) {
-
-                button.disabled =
-                    false;
-
-                button.textContent =
-                    "REJECT";
-
-            }
-
-        }
-
-    }
-
-
-    // ============================================================
-    // SEARCH BY TRANSACTION ID
-    // ============================================================
-
-    async function searchTransaction() {
-
-        if (!transactionSearchInput) {
-
-            return;
-
-        }
-
-
-        const transactionId =
-            transactionSearchInput.value.trim();
-
-
-        // --------------------------------------------------------
-        // VALIDATION
-        // --------------------------------------------------------
-
-        if (!transactionId) {
-
-            window.alert(
-                "Please enter the Transaction ID."
-            );
-
-            transactionSearchInput.focus();
-
-            return;
-
-        }
-
-
-        if (
-            !/^\d{16}$/.test(
-                transactionId
-            )
-        ) {
-
-            window.alert(
-                "Please enter a valid 16-digit Transaction ID."
-            );
-
-            transactionSearchInput.focus();
-
-            return;
-
-        }
-
-
-        if (transactionSearchButton) {
-
-            transactionSearchButton.disabled =
-                true;
-
-            transactionSearchButton.textContent =
-                "SEARCHING...";
-
-        }
-
-
-        dashboardMessage.textContent =
-            "Searching Transaction ID...";
-
-
-        try {
-
-            const response =
-                await fetch(
-                    `${BACKEND_URL}/api/admin/search-transaction?transactionId=${encodeURIComponent(transactionId)}`,
-                    {
-                        method: "GET",
-
-                        credentials: "include"
-                    }
-                );
-
-
-            // ----------------------------------------------------
-            // SESSION EXPIRED
-            // ----------------------------------------------------
-
-            if (
-                response.status === 401
-            ) {
-
-                window.location.href =
-                    "admin.html";
-
-                return;
-
-            }
-
-
-            const data =
-                await response.json();
-
-
-            // ----------------------------------------------------
-            // NOT FOUND
-            // ----------------------------------------------------
-
-            if (
-                response.status === 404
-            ) {
-
-                dashboardMessage.textContent =
-                    "No registration found for this Transaction ID.";
-
-
-                dashboardMessage.style.background =
-                    "#fff4f4";
-
-                dashboardMessage.style.borderColor =
-                    "#f0c4c4";
-
-                dashboardMessage.style.color =
-                    "#b42323";
-
-
-                window.alert(
-                    "No registration found for this Transaction ID."
-                );
-
-
-                return;
-
-            }
-
-
-            if (
-                !response.ok ||
-                !data.success
-            ) {
-
-                throw new Error(
-                    data.message ||
-                    "Unable to search Transaction ID."
-                );
-
-            }
-
-
-            // ----------------------------------------------------
-            // SHOW RESULT
-            // ----------------------------------------------------
-
-            dashboardMessage.textContent =
-                "Transaction found successfully.";
-
-
-            dashboardMessage.style.background =
-                "#eefbf3";
-
-            dashboardMessage.style.borderColor =
-                "#b7e4c7";
-
-            dashboardMessage.style.color =
-                "#16734a";
-
-
-            registrationsContainer.innerHTML =
-                "";
-
-
-            const registration =
-                data.registration;
-
-
-            const card =
-                createSearchResultCard(
-                    registration
-                );
-
-
-            registrationsContainer.appendChild(
-                card
-            );
-
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Transaction search error:",
-                error
-            );
-
-
-            dashboardMessage.textContent =
-                error.message ||
-                "Unable to search Transaction ID.";
-
-
-            dashboardMessage.style.background =
-                "#fff4f4";
-
-            dashboardMessage.style.borderColor =
-                "#f0c4c4";
-
-            dashboardMessage.style.color =
-                "#b42323";
-
-
-        }
-
-        finally {
-
-            if (transactionSearchButton) {
-
-                transactionSearchButton.disabled =
-                    false;
-
-                transactionSearchButton.textContent =
-                    "🔎 Search";
-
-            }
-
-        }
-
-    }
-
-
-    // ============================================================
-    // CREATE SEARCH RESULT CARD
-    // ============================================================
-
-    function createSearchResultCard(
-        registration
-    ) {
-
-        const card =
-            document.createElement("article");
-
-
-        card.className =
-            "registration-card";
-
-
-        const utr =
-            getUTR(registration);
-
-
-        const verificationStatus =
-            registration.verificationStatus ||
-            "PENDING";
-
-
-        let statusClass =
-            "pending-badge";
-
-
-        if (
-            verificationStatus ===
-            "VERIFIED"
-        ) {
-
-            statusClass =
-                "verified-badge";
-
-        }
-
-        else if (
-            verificationStatus ===
-            "REJECTED"
-        ) {
-
-            statusClass =
-                "rejected-badge";
-
-        }
-
-
-        const participants =
-
-            participantHTML(
-                registration.teamLeader,
-                "Team Leader"
-            )
-
-            +
-
-            participantHTML(
-                registration.teamMember,
-                "Team Member"
-            );
-
-
-        card.innerHTML = `
-
-            <div class="registration-header">
-
-                <div>
-
-                    <div class="registration-id">
-
-                        ${escapeHTML(
-                            registration.registrationId ||
-                            "—"
-                        )}
-
-                    </div>
-
-
-                    <div class="event-name">
-
-                        ${escapeHTML(
-                            registration.eventName ||
-                            "—"
-                        )}
-
-                    </div>
-
-                </div>
-
-
-                <span class="${statusClass}">
-
-                    ${escapeHTML(
-                        verificationStatus
-                    )}
-
-                </span>
-
-            </div>
-
-
-            <div class="registration-info">
-
-
-                <div class="info-item">
-
-                    <span class="info-label">
-                        Payer
-                    </span>
-
-                    <span class="info-value">
-
-                        ${escapeHTML(
-                            registration.payerName ||
-                            "—"
-                        )}
-
-                    </span>
-
-                </div>
-
-
-                <div class="info-item">
-
-                    <span class="info-label">
-                        Amount
-                    </span>
-
-                    <span class="info-value">
-
-                        ₹${escapeHTML(
-                            registration.amount ||
-                            0
-                        )}
-
                     </span>
 
                 </div>
@@ -2021,55 +841,19 @@
                     </span>
 
                     <span class="info-value utr-value">
-
-                        ${escapeHTML(
-                            utr
+                        ${displayValue(
+                            transactionId
                         )}
-
                     </span>
 
                 </div>
-
-
-                <div class="info-item">
-
-                    <span class="info-label">
-                        Payment Status
-                    </span>
-
-                    <span class="info-value">
-
-                        ${escapeHTML(
-                            registration.paymentStatus ||
-                            "—"
-                        )}
-
-                    </span>
-
-                </div>
-
-
-                <div class="info-item">
-
-                    <span class="info-label">
-                        Registered
-                    </span>
-
-                    <span class="info-value">
-
-                        ${escapeHTML(
-                            formatDate(
-                                registration.createdAt
-                            )
-                        )}
-
-                    </span>
-
-                </div>
-
 
             </div>
 
+
+            <!-- =========================================
+                 PARTICIPANTS
+                 ========================================= -->
 
             <div class="participants-section">
 
@@ -2077,489 +861,1752 @@
                     Participants
                 </h3>
 
-                ${
-                    participants ||
 
-                    `
-                        <p>
-                            No participant details available.
-                        </p>
-                    `
+                ${
+                    participants.length === 0
+
+                        ? `
+                            <p>
+                                No participant details available.
+                            </p>
+                        `
+
+                        : participants
+                            .map(
+                                (
+                                    participant,
+                                    index
+                                ) =>
+                                    createParticipantItem(
+                                        participant,
+                                        index
+                                    )
+                            )
+                            .join("")
                 }
 
             </div>
 
 
+            <!-- =========================================
+                 ACTIONS
+                 ========================================= -->
+
             <div class="registration-actions">
+
 
                 <button
                     type="button"
                     class="view-button"
-                    data-action="view-search"
+                    data-action="view"
+                    data-registration-id="${escapeHTML(
+                        registrationId
+                    )}"
                 >
                     View Full Details
                 </button>
 
+
+                <button
+                    type="button"
+                    class="verify-button"
+                    data-action="verify"
+                    data-registration-id="${escapeHTML(
+                        registrationId
+                    )}"
+                >
+                    ✓ Verify Payment
+                </button>
+
+
+                <button
+                    type="button"
+                    class="reject-button"
+                    data-action="reject"
+                    data-registration-id="${escapeHTML(
+                        registrationId
+                    )}"
+                >
+                    ✕ Reject Payment
+                </button>
+
             </div>
 
-        `;
+        </article>
+    `;
+}
 
 
-        const viewButton =
-            card.querySelector(
-                '[data-action="view-search"]'
+// ============================================================
+// CREATE PARTICIPANT ITEM
+// ============================================================
+
+function createParticipantItem(
+    participant,
+    index
+) {
+
+    const name =
+        participant?.name ||
+        participant?.fullName ||
+        participant?.participantName ||
+        "—";
+
+
+    const email =
+        participant?.email ||
+        "—";
+
+
+    const phone =
+        participant?.phone ||
+        participant?.mobile ||
+        participant?.phoneNumber ||
+        "—";
+
+
+    const college =
+        participant?.college ||
+        participant?.institution ||
+        "—";
+
+
+    return `
+        <div class="participant-item">
+
+            <strong>
+                Participant ${index + 1}:
+                ${displayValue(name)}
+            </strong>
+
+            <span>
+                Email:
+                ${displayValue(email)}
+            </span>
+
+            <span>
+                Phone:
+                ${displayValue(phone)}
+            </span>
+
+            <span>
+                College:
+                ${displayValue(college)}
+            </span>
+
+        </div>
+    `;
+}
+
+
+// ============================================================
+// ATTACH CARD EVENTS
+// ============================================================
+
+function attachRegistrationEvents() {
+
+    const buttons =
+        registrationsContainer.querySelectorAll(
+            "[data-action]"
+        );
+
+
+    buttons.forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                async () => {
+
+                    const action =
+                        button.dataset.action;
+
+
+                    const registrationId =
+                        button.dataset.registrationId;
+
+
+                    if (
+                        action === "view"
+                    ) {
+
+                        const registration =
+                            findRegistration(
+                                registrationId
+                            );
+
+
+                        if (registration) {
+
+                            openDetailsModal(
+                                registration
+                            );
+
+                        }
+
+                    }
+                    else if (
+                        action === "verify"
+                    ) {
+
+                        await verifyRegistration(
+                            registrationId
+                        );
+
+                    }
+                    else if (
+                        action === "reject"
+                    ) {
+
+                        await rejectRegistration(
+                            registrationId
+                        );
+
+                    }
+
+                }
             );
 
+        }
+    );
+}
 
-        viewButton.addEventListener(
+
+// ============================================================
+// FIND REGISTRATION
+// ============================================================
+
+function findRegistration(
+    registrationId
+) {
+
+    return registrations.find(
+        registration =>
+            String(
+                registration.registrationId ||
+                registration._id
+            ) ===
+            String(
+                registrationId
+            )
+    );
+}
+
+
+// ============================================================
+// VERIFY REGISTRATION
+// ============================================================
+
+async function verifyRegistration(
+    registrationId
+) {
+
+    const registration =
+        findRegistration(
+            registrationId
+        );
+
+
+    if (!registration) {
+
+        showMessage(
+            "Registration not found.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    const confirmed =
+        window.confirm(
+            `Verify registration ${registrationId}?\n\n` +
+            `This will mark the registration as VERIFIED.`
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    showMessage(
+        `Verifying ${registrationId}...`
+    );
+
+
+    try {
+
+        /*
+         * IMPORTANT:
+         * Your current server.js uses:
+         *
+         * PATCH
+         * /api/admin/registrations/:registrationId/verify
+         */
+
+        await apiRequest(
+            `/api/admin/registrations/${encodeURIComponent(
+                registrationId
+            )}/verify`,
+            {
+                method: "PATCH",
+                body: JSON.stringify({})
+            }
+        );
+
+
+        showMessage(
+            `${registrationId} verified successfully.`,
+            "success"
+        );
+
+
+        closeDetailsModal();
+
+
+        /*
+         * The server only returns PENDING registrations.
+         *
+         * After verification, the registration disappears
+         * from the pending list and the count decreases.
+         */
+
+        await loadRegistrations();
+
+    }
+    catch (error) {
+
+        console.error(
+            "Verify registration error:",
+            error
+        );
+
+
+        showMessage(
+            error.message ||
+            "Unable to verify registration.",
+            "error"
+        );
+
+    }
+}
+
+
+// ============================================================
+// REJECT REGISTRATION
+// ============================================================
+
+async function rejectRegistration(
+    registrationId
+) {
+
+    const registration =
+        findRegistration(
+            registrationId
+        );
+
+
+    if (!registration) {
+
+        showMessage(
+            "Registration not found.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    const confirmed =
+        window.confirm(
+            `Reject registration ${registrationId}?\n\n` +
+            `The registration will be marked as REJECTED ` +
+            `and removed from pending verification.`
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    showMessage(
+        `Rejecting ${registrationId}...`
+    );
+
+
+    try {
+
+        /*
+         * IMPORTANT:
+         * Your current server.js uses:
+         *
+         * PATCH
+         * /api/admin/registrations/:registrationId/reject
+         */
+
+        await apiRequest(
+            `/api/admin/registrations/${encodeURIComponent(
+                registrationId
+            )}/reject`,
+            {
+                method: "PATCH",
+                body: JSON.stringify({})
+            }
+        );
+
+
+        showMessage(
+            `${registrationId} rejected successfully.`,
+            "success"
+        );
+
+
+        closeDetailsModal();
+
+
+        /*
+         * Reloading the pending registrations recalculates
+         * the pending count.
+         *
+         * Example:
+         *
+         * Before reject: 1
+         * After reject:  0
+         *
+         * IMPORTANT:
+         * The registration ID itself is NOT reused.
+         */
+
+        await loadRegistrations();
+
+    }
+    catch (error) {
+
+        console.error(
+            "Reject registration error:",
+            error
+        );
+
+
+        showMessage(
+            error.message ||
+            "Unable to reject registration.",
+            "error"
+        );
+
+    }
+}
+
+
+// ============================================================
+// OPEN DETAILS MODAL
+// ============================================================
+
+function openDetailsModal(
+    registration
+) {
+
+    if (
+        !detailsModal ||
+        !modalContent
+    ) {
+        return;
+    }
+
+
+    currentRegistration =
+        registration;
+
+
+    modalContent.innerHTML =
+        createModalContent(
+            registration
+        );
+
+
+    detailsModal.classList.remove(
+        "hidden"
+    );
+
+
+    document.body.classList.add(
+        "modal-open"
+    );
+
+
+    attachModalActionEvents();
+}
+
+
+// ============================================================
+// CREATE MODAL CONTENT
+// ============================================================
+
+function createModalContent(
+    registration
+) {
+
+    const registrationId =
+        registration.registrationId ||
+        registration._id ||
+        "—";
+
+
+    const eventName =
+        registration.eventName ||
+        registration.eventId ||
+        "—";
+
+
+    const eventDate =
+        registration.eventDate ||
+        "—";
+
+
+    const eventTime =
+        registration.eventTime ||
+        "—";
+
+
+    const eventVenue =
+        registration.eventVenue ||
+        registration.venue ||
+        "—";
+
+
+    const teamName =
+        registration.teamName ||
+        "—";
+
+
+    const payerName =
+        registration.payerName ||
+        "—";
+
+
+    /*
+     * Payer email is intentionally NOT displayed.
+     *
+     * Payer phone is shown only if available.
+     */
+
+    const payerPhone =
+        registration.payerPhone ||
+        registration.teamLeader?.phone ||
+        "—";
+
+
+    const transactionId =
+        registration.transactionId ||
+        registration.utr ||
+        "—";
+
+
+    const amount =
+        registration.amount ??
+        registration.totalAmount ??
+        0;
+
+
+    const paymentStatus =
+        registration.paymentStatus ||
+        "PENDING";
+
+
+    const verificationStatus =
+        registration.verificationStatus ||
+        "PENDING";
+
+
+    const paymentMethod =
+        registration.paymentMethod ||
+        "UPI";
+
+
+    const upiId =
+        registration.upiId ||
+        "9940464883@ptaxis";
+
+
+    let participants = [];
+
+
+    if (
+        Array.isArray(
+            registration.participants
+        )
+    ) {
+
+        participants =
+            registration.participants;
+
+    }
+    else {
+
+        if (
+            registration.participation ===
+            "team"
+        ) {
+
+            if (
+                registration.teamLeader
+            ) {
+
+                participants.push(
+                    registration.teamLeader
+                );
+
+            }
+
+            if (
+                registration.teamMember
+            ) {
+
+                participants.push(
+                    registration.teamMember
+                );
+
+            }
+
+        }
+        else if (
+            registration.participant
+        ) {
+
+            participants.push(
+                registration.participant
+            );
+
+        }
+
+    }
+
+
+    return `
+
+        <!-- ================================================
+             REGISTRATION INFORMATION
+             ================================================ -->
+
+        <div class="modal-section">
+
+            <h3>
+                Registration Information
+            </h3>
+
+
+            <div class="detail-row">
+
+                <div class="detail-label">
+                    Registration ID
+                </div>
+
+                <div class="detail-value">
+                    ${displayValue(
+                        registrationId
+                    )}
+                </div>
+
+            </div>
+
+
+            <div class="detail-row">
+
+                <div class="detail-label">
+                    Event
+                </div>
+
+                <div class="detail-value">
+                    ${displayValue(
+                        eventName
+                    )}
+                </div>
+
+            </div>
+
+
+            <div class="detail-row">
+
+                <div class="detail-label">
+                    Team Name
+                </div>
+
+                <div class="detail-value">
+                    ${displayValue(
+                        teamName
+                    )}
+                </div>
+
+            </div>
+
+
+            <div class="detail-row">
+
+                <div class="detail-label">
+                    Registration Date
+                </div>
+
+                <div class="detail-value">
+                    ${formatDate(
+                        registration.createdAt ||
+                        registration.registrationDate
+                    )}
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================
+             EVENT DETAILS
+             ================================================ -->
+
+        <div class="modal-section">
+
+            <h3>
+                Event Details
+            </h3>
+
+
+            <div class="detail-row">
+
+                <div class="detail-label">
+                    Event Date
+                </div>
+
+                <div class="detail-value">
+                    ${displayValue(
+                        eventDate
+                    )}
+                </div>
+
+            </div>
+
+
+            <div class="detail-row">
+
+                <div class="detail-label">
+                    Event Time
+                </div>
+
+                <div class="detail-value">
+                    ${displayValue(
+                        eventTime
+                    )}
+                </div>
+
+            </div>
+
+
+            <div class="detail-row">
+
+                <div class="detail-label">
+                    Venue
+                </div>
+
+                <div class="detail-value">
+                    ${displayValue(
+                        eventVenue
+                    )}
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================
+             PAYER INFORMATION
+             ================================================ -->
+
+        <div class="modal-section">
+
+            <h3>
+                Payer Information
+            </h3>
+
+
+            <div class="detail-row">
+
+                <div class="detail-label">
+                    Payer Name
+                </div>
+
+                <div class="detail-value">
+                    ${displayValue(
+                        payerName
+                    )}
+                </div>
+
+            </div>
+
+
+            <div class="detail-row">
+
+                <div class="detail-label">
+                    Payer Phone
+                </div>
+
+                <div class="detail-value">
+                    ${displayValue(
+                        payerPhone
+                    )}
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================
+             PAYMENT INFORMATION
+             ================================================ -->
+
+        <div class="modal-section">
+
+            <h3>
+                Payment Information
+            </h3>
+
+
+            <div class="detail-row">
+
+                <div class="detail-label">
+                    Payment Method
+                </div>
+
+                <div class="detail-value">
+                    ${displayValue(
+                        paymentMethod
+                    )}
+                </div>
+
+            </div>
+
+
+            <div class="detail-row">
+
+                <div class="detail-label">
+                    UPI ID
+                </div>
+
+                <div class="detail-value">
+                    ${displayValue(
+                        upiId
+                    )}
+                </div>
+
+            </div>
+
+
+            <div class="detail-row">
+
+                <div class="detail-label">
+                    Transaction ID
+                </div>
+
+                <div class="detail-value">
+                    ${displayValue(
+                        transactionId
+                    )}
+                </div>
+
+            </div>
+
+
+            <div class="detail-row">
+
+                <div class="detail-label">
+                    Amount
+                </div>
+
+                <div class="detail-value">
+                    ${formatCurrency(
+                        amount
+                    )}
+                </div>
+
+            </div>
+
+
+            <div class="detail-row">
+
+                <div class="detail-label">
+                    Payment Status
+                </div>
+
+                <div class="detail-value">
+                    ${displayValue(
+                        paymentStatus
+                    )}
+                </div>
+
+            </div>
+
+
+            <div class="detail-row">
+
+                <div class="detail-label">
+                    Verification Status
+                </div>
+
+                <div class="detail-value">
+                    ${displayValue(
+                        verificationStatus
+                    )}
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================
+             PARTICIPANTS
+             ================================================ -->
+
+        <div class="modal-section">
+
+            <h3>
+                Participants
+            </h3>
+
+
+            ${
+                participants.length === 0
+
+                    ? `
+                        <p>
+                            No participant details available.
+                        </p>
+                    `
+
+                    : participants
+                        .map(
+                            (
+                                participant,
+                                index
+                            ) =>
+                                createModalParticipant(
+                                    participant,
+                                    index
+                                )
+                        )
+                        .join("")
+            }
+
+        </div>
+
+
+        <!-- ================================================
+             ACTIONS
+             ================================================ -->
+
+        ${
+            String(
+                verificationStatus
+            ).toUpperCase() ===
+            "PENDING"
+
+                ? `
+                    <div class="registration-actions">
+
+                        <button
+                            type="button"
+                            class="verify-button"
+                            id="modalVerifyButton"
+                        >
+                            ✓ Verify Payment
+                        </button>
+
+                        <button
+                            type="button"
+                            class="reject-button"
+                            id="modalRejectButton"
+                        >
+                            ✕ Reject Payment
+                        </button>
+
+                    </div>
+                `
+
+                : ""
+        }
+
+    `;
+}
+
+
+// ============================================================
+// MODAL PARTICIPANT
+// ============================================================
+
+function createModalParticipant(
+    participant,
+    index
+) {
+
+    const name =
+        participant?.name ||
+        participant?.fullName ||
+        participant?.participantName ||
+        "—";
+
+
+    const email =
+        participant?.email ||
+        "—";
+
+
+    const phone =
+        participant?.phone ||
+        participant?.mobile ||
+        participant?.phoneNumber ||
+        "—";
+
+
+    const college =
+        participant?.college ||
+        participant?.institution ||
+        "—";
+
+
+    const department =
+        participant?.department ||
+        "—";
+
+
+    const year =
+        participant?.year ||
+        participant?.studyYear ||
+        "—";
+
+
+    return `
+        <div class="participant-item">
+
+            <strong>
+                Participant ${index + 1}:
+                ${displayValue(name)}
+            </strong>
+
+            <span>
+                Email:
+                ${displayValue(email)}
+            </span>
+
+            <span>
+                Phone:
+                ${displayValue(phone)}
+            </span>
+
+            <span>
+                College:
+                ${displayValue(college)}
+            </span>
+
+            <span>
+                Department:
+                ${displayValue(department)}
+            </span>
+
+            <span>
+                Year:
+                ${displayValue(year)}
+            </span>
+
+        </div>
+    `;
+}
+
+
+// ============================================================
+// MODAL ACTION EVENTS
+// ============================================================
+
+function attachModalActionEvents() {
+
+    const modalVerifyButton =
+        document.getElementById(
+            "modalVerifyButton"
+        );
+
+
+    const modalRejectButton =
+        document.getElementById(
+            "modalRejectButton"
+        );
+
+
+    if (
+        modalVerifyButton &&
+        currentRegistration
+    ) {
+
+        modalVerifyButton.addEventListener(
             "click",
-            () => {
+            async () => {
 
-                showDetails(
-                    registration
+                await verifyRegistration(
+                    currentRegistration.registrationId ||
+                    currentRegistration._id
                 );
 
             }
         );
 
+    }
 
-        return card;
+
+    if (
+        modalRejectButton &&
+        currentRegistration
+    ) {
+
+        modalRejectButton.addEventListener(
+            "click",
+            async () => {
+
+                await rejectRegistration(
+                    currentRegistration.registrationId ||
+                    currentRegistration._id
+                );
+
+            }
+        );
+
+    }
+}
+
+
+// ============================================================
+// CLOSE MODAL
+// ============================================================
+
+function closeDetailsModal() {
+
+    if (detailsModal) {
+
+        detailsModal.classList.add(
+            "hidden"
+        );
 
     }
 
 
-    // ============================================================
-    // CLEAR SEARCH
-    // ============================================================
-
-    function clearTransactionSearch() {
-
-        if (
-            transactionSearchInput
-        ) {
-
-            transactionSearchInput.value =
-                "";
-
-        }
+    document.body.classList.remove(
+        "modal-open"
+    );
 
 
-        loadRegistrations();
+    currentRegistration =
+        null;
+}
 
+
+// ============================================================
+// TRANSACTION ID SEARCH
+// ============================================================
+
+async function searchTransaction() {
+
+    if (
+        !transactionSearchInput
+    ) {
+        return;
     }
 
 
-    // ============================================================
-    // EXPORT ALL REGISTRATIONS TO EXCEL
-    // ============================================================
+    /*
+     * Only numbers.
+     * Maximum 12 digits.
+     */
 
-    async function exportRegistrations() {
-
-        if (exportExcelButton) {
-
-            exportExcelButton.disabled =
-                true;
-
-            exportExcelButton.textContent =
-                "📥 Exporting...";
-
-        }
-
-
-        dashboardMessage.textContent =
-            "Preparing Excel file...";
-
-
-        try {
-
-            const response =
-                await fetch(
-                    `${BACKEND_URL}/api/admin/export`,
-                    {
-                        method: "GET",
-
-                        credentials: "include"
-                    }
-                );
-
-
-            // ----------------------------------------------------
-            // SESSION EXPIRED
-            // ----------------------------------------------------
-
-            if (
-                response.status === 401
-            ) {
-
-                window.location.href =
-                    "admin.html";
-
-                return;
-
-            }
-
-
-            // ----------------------------------------------------
-            // API ERROR
-            // ----------------------------------------------------
-
-            if (!response.ok) {
-
-                let errorMessage =
-                    "Unable to export registrations.";
-
-
-                try {
-
-                    const data =
-                        await response.json();
-
-
-                    errorMessage =
-                        data.message ||
-                        errorMessage;
-
-                }
-
-                catch (error) {
-
-                    // Response was not JSON.
-
-                }
-
-
-                throw new Error(
-                    errorMessage
-                );
-
-            }
-
-
-            // ----------------------------------------------------
-            // DOWNLOAD XLSX
-            // ----------------------------------------------------
-
-            const blob =
-                await response.blob();
-
-
-            const downloadURL =
-                window.URL.createObjectURL(
-                    blob
-                );
-
-
-            const link =
-                document.createElement(
-                    "a"
-                );
-
-
-            link.href =
-                downloadURL;
-
-
-            link.download =
-                "SPARK2026_Registrations.xlsx";
-
-
-            document.body.appendChild(
-                link
+    const transactionId =
+        transactionSearchInput.value
+            .replace(
+                /\D/g,
+                ""
+            )
+            .slice(
+                0,
+                12
             );
 
 
-            link.click();
+    transactionSearchInput.value =
+        transactionId;
 
 
-            link.remove();
+    /*
+     * EXACTLY 12 DIGITS
+     */
+
+    if (
+        !/^\d{12}$/.test(
+            transactionId
+        )
+    ) {
+
+        showMessage(
+            "Please enter a valid 12-digit Transaction ID.",
+            "warning"
+        );
 
 
-            window.URL.revokeObjectURL(
-                downloadURL
+        window.alert(
+            "Please enter a valid 12-digit Transaction ID."
+        );
+
+
+        transactionSearchInput.focus();
+
+        return;
+    }
+
+
+    showMessage(
+        "Searching transaction..."
+    );
+
+
+    try {
+
+        /*
+         * Current server endpoint:
+         *
+         * GET /api/admin/search-transaction
+         */
+
+        const data =
+            await apiRequest(
+                `/api/admin/search-transaction?transactionId=${encodeURIComponent(
+                    transactionId
+                )}`
             );
 
 
-            dashboardMessage.textContent =
-                "Excel export completed successfully.";
+        const registration =
+            data?.registration ||
+            data?.data ||
+            null;
 
 
-            dashboardMessage.style.background =
-                "#eefbf3";
+        if (!registration) {
 
-            dashboardMessage.style.borderColor =
-                "#b7e4c7";
-
-            dashboardMessage.style.color =
-                "#16734a";
-
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Excel export error:",
-                error
+            showMessage(
+                "No registration found for this Transaction ID.",
+                "warning"
             );
-
-
-            dashboardMessage.textContent =
-                error.message ||
-                "Unable to export registrations.";
-
-
-            dashboardMessage.style.background =
-                "#fff4f4";
-
-            dashboardMessage.style.borderColor =
-                "#f0c4c4";
-
-            dashboardMessage.style.color =
-                "#b42323";
 
 
             window.alert(
-                error.message ||
-                "Unable to export registrations."
+                "No registration found for this Transaction ID."
             );
 
+            return;
         }
 
-        finally {
 
-            if (exportExcelButton) {
+        showMessage(
+            "Transaction found.",
+            "success"
+        );
 
-                exportExcelButton.disabled =
-                    false;
 
-                exportExcelButton.textContent =
-                    "📥 Export Excel";
+        openDetailsModal(
+            registration
+        );
 
-            }
+    }
+    catch (error) {
 
-        }
+        console.error(
+            "Transaction search error:",
+            error
+        );
+
+
+        showMessage(
+            error.message ||
+            "Unable to search transaction.",
+            "error"
+        );
+
+
+        window.alert(
+            error.message ||
+            "Unable to search transaction."
+        );
+
+    }
+}
+
+
+// ============================================================
+// EXCEL EXPORT
+// ============================================================
+
+async function exportExcel() {
+
+    if (exportExcelButton) {
+
+        exportExcelButton.disabled =
+            true;
+
+        exportExcelButton.textContent =
+            "📥 Exporting...";
 
     }
 
 
-    // ============================================================
-    // LOGOUT
-    // ============================================================
+    showMessage(
+        "Preparing Excel export..."
+    );
 
-    async function logout() {
 
-        try {
+    try {
 
+        /*
+         * Current server endpoint:
+         *
+         * GET /api/admin/export-excel
+         */
+
+        const response =
             await fetch(
-                `${BACKEND_URL}/api/admin/logout`,
+                `${BACKEND_URL}/api/admin/export-excel`,
                 {
-                    method: "POST",
-
+                    method: "GET",
                     credentials: "include"
                 }
             );
 
+
+        if (
+            response.status === 401 ||
+            response.status === 403
+        ) {
+
+            window.location.href =
+                "admin-login.html";
+
+            return;
         }
 
-        catch (error) {
 
-            console.warn(
-                "Logout request failed:",
-                error
+        if (!response.ok) {
+
+            let message =
+                "Unable to export registrations.";
+
+
+            try {
+
+                const data =
+                    await response.json();
+
+
+                message =
+                    data?.message ||
+                    message;
+
+            }
+            catch (error) {
+                // Ignore invalid JSON.
+            }
+
+
+            throw new Error(
+                message
+            );
+        }
+
+
+        const blob =
+            await response.blob();
+
+
+        const contentDisposition =
+            response.headers.get(
+                "Content-Disposition"
             );
 
+
+        let filename =
+            "SPARK2026_Registrations.xlsx";
+
+
+        if (contentDisposition) {
+
+            const match =
+                contentDisposition.match(
+                    /filename="?([^"]+)"?/i
+                );
+
+
+            if (
+                match &&
+                match[1]
+            ) {
+
+                filename =
+                    match[1];
+
+            }
         }
 
 
-        window.location.href =
-            "admin.html";
+        const url =
+            window.URL.createObjectURL(
+                blob
+            );
+
+
+        const link =
+            document.createElement(
+                "a"
+            );
+
+
+        link.href =
+            url;
+
+
+        link.download =
+            filename;
+
+
+        document.body.appendChild(
+            link
+        );
+
+
+        link.click();
+
+
+        link.remove();
+
+
+        window.URL.revokeObjectURL(
+            url
+        );
+
+
+        showMessage(
+            "Excel file exported successfully.",
+            "success"
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            "Excel export error:",
+            error
+        );
+
+
+        showMessage(
+            error.message ||
+            "Unable to export Excel file.",
+            "error"
+        );
+
+
+        window.alert(
+            error.message ||
+            "Unable to export Excel file."
+        );
+
+    }
+    finally {
+
+        if (exportExcelButton) {
+
+            exportExcelButton.disabled =
+                false;
+
+            exportExcelButton.textContent =
+                "📥 Export Excel";
+
+        }
+
+    }
+}
+
+
+// ============================================================
+// LOGOUT
+// ============================================================
+
+async function logoutAdmin() {
+
+    const confirmed =
+        window.confirm(
+            "Are you sure you want to logout?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        await apiRequest(
+            "/api/admin/logout",
+            {
+                method: "POST",
+                body: JSON.stringify({})
+            }
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            "Logout error:",
+            error
+        );
 
     }
 
 
-    // ============================================================
-    // KEYBOARD — ESC CLOSES MODAL
-    // ============================================================
+    window.location.href =
+        "admin-login.html";
+}
 
-    document.addEventListener(
+
+// ============================================================
+// REFRESH
+// ============================================================
+
+async function refreshDashboard() {
+
+    if (refreshButton) {
+
+        refreshButton.disabled =
+            true;
+
+        refreshButton.textContent =
+            "↻ Refreshing...";
+
+    }
+
+
+    try {
+
+        await loadRegistrations();
+
+    }
+    finally {
+
+        if (refreshButton) {
+
+            refreshButton.disabled =
+                false;
+
+            refreshButton.textContent =
+                "↻ Refresh";
+
+        }
+    }
+}
+
+
+// ============================================================
+// EVENT LISTENERS
+// ============================================================
+
+if (refreshButton) {
+
+    refreshButton.addEventListener(
+        "click",
+        refreshDashboard
+    );
+
+}
+
+
+if (logoutButton) {
+
+    logoutButton.addEventListener(
+        "click",
+        logoutAdmin
+    );
+
+}
+
+
+if (transactionSearchButton) {
+
+    transactionSearchButton.addEventListener(
+        "click",
+        searchTransaction
+    );
+
+}
+
+
+if (transactionSearchInput) {
+
+    /*
+     * Allow numbers only and maximum 12 digits.
+     */
+
+    transactionSearchInput.addEventListener(
+        "input",
+        () => {
+
+            transactionSearchInput.value =
+                transactionSearchInput.value
+                    .replace(
+                        /\D/g,
+                        ""
+                    )
+                    .slice(
+                        0,
+                        12
+                    );
+
+        }
+    );
+
+
+    /*
+     * Press Enter to search.
+     */
+
+    transactionSearchInput.addEventListener(
         "keydown",
         event => {
 
             if (
-                event.key === "Escape" &&
-                !detailsModal.classList.contains(
-                    "hidden"
-                )
+                event.key ===
+                "Enter"
             ) {
 
-                closeDetailsModal();
+                event.preventDefault();
+
+                searchTransaction();
 
             }
 
         }
     );
 
+}
 
-    // ============================================================
-    // MODAL BACKGROUND CLICK
-    // ============================================================
 
-    detailsModal.addEventListener(
+if (exportExcelButton) {
+
+    exportExcelButton.addEventListener(
         "click",
-        event => {
-
-            if (
-                event.target === detailsModal
-            ) {
-
-                closeDetailsModal();
-
-            }
-
-        }
+        exportExcel
     );
 
-
-    // ============================================================
-    // EVENT LISTENERS
-    // ============================================================
-
-    refreshButton.addEventListener(
-        "click",
-        loadRegistrations
-    );
+}
 
 
-    logoutButton.addEventListener(
-        "click",
-        logout
-    );
-
+if (closeModal) {
 
     closeModal.addEventListener(
         "click",
         closeDetailsModal
     );
 
-
-    // ------------------------------------------------------------
-    // TRANSACTION SEARCH
-    // ------------------------------------------------------------
-
-    if (
-        transactionSearchButton
-    ) {
-
-        transactionSearchButton.addEventListener(
-            "click",
-            searchTransaction
-        );
-
-    }
+}
 
 
-    // ------------------------------------------------------------
-    // TRANSACTION SEARCH — ENTER KEY
-    // ------------------------------------------------------------
+if (detailsModal) {
 
-    if (
-        transactionSearchInput
-    ) {
+    detailsModal.addEventListener(
+        "click",
+        event => {
 
-        transactionSearchInput.addEventListener(
-            "keydown",
-            event => {
+            /*
+             * Clicking outside the modal box
+             * closes the modal.
+             */
 
-                if (
-                    event.key === "Enter"
-                ) {
+            if (
+                event.target ===
+                detailsModal
+            ) {
 
-                    event.preventDefault();
-
-                    searchTransaction();
-
-                }
+                closeDetailsModal();
 
             }
-        );
 
-    }
+        }
+    );
 
-
-    // ------------------------------------------------------------
-    // EXPORT EXCEL
-    // ------------------------------------------------------------
-
-    if (
-        exportExcelButton
-    ) {
-
-        exportExcelButton.addEventListener(
-            "click",
-            exportRegistrations
-        );
-
-    }
+}
 
 
-    // ------------------------------------------------------------
-    // DOUBLE-CLICK SEARCH INPUT TO CLEAR
-    // ------------------------------------------------------------
+document.addEventListener(
+    "keydown",
+    event => {
 
-    if (
-        transactionSearchInput
-    ) {
+        if (
+            event.key === "Escape" &&
+            detailsModal &&
+            !detailsModal.classList.contains(
+                "hidden"
+            )
+        ) {
 
-        transactionSearchInput.addEventListener(
-            "dblclick",
-            clearTransactionSearch
-        );
-
-    }
-
-
-    // ============================================================
-    // INITIALIZATION
-    // ============================================================
-
-    async function init() {
-
-        const loggedIn =
-            await checkAdminSession();
-
-
-        if (!loggedIn) {
-
-            return;
+            closeDetailsModal();
 
         }
 
+    }
+);
 
-        await loadRegistrations();
+
+// ============================================================
+// INITIALIZE DASHBOARD
+// ============================================================
+
+async function initializeDashboard() {
+
+    const authenticated =
+        await checkAdminSession();
+
+
+    if (!authenticated) {
+
+        return;
 
     }
 
 
-    // ============================================================
-    // START
-    // ============================================================
+    await loadRegistrations();
+}
 
-    if (
-        document.readyState ===
-        "loading"
-    ) {
 
-        document.addEventListener(
-            "DOMContentLoaded",
-            init
-        );
+// ============================================================
+// START DASHBOARD
+// ============================================================
 
-    }
+if (
+    document.readyState ===
+    "loading"
+) {
 
-    else {
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeDashboard
+    );
 
-        init();
+}
+else {
 
-    }
+    initializeDashboard();
 
-})();
+}

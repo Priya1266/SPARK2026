@@ -1,6 +1,6 @@
 // ============================================================
 // SPARK 2026 — REGISTRATION SERVER
-// UPI PAYMENT + 16-DIGIT UTR + MONGODB
+// UPI PAYMENT + 12-DIGIT UTR + MONGODB
 // ADMIN LOGIN + ADMIN VERIFICATION
 // SEQUENTIAL REGISTRATION IDs
 // EXCEL EXPORT + TRANSACTION ID SEARCH
@@ -689,40 +689,7 @@ async function getEventCapacity(eventId) {
 
 
 // ============================================================
-// MODULE 7B — SEQUENTIAL REGISTRATION ID
-// ============================================================
-//
-// IMPORTANT:
-//
-// Registration IDs are NOT generated using timestamp/random
-// values anymore.
-//
-// Instead:
-//
-// IdeaForge:
-//     SPK26-IDF-01
-//     SPK26-IDF-02
-//     ...
-//     SPK26-IDF-30
-//
-// Circuit Clash:
-//     SPK26-CC-01
-//     ...
-//     SPK26-CC-30
-//
-// iQuest:
-//     SPK26-IQ-01
-//     ...
-//     SPK26-IQ-30
-//
-// CodeSprint:
-//     SPK26-CS-01
-//     ...
-//     SPK26-CS-60
-//
-// MongoDB's findOneAndUpdate with $inc guarantees that two
-// registrations arriving at the same time receive different
-// numbers.
+// MODULE 8 — SEQUENTIAL REGISTRATION ID
 // ============================================================
 
 async function generateRegistrationCode(
@@ -735,7 +702,7 @@ async function generateRegistrationCode(
     ) {
 
         throw new Error(
-            "Invalid event configuration for registration ID."
+            "Invalid event configuration."
         );
 
     }
@@ -745,7 +712,7 @@ async function generateRegistrationCode(
         event.code;
 
 
-    const counterResult =
+    const result =
         await countersCollection.findOneAndUpdate(
 
             {
@@ -772,14 +739,23 @@ async function generateRegistrationCode(
         );
 
 
-const sequence =
-    counterResult &&
-    counterResult.sequence
-        ? counterResult.sequence
-        : 1;
-    // --------------------------------------------------------
-    // CHECK EVENT LIMIT
-    // --------------------------------------------------------
+    const sequence =
+        result &&
+        result.value
+            ? result.value.sequence
+            : null;
+
+
+    if (
+        !sequence
+    ) {
+
+        throw new Error(
+            "Unable to generate registration ID."
+        );
+
+    }
+
 
     const maximum =
         event.participants > 1
@@ -788,13 +764,11 @@ const sequence =
 
 
     if (
-        sequence > maximum
+        sequence >
+        maximum
     ) {
 
-        // Roll back the counter because this registration
-        // cannot be created beyond the configured limit.
-
-        await countersCollection.updateOne(
+        await countersCollection.findOneAndUpdate(
 
             {
                 _id:
@@ -813,13 +787,13 @@ const sequence =
 
 
         throw new Error(
-            `${event.name} registration limit has been reached.`
+            `${event.name} registration capacity has been reached.`
         );
 
     }
 
 
-    const formattedNumber =
+    const paddedSequence =
         String(
             sequence
         ).padStart(
@@ -829,14 +803,86 @@ const sequence =
 
 
     return (
-        `SPK26-${event.code}-${formattedNumber}`
+        `SPK26-${event.code}-${paddedSequence}`
     );
 
 }
 
 
 // ============================================================
-// MODULE 7C — NORMALIZE PARTICIPANT
+// MODULE 8A — DECREMENT REGISTRATION COUNTER
+// ============================================================
+
+async function decrementRegistrationCounter(
+    registration
+) {
+
+    if (
+        !registration ||
+        !registration.registrationId
+    ) {
+
+        return;
+
+    }
+
+
+    const registrationId =
+        cleanText(
+            registration.registrationId
+        );
+
+
+    const parts =
+        registrationId.split(
+            "-"
+        );
+
+
+    if (
+        parts.length !== 3
+    ) {
+
+        return;
+
+    }
+
+
+    const eventCode =
+        parts[1];
+
+
+    if (
+        !eventCode
+    ) {
+
+        return;
+
+    }
+
+
+    await countersCollection.findOneAndUpdate(
+
+        {
+            _id:
+                eventCode
+        },
+
+        {
+            $inc:
+                {
+                    sequence:
+                        -1
+                }
+        }
+
+    );
+
+}
+
+
+// ============================================================
+// MODULE 9 — PARTICIPANT NORMALIZATION
 // ============================================================
 
 function normalizeParticipant(
@@ -845,7 +891,8 @@ function normalizeParticipant(
 
     if (
         !participant ||
-        typeof participant !== "object"
+        typeof participant !==
+        "object"
     ) {
 
         return null;
@@ -853,20 +900,12 @@ function normalizeParticipant(
     }
 
 
-    const fullName =
-        cleanText(
-            participant.fullName ||
-            participant.name
-        );
-
-
     return {
 
-        fullName:
-            fullName,
-
         name:
-            fullName,
+            cleanText(
+                participant.name
+            ),
 
         college:
             cleanText(
@@ -899,198 +938,23 @@ function normalizeParticipant(
 
 
 // ============================================================
-// MODULE 7D — VALIDATE PARTICIPANT
+// MODULE 10 — JWT / ADMIN CONFIGURATION
 // ============================================================
 
-function validateParticipant(
-    participant
-) {
+const JWT_SECRET =
+    process.env.JWT_SECRET ||
+    "spark-2026-change-this-secret";
 
-    if (
-        !participant
-    ) {
-
-        return false;
-
-    }
-
-
-    const requiredFields = [
-
-        "fullName",
-        "college",
-        "department",
-        "year",
-        "phone",
-        "email"
-
-    ];
-
-
-    for (
-        const field of requiredFields
-    ) {
-
-        if (
-            !cleanText(
-                participant[field]
-            )
-        ) {
-
-            return false;
-
-        }
-
-    }
-
-
-    if (
-        !/^[6-9]\d{9}$/.test(
-            participant.phone
-        )
-    ) {
-
-        return false;
-
-    }
-
-
-    if (
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-            participant.email
-        )
-    ) {
-
-        return false;
-
-    }
-
-
-    return true;
-
-}
-
-
-// ============================================================
-// MODULE 7E — GET PARTICIPANT COUNT
-// ============================================================
-
-function getParticipantCount(
-    participation
-) {
-
-    if (
-        participation === "team"
-    ) {
-
-        return 2;
-
-    }
-
-
-    if (
-        participation === "individual"
-    ) {
-
-        return 1;
-
-    }
-
-
-    return 0;
-
-}
-
-
-// ============================================================
-// MODULE 8 — ADMIN AUTHENTICATION
-// ============================================================
-//
-// VERCEL ENVIRONMENT VARIABLES REQUIRED:
-//
-// ADMIN_USERNAME
-// ADMIN_PASSWORD_HASH
-// JWT_SECRET
-//
-// Example:
-//
-// ADMIN_USERNAME = admin
-// ADMIN_PASSWORD_HASH = <bcrypt hash>
-// JWT_SECRET = <long random secret>
-//
-// IMPORTANT:
-// Never put the actual password inside this file.
-// ============================================================
 
 const ADMIN_USERNAME =
-    cleanText(
-        process.env.ADMIN_USERNAME
-    );
+    process.env.ADMIN_USERNAME ||
+    "admin";
 
 
 const ADMIN_PASSWORD_HASH =
-    cleanText(
-        process.env.ADMIN_PASSWORD_HASH
-    );
+    process.env.ADMIN_PASSWORD_HASH ||
+    "";
 
-
-const JWT_SECRET =
-    cleanText(
-        process.env.JWT_SECRET
-    );
-
-
-const ADMIN_COOKIE_NAME =
-    "spark_admin_token";
-
-
-const isProduction =
-    process.env.NODE_ENV === "production" ||
-    Boolean(
-        process.env.VERCEL
-    );
-
-
-// ============================================================
-// CHECK ADMIN CONFIGURATION
-// ============================================================
-
-if (
-    !ADMIN_USERNAME
-) {
-
-    console.error(
-        "❌ ADMIN_USERNAME is missing."
-    );
-
-}
-
-
-if (
-    !ADMIN_PASSWORD_HASH
-) {
-
-    console.error(
-        "❌ ADMIN_PASSWORD_HASH is missing."
-    );
-
-}
-
-
-if (
-    !JWT_SECRET
-) {
-
-    console.error(
-        "❌ JWT_SECRET is missing."
-    );
-
-}
-
-
-// ============================================================
-// CREATE ADMIN JWT
-// ============================================================
 
 function createAdminToken(
     username
@@ -1099,7 +963,6 @@ function createAdminToken(
     return jwt.sign(
 
         {
-
             username:
                 username,
 
@@ -1111,10 +974,8 @@ function createAdminToken(
         JWT_SECRET,
 
         {
-
             expiresIn:
                 "8h"
-
         }
 
     );
@@ -1123,69 +984,38 @@ function createAdminToken(
 
 
 // ============================================================
-// READ ADMIN TOKEN
+// MODULE 11 — ADMIN AUTHENTICATION
 // ============================================================
 
-function getAdminToken(
-    req
+function adminAuth(
+    req,
+    res,
+    next
 ) {
-
-    if (
-        req.cookies &&
-        req.cookies[ADMIN_COOKIE_NAME]
-    ) {
-
-        return req.cookies[
-            ADMIN_COOKIE_NAME
-        ];
-
-    }
-
-
-    // Optional Authorization fallback
-
-    const authorization =
-        req.headers.authorization;
-
-
-    if (
-        authorization &&
-        authorization.startsWith(
-            "Bearer "
-        )
-    ) {
-
-        return authorization.substring(
-            7
-        );
-
-    }
-
-
-    return null;
-
-}
-
-
-// ============================================================
-// VERIFY ADMIN TOKEN
-// ============================================================
-
-function verifyAdminToken(
-    token
-) {
-
-    if (
-        !token ||
-        !JWT_SECRET
-    ) {
-
-        return null;
-
-    }
-
 
     try {
+
+        const token =
+            req.cookies &&
+            req.cookies.adminToken;
+
+
+        if (
+            !token
+        ) {
+
+            return res.status(401).json({
+
+                success:
+                    false,
+
+                message:
+                    "Administrator login required."
+
+            });
+
+        }
+
 
         const decoded =
             jwt.verify(
@@ -1195,125 +1025,73 @@ function verifyAdminToken(
 
 
         if (
+            !decoded ||
             decoded.role !==
             "admin"
         ) {
 
-            return null;
+            return res.status(401).json({
+
+                success:
+                    false,
+
+                message:
+                    "Invalid administrator session."
+
+            });
 
         }
 
 
-        return decoded;
+        req.admin =
+            decoded;
+
+
+        next();
 
     }
-
     catch (error) {
-
-        return null;
-
-    }
-
-}
-
-
-// ============================================================
-// ADMIN AUTH MIDDLEWARE
-// ============================================================
-
-function requireAdmin(
-    req,
-    res,
-    next
-) {
-
-    const token =
-        getAdminToken(
-            req
-        );
-
-
-    const decoded =
-        verifyAdminToken(
-            token
-        );
-
-
-    if (
-        !decoded
-    ) {
 
         return res.status(401).json({
 
             success:
                 false,
 
-            authenticated:
-                false,
-
             message:
-                "Admin authentication required."
+                "Administrator session expired."
 
         });
 
     }
 
-
-    req.admin =
-        decoded;
-
-
-    next();
-
 }
 
 
 // ============================================================
-// END OF PART 1
-// ============================================================
-//
-// PART 2 WILL CONTINUE WITH:
-//
-// MODULE 8.5 — ACKNOWLEDGEMENT EMAIL
-// MODULE 9   — ADMIN LOGIN
-// MODULE 10  — ADMIN SESSION
-// MODULE 11  — ADMIN LOGOUT
-// MODULE 12  — HEALTH CHECK
-// MODULE 13  — GET EVENTS
-// MODULE 14  — PAYMENT DETAILS
-// MODULE 15  — CREATE REGISTRATION
-//
-// IMPORTANT:
-// Do NOT run the server yet if you have pasted only Part 1.
-// ============================================================
-// ============================================================
-// MODULE 8.5 — ACKNOWLEDGEMENT EMAIL
+// MODULE 12 — EMAIL CONFIGURATION
 // ============================================================
 
-let mailTransporter =
-    null;
+let transporter = null;
 
 
-function getMailTransporter() {
+function initializeTransporter() {
 
     if (
-        mailTransporter
+        transporter
     ) {
 
-        return mailTransporter;
+        return transporter;
 
     }
 
 
     if (
-        !process.env.SMTP_HOST ||
-        !process.env.SMTP_PORT ||
-        !process.env.SMTP_USER ||
-        !process.env.SMTP_PASS
+        !process.env.EMAIL_USER ||
+        !process.env.EMAIL_PASS
     ) {
 
         console.warn(
-            "⚠️ SMTP configuration is incomplete."
+            "⚠️ EMAIL_USER or EMAIL_PASS is missing."
         );
 
         return null;
@@ -1321,78 +1099,67 @@ function getMailTransporter() {
     }
 
 
-    mailTransporter =
+    transporter =
         nodemailer.createTransport({
 
-            host:
-                process.env.SMTP_HOST,
+            service:
+                "gmail",
 
-            port:
-                Number(
-                    process.env.SMTP_PORT
-                ),
+            auth:
+                {
+                    user:
+                        process.env.EMAIL_USER,
 
-            secure:
-                Number(
-                    process.env.SMTP_PORT
-                ) === 465,
-
-            auth: {
-
-                user:
-                    process.env.SMTP_USER,
-
-                pass:
-                    process.env.SMTP_PASS
-
-            }
+                    pass:
+                        process.env.EMAIL_PASS
+                }
 
         });
 
 
-    return mailTransporter;
+    return transporter;
 
 }
 
 
 // ============================================================
-// SEND ACKNOWLEDGEMENT EMAIL
+// MODULE 13 — SEND REGISTRATION ACKNOWLEDGEMENT
 // ============================================================
 
-async function sendAcknowledgementEmail(
+async function sendRegistrationAcknowledgement(
     registration
 ) {
 
-    if (
-        !registration
-    ) {
-
-        throw new Error(
-            "Registration information is missing."
-        );
-
-    }
-
-
-    const transporter =
-        getMailTransporter();
+    const mailTransporter =
+        initializeTransporter();
 
 
     if (
-        !transporter
+        !mailTransporter
     ) {
 
-        throw new Error(
-            "Email service is not configured."
+        console.log(
+            "⚠️ Email transporter unavailable. Skipping acknowledgement email."
         );
+
+        return;
 
     }
 
 
     const recipient =
-        cleanText(
-            registration.payerEmail
-        );
+        registration.participation ===
+        "individual"
+
+            ? cleanText(
+                registration.participant &&
+                registration.participant.email
+            )
+
+            : cleanText(
+                registration.teamLeader &&
+                registration.teamLeader.email
+            );
 
 
     if (
@@ -1406,82 +1173,47 @@ async function sendAcknowledgementEmail(
     }
 
 
-    const participantName =
-
-        registration.participation ===
-        "individual"
-
-            ? (
-                registration.participant &&
-                registration.participant.fullName
-                    ? registration.participant.fullName
-                    : registration.payerName
-            )
-
-            : (
-                registration.teamLeader &&
-                registration.teamLeader.fullName
-                    ? registration.teamLeader.fullName
-                    : registration.payerName
-            );
-
-
-    const teamName =
+    const registrationId =
         cleanText(
-            registration.teamName
+            registration.registrationId
+        );
+
+
+    const eventName =
+        cleanText(
+            registration.eventName
         );
 
 
     const subject =
-        `SPARK 2026 Registration Confirmed — ${registration.registrationId}`;
+        `SPARK 2026 Registration Received - ${registrationId}`;
 
 
-    const text = `
-
-SPARK 2026
-
-Registration Confirmation
-
-Dear ${participantName || "Participant"},
-
-Your payment has been successfully verified.
-
-Registration ID:
-${registration.registrationId}
-
-Event:
-${registration.eventName}
-
-Participation:
-${registration.participation}
-
-${teamName ? `Team Name:\n${teamName}\n` : ""}
-
-Amount Paid:
-₹${registration.amount}
-
-UPI Transaction ID:
-${registration.transactionId || registration.utr}
-
-Payment Status:
-VERIFIED
-
-Verification Status:
-VERIFIED
-
-Thank you for registering for SPARK 2026.
-
-Regards,
-SPARK 2026 Organizing Team
-
-`;
+    const text =
+        [
+            "SPARK 2026",
+            "",
+            "Your registration has been received successfully.",
+            "",
+            `Registration ID: ${registrationId}`,
+            `Event: ${eventName}`,
+            "",
+            "Payment status: Pending verification.",
+            "",
+            "Your registration will be confirmed after the submitted UPI transaction is verified by the event coordinator.",
+            "",
+            "Please keep your Registration ID and transaction details safely.",
+            "",
+            "SPARK 2026 Organizing Team"
+        ].join(
+            "\n"
+        );
 
 
-    await transporter.sendMail({
+    await mailTransporter.sendMail({
 
         from:
-            process.env.SMTP_FROM ||
-            process.env.SMTP_USER,
+            process.env.EMAIL_USER,
 
         to:
             recipient,
@@ -1498,7 +1230,112 @@ SPARK 2026 Organizing Team
 
 
 // ============================================================
-// MODULE 9 — ADMIN LOGIN
+// MODULE 14 — SEND VERIFICATION EMAIL
+// ============================================================
+
+async function sendVerificationEmail(
+    registration
+) {
+
+    const mailTransporter =
+        initializeTransporter();
+
+
+    if (
+        !mailTransporter
+    ) {
+
+        console.log(
+            "⚠️ Email transporter unavailable. Skipping verification email."
+        );
+
+        return;
+
+    }
+
+
+    const recipient =
+        registration.participation ===
+        "individual"
+
+            ? cleanText(
+                registration.participant &&
+                registration.participant.email
+            )
+
+            : cleanText(
+                registration.teamLeader &&
+                registration.teamLeader.email
+            );
+
+
+    if (
+        !recipient
+    ) {
+
+        throw new Error(
+            "Participant email is missing."
+        );
+
+    }
+
+
+    const registrationId =
+        cleanText(
+            registration.registrationId
+        );
+
+
+    const eventName =
+        cleanText(
+            registration.eventName
+        );
+
+
+    const subject =
+        `SPARK 2026 Payment Verified - ${registrationId}`;
+
+
+    const text =
+        [
+            "SPARK 2026",
+            "",
+            "Your payment has been verified successfully.",
+            "",
+            `Registration ID: ${registrationId}`,
+            `Event: ${eventName}`,
+            "",
+            "Payment status: VERIFIED",
+            "",
+            "Your registration is now confirmed.",
+            "",
+            "Please keep this Registration ID for future communication.",
+            "",
+            "SPARK 2026 Organizing Team"
+        ].join(
+            "\n"
+        );
+
+
+    await mailTransporter.sendMail({
+
+        from:
+            process.env.EMAIL_USER,
+
+        to:
+            recipient,
+
+        subject:
+            subject,
+
+        text:
+            text
+
+    });
+
+}
+// ============================================================
+// MODULE 15 — ADMIN LOGIN
 // ============================================================
 
 app.post(
@@ -1509,15 +1346,15 @@ app.post(
 
             const username =
                 cleanText(
+                    req.body &&
                     req.body.username
                 );
 
-
             const password =
-                typeof req.body.password ===
-                "string"
-                    ? req.body.password
-                    : "";
+                cleanText(
+                    req.body &&
+                    req.body.password
+                );
 
 
             if (
@@ -1549,39 +1386,39 @@ app.post(
                         false,
 
                     message:
-                        "Invalid admin credentials."
+                        "Invalid administrator credentials."
 
                 });
 
             }
+
+
+            let passwordValid =
+                false;
 
 
             if (
-                !ADMIN_PASSWORD_HASH
+                ADMIN_PASSWORD_HASH
             ) {
 
-                console.error(
-                    "❌ ADMIN_PASSWORD_HASH is not configured."
-                );
-
-                return res.status(500).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Admin authentication is not configured."
-
-                });
+                passwordValid =
+                    await bcrypt.compare(
+                        password,
+                        ADMIN_PASSWORD_HASH
+                    );
 
             }
+            else {
 
+                const configuredPassword =
+                    process.env.ADMIN_PASSWORD ||
+                    "";
 
-            const passwordValid =
-                await bcrypt.compare(
-                    password,
-                    ADMIN_PASSWORD_HASH
-                );
+                passwordValid =
+                    password ===
+                    configuredPassword;
+
+            }
 
 
             if (
@@ -1594,24 +1431,7 @@ app.post(
                         false,
 
                     message:
-                        "Invalid admin credentials."
-
-                });
-
-            }
-
-
-            if (
-                !JWT_SECRET
-            ) {
-
-                return res.status(500).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "JWT authentication is not configured."
+                        "Invalid administrator credentials."
 
                 });
 
@@ -1625,32 +1445,30 @@ app.post(
 
 
             res.cookie(
-
-                ADMIN_COOKIE_NAME,
-
+                "adminToken",
                 token,
-
                 {
 
                     httpOnly:
                         true,
 
                     secure:
-                        isProduction,
+                        process.env.NODE_ENV ===
+                        "production",
 
                     sameSite:
-                        isProduction
+                        process.env.NODE_ENV ===
+                        "production"
                             ? "none"
                             : "lax",
 
                     maxAge:
-                        8 * 60 * 60 * 1000,
-
-                    path:
-                        "/"
+                        8 *
+                        60 *
+                        60 *
+                        1000
 
                 }
-
             );
 
 
@@ -1659,19 +1477,15 @@ app.post(
                 success:
                     true,
 
-                authenticated:
-                    true,
+                message:
+                    "Administrator login successful.",
 
                 username:
-                    username,
-
-                message:
-                    "Admin login successful."
+                    username
 
             });
 
         }
-
         catch (error) {
 
             console.error(
@@ -1686,7 +1500,7 @@ app.post(
                     false,
 
                 message:
-                    "Unable to process admin login."
+                    "Unable to process administrator login."
 
             });
 
@@ -1697,287 +1511,103 @@ app.post(
 
 
 // ============================================================
-// MODULE 10 — ADMIN SESSION
+// MODULE 16 — ADMIN SESSION CHECK
 // ============================================================
 
 app.get(
     "/api/admin/session",
-    async (req, res) => {
+    adminAuth,
+    (req, res) => {
 
-        try {
+        return res.json({
 
-            const token =
-                getAdminToken(
-                    req
-                );
+            success:
+                true,
 
+            authenticated:
+                true,
 
-            const decoded =
-                verifyAdminToken(
-                    token
-                );
+            username:
+                req.admin &&
+                req.admin.username
 
-
-            if (
-                !decoded
-            ) {
-
-                return res.status(401).json({
-
-                    success:
-                        false,
-
-                    authenticated:
-                        false,
-
-                    message:
-                        "Admin session is not valid."
-
-                });
-
-            }
-
-
-            return res.json({
-
-                success:
-                    true,
-
-                authenticated:
-                    true,
-
-                username:
-                    decoded.username,
-
-                role:
-                    decoded.role
-
-            });
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Admin session error:",
-                error
-            );
-
-
-            return res.status(500).json({
-
-                success:
-                    false,
-
-                authenticated:
-                    false,
-
-                message:
-                    "Unable to check admin session."
-
-            });
-
-        }
+        });
 
     }
 );
 
 
 // ============================================================
-// MODULE 11 — ADMIN LOGOUT
+// MODULE 17 — ADMIN LOGOUT
 // ============================================================
 
 app.post(
     "/api/admin/logout",
-    async (req, res) => {
+    (req, res) => {
 
-        try {
+        res.clearCookie(
+            "adminToken",
+            {
 
-            res.clearCookie(
-
-                ADMIN_COOKIE_NAME,
-
-                {
-
-                    httpOnly:
-                        true,
-
-                    secure:
-                        isProduction,
-
-                    sameSite:
-                        isProduction
-                            ? "none"
-                            : "lax",
-
-                    path:
-                        "/"
-
-                }
-
-            );
-
-
-            return res.json({
-
-                success:
+                httpOnly:
                     true,
 
-                message:
-                    "Admin logout successful."
+                secure:
+                    process.env.NODE_ENV ===
+                    "production",
 
-            });
+                sameSite:
+                    process.env.NODE_ENV ===
+                    "production"
+                        ? "none"
+                        : "lax"
 
-        }
-
-        catch (error) {
-
-            console.error(
-                "Admin logout error:",
-                error
-            );
+            }
+        );
 
 
-            return res.status(500).json({
+        return res.json({
 
-                success:
-                    false,
+            success:
+                true,
 
-                message:
-                    "Unable to logout."
+            message:
+                "Administrator logged out successfully."
 
-            });
-
-        }
+        });
 
     }
 );
 
 
 // ============================================================
-// MODULE 12 — HEALTH CHECK
+// MODULE 18 — PAYMENT CONFIGURATION API
 // ============================================================
 
 app.get(
-    "/api/health",
+    "/api/payment-config",
     async (req, res) => {
 
         try {
-
-            await connectDatabase();
-
 
             return res.json({
 
                 success:
                     true,
-
-                status:
-                    "OK",
-
-                database:
-                    "CONNECTED",
 
                 paymentMethod:
                     PAYMENT_CONFIG.method,
 
-                timestamp:
-                    new Date().toISOString()
+                upiId:
+                    PAYMENT_CONFIG.upiId
 
             });
 
         }
-
         catch (error) {
 
             console.error(
-                "Health check error:",
-                error
-            );
-
-
-            return res.status(500).json({
-
-                success:
-                    false,
-
-                status:
-                    "ERROR",
-
-                database:
-                    "DISCONNECTED"
-
-            });
-
-        }
-
-    }
-);
-
-
-// ============================================================
-// MODULE 13 — GET EVENTS
-// ============================================================
-
-app.get(
-    "/api/events",
-    async (req, res) => {
-
-        try {
-
-            const eventList =
-                Object.entries(
-                    events
-                )
-                .map(
-                    (
-                        [
-                            eventId,
-                            event
-                        ]
-                    ) => ({
-
-                        eventId:
-                            eventId,
-
-                        name:
-                            event.name,
-
-                        participants:
-                            event.participants,
-
-                        maxTeams:
-                            event.maxTeams,
-
-                        maxParticipants:
-                            event.maxParticipants,
-
-                        feePerParticipant:
-                            event.feePerParticipant,
-
-                        code:
-                            event.code
-
-                    })
-                );
-
-
-            return res.json({
-
-                success:
-                    true,
-
-                events:
-                    eventList
-
-            });
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Events API error:",
+                "Payment configuration error:",
                 error
             );
 
@@ -1988,7 +1618,7 @@ app.get(
                     false,
 
                 message:
-                    "Unable to load events."
+                    "Unable to load payment configuration."
 
             });
 
@@ -1999,7 +1629,7 @@ app.get(
 
 
 // ============================================================
-// MODULE 13A — EVENT CAPACITY
+// MODULE 19 — EVENT CAPACITY API
 // ============================================================
 
 app.get(
@@ -2016,11 +1646,10 @@ app.get(
 
                     Object.keys(
                         events
-                    )
-                    .map(
-                        async (
+                    ).map(
+                        async function (
                             eventId
-                        ) => {
+                        ) {
 
                             return await getEventCapacity(
                                 eventId
@@ -2043,7 +1672,6 @@ app.get(
             });
 
         }
-
         catch (error) {
 
             console.error(
@@ -2069,2195 +1697,7 @@ app.get(
 
 
 // ============================================================
-// MODULE 14 — PAYMENT DETAILS
-// ============================================================
-
-app.get(
-    "/api/payment-details",
-    async (req, res) => {
-
-        try {
-
-            return res.json({
-
-                success:
-                    true,
-
-                paymentMethod:
-                    PAYMENT_CONFIG.method,
-
-                upiId:
-                    PAYMENT_CONFIG.upiId
-
-            });
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Payment details error:",
-                error
-            );
-
-
-            return res.status(500).json({
-
-                success:
-                    false,
-
-                message:
-                    "Unable to load payment details."
-
-            });
-
-        }
-
-    }
-);
-
-
-// ============================================================
-// END OF PART 2
-// ============================================================
-//
-// PART 3 WILL CONTINUE WITH:
-//
-// MODULE 15 — CREATE REGISTRATION
-// MODULE 16 — ADMIN: GET ALL REGISTRATIONS
-// MODULE 17 — ADMIN: GET PENDING REGISTRATIONS
-// MODULE 18 — ADMIN: VERIFY PAYMENT
-//
-// IMPORTANT:
-//
-// In MODULE 15, the registration ID generation will use:
-//
-//     await generateRegistrationCode(event)
-//
-// instead of the old random generator.
-//
-// ============================================================
-// ============================================================
-// MODULE 15 — CREATE REGISTRATION
-// ============================================================
-
-app.post(
-    "/api/register",
-    async (req, res) => {
-
-        try {
-
-            await connectDatabase();
-
-
-            console.log(
-                "=========================================="
-            );
-
-            console.log(
-                "NEW REGISTRATION REQUEST"
-            );
-
-            console.log(
-                "=========================================="
-            );
-
-
-            // ----------------------------------------------------
-            // READ REQUEST
-            // ----------------------------------------------------
-
-            const {
-
-                eventId,
-
-                eventName,
-
-                teamSize,
-
-                amount,
-
-                participant,
-
-                teamLeader,
-
-                teamMember,
-
-                utr,
-
-                transactionId,
-
-                payerName,
-
-                payerEmail,
-
-                teamName
-
-            } = req.body;
-
-
-            // ----------------------------------------------------
-            // EVENT VALIDATION
-            // ----------------------------------------------------
-
-            const cleanEventId =
-                cleanText(
-                    eventId
-                );
-
-
-            const event =
-                events[
-                    cleanEventId
-                ];
-
-
-            if (
-                !event
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Invalid event."
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // PARTICIPATION VALIDATION
-            // ----------------------------------------------------
-
-            const cleanTeamSize =
-                cleanText(
-                    teamSize
-                );
-
-
-            if (
-                cleanTeamSize !==
-                    "individual" &&
-                cleanTeamSize !==
-                    "team"
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Invalid participation type."
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // VERIFY EVENT PARTICIPATION TYPE
-            // ----------------------------------------------------
-
-            const expectedTeamSize =
-                event.participants > 1
-                    ? "team"
-                    : "individual";
-
-
-            if (
-                cleanTeamSize !==
-                expectedTeamSize
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        `Invalid participation type for ${event.name}.`
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // PARTICIPANT VALIDATION
-            // ----------------------------------------------------
-
-            let cleanParticipant =
-                null;
-
-            let cleanTeamLeader =
-                null;
-
-            let cleanTeamMember =
-                null;
-
-
-            if (
-                cleanTeamSize ===
-                "individual"
-            ) {
-
-                cleanParticipant =
-                    normalizeParticipant(
-                        participant
-                    );
-
-
-                if (
-                    !validateParticipant(
-                        cleanParticipant
-                    )
-                ) {
-
-                    return res.status(400).json({
-
-                        success:
-                            false,
-
-                        message:
-                            "Invalid participant details."
-
-                    });
-
-                }
-
-            }
-
-
-            if (
-                cleanTeamSize ===
-                "team"
-            ) {
-
-                cleanTeamLeader =
-                    normalizeParticipant(
-                        teamLeader
-                    );
-
-
-                cleanTeamMember =
-                    normalizeParticipant(
-                        teamMember
-                    );
-
-
-                if (
-                    !validateParticipant(
-                        cleanTeamLeader
-                    )
-                ) {
-
-                    return res.status(400).json({
-
-                        success:
-                            false,
-
-                        message:
-                            "Invalid team leader details."
-
-                    });
-
-                }
-
-
-                if (
-                    !validateParticipant(
-                        cleanTeamMember
-                    )
-                ) {
-
-                    return res.status(400).json({
-
-                        success:
-                            false,
-
-                        message:
-                            "Invalid team member details."
-
-                    });
-
-                }
-
-            }
-
-
-            // ----------------------------------------------------
-            // TEAM NAME
-            // ----------------------------------------------------
-
-            const cleanTeamName =
-                cleanText(
-                    teamName
-                );
-
-
-            if (
-                cleanTeamSize ===
-                    "team" &&
-                !cleanTeamName
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Team name is required."
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // PAYER NAME
-            // ----------------------------------------------------
-
-            const cleanPayerName =
-                cleanText(
-                    payerName
-                );
-
-
-            if (
-                !cleanPayerName
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Payer name is required."
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // PAYER EMAIL
-            // ----------------------------------------------------
-
-            const cleanPayerEmail =
-                cleanText(
-                    payerEmail
-                );
-
-
-            if (
-                !cleanPayerEmail ||
-                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-                    cleanPayerEmail
-                )
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Valid payer email is required."
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // UTR / TRANSACTION ID
-            // ----------------------------------------------------
-
-            const cleanUTR =
-                cleanText(
-                    utr ||
-                    transactionId
-                );
-
-
-            if (
-                !cleanUTR
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "UTR / Transaction ID is required."
-
-                });
-
-            }
-
-
-            if (
-                !/^\d{16}$/.test(
-                    cleanUTR
-                )
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "UTR / Transaction ID must contain exactly 16 digits."
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // AMOUNT VALIDATION
-            // ----------------------------------------------------
-
-            const cleanAmount =
-                Number(
-                    amount
-                );
-
-
-            const expectedAmount =
-                event.feePerParticipant *
-                event.participants;
-
-
-            if (
-                !Number.isFinite(
-                    cleanAmount
-                ) ||
-                cleanAmount !==
-                expectedAmount
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        `Invalid registration amount. Expected ₹${expectedAmount}.`
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // DUPLICATE UTR CHECK
-            // ----------------------------------------------------
-
-            const existingUTR =
-                await registrationsCollection.findOne({
-
-                    $or: [
-
-                        {
-                            utr:
-                                cleanUTR
-                        },
-
-                        {
-                            transactionId:
-                                cleanUTR
-                        }
-
-                    ]
-
-                });
-
-
-            if (
-                existingUTR
-            ) {
-
-                return res.status(409).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "This UTR / Transaction ID has already been used."
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // EVENT CAPACITY CHECK
-            // ----------------------------------------------------
-
-            const currentCapacity =
-                await getEventCapacity(
-                    cleanEventId
-                );
-
-
-            if (
-                currentCapacity &&
-                currentCapacity.full
-            ) {
-
-                return res.status(409).json({
-
-                    success:
-                        false,
-
-                    message:
-                        currentCapacity.type ===
-                        "team"
-
-                            ? `${event.name} registration is full. Maximum ${event.maxTeams} teams are allowed.`
-
-                            : `${event.name} registration is full. Maximum ${event.maxParticipants} participants are allowed.`
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // GENERATE SEQUENTIAL REGISTRATION ID
-            // ----------------------------------------------------
-            //
-            // IMPORTANT:
-            //
-            // This is now ASYNC because MongoDB generates the
-            // sequence number safely.
-            //
-            // Example:
-            //
-            // SPK26-IDF-01
-            // SPK26-IDF-02
-            //
-            // instead of the old random/timestamp ID.
-            // ----------------------------------------------------
-
-            let registrationId;
-
-
-            try {
-
-                registrationId =
-                    await generateRegistrationCode(
-                        event
-                    );
-
-            }
-
-            catch (idError) {
-
-                console.error(
-                    "Registration ID generation error:",
-                    idError
-                );
-
-
-                return res.status(409).json({
-
-                    success:
-                        false,
-
-                    message:
-                        idError.message ||
-                        `${event.name} registration limit has been reached.`
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // PAYMENT STATUS
-            // ----------------------------------------------------
-
-            const paymentStatus =
-                "SUBMITTED";
-
-
-            const verificationStatus =
-                "PENDING";
-
-
-            // ----------------------------------------------------
-            // CREATE REGISTRATION DOCUMENT
-            // ----------------------------------------------------
-
-            const registrationDocument = {
-
-                registrationId:
-                    registrationId,
-
-                eventId:
-                    cleanEventId,
-
-                eventName:
-                    event.name,
-
-                eventCode:
-                    event.code,
-
-                participation:
-                    cleanTeamSize,
-
-                teamSize:
-                    cleanTeamSize,
-
-                teamName:
-                    cleanTeamName,
-
-                participant:
-                    cleanParticipant,
-
-                teamLeader:
-                    cleanTeamLeader,
-
-                teamMember:
-                    cleanTeamMember,
-
-                payerName:
-                    cleanPayerName,
-
-                payerEmail:
-                    cleanPayerEmail,
-
-                amount:
-                    cleanAmount,
-
-                utr:
-                    cleanUTR,
-
-                transactionId:
-                    cleanUTR,
-
-                paymentStatus:
-                    paymentStatus,
-
-                verificationStatus:
-                    verificationStatus,
-
-                createdAt:
-                    new Date(),
-
-                verifiedAt:
-                    null,
-
-                verifiedBy:
-                    null
-
-            };
-
-
-            // ----------------------------------------------------
-            // INSERT REGISTRATION
-            // ----------------------------------------------------
-
-            try {
-
-                await registrationsCollection.insertOne(
-                    registrationDocument
-                );
-
-            }
-
-            catch (insertError) {
-
-                console.error(
-                    "Registration insert error:",
-                    insertError
-                );
-
-
-                // ------------------------------------------------
-                // IF A DUPLICATE REGISTRATION ID OCCURS
-                // ------------------------------------------------
-                //
-                // This should be extremely unlikely because the
-                // MongoDB counter is atomic.
-                //
-                // Return a clean error rather than exposing
-                // database internals.
-                // ------------------------------------------------
-
-                if (
-                    insertError &&
-                    insertError.code ===
-                    11000
-                ) {
-
-                    return res.status(409).json({
-
-                        success:
-                            false,
-
-                        message:
-                            "Registration could not be created because a duplicate value was detected. Please try again."
-
-                    });
-
-                }
-
-
-                throw insertError;
-
-            }
-
-
-            // ----------------------------------------------------
-            // SUCCESS RESPONSE
-            // ----------------------------------------------------
-
-            console.log(
-                "=========================================="
-            );
-
-            console.log(
-                "REGISTRATION CREATED"
-            );
-
-            console.log(
-                `Registration ID: ${registrationId}`
-            );
-
-            console.log(
-                `Event: ${event.name}`
-            );
-
-            console.log(
-                `UTR: ${cleanUTR}`
-            );
-
-            console.log(
-                "=========================================="
-            );
-
-
-            return res.status(201).json({
-
-                success:
-                    true,
-
-                message:
-                    "Registration submitted successfully.",
-
-                registrationId:
-                    registrationId,
-
-                eventId:
-                    cleanEventId,
-
-                eventName:
-                    event.name,
-
-                paymentStatus:
-                    paymentStatus,
-
-                verificationStatus:
-                    verificationStatus
-
-            });
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Registration error:",
-                error
-            );
-
-
-            return res.status(500).json({
-
-                success:
-                    false,
-
-                message:
-                    "Unable to process registration."
-
-            });
-
-        }
-
-    }
-);
-
-
-// ============================================================
-// MODULE 16 — ADMIN: GET ALL REGISTRATIONS
-// ============================================================
-
-app.get(
-    "/api/admin/registrations",
-    requireAdmin,
-    async (req, res) => {
-
-        try {
-
-            await connectDatabase();
-
-
-            const registrations =
-                await registrationsCollection
-                    .find({})
-                    .sort({
-                        createdAt:
-                            -1
-                    })
-                    .toArray();
-
-
-            return res.json({
-
-                success:
-                    true,
-
-                registrations:
-                    registrations
-
-            });
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Admin registrations error:",
-                error
-            );
-
-
-            return res.status(500).json({
-
-                success:
-                    false,
-
-                message:
-                    "Unable to load registrations."
-
-            });
-
-        }
-
-    }
-);
-
-
-// ============================================================
-// MODULE 17 — ADMIN: GET PENDING REGISTRATIONS
-// ============================================================
-
-app.get(
-    "/api/admin/pending",
-    requireAdmin,
-    async (req, res) => {
-
-        try {
-
-            await connectDatabase();
-
-
-            const registrations =
-                await registrationsCollection
-                    .find({
-
-                        verificationStatus:
-                            {
-                                $in: [
-                                    "PENDING",
-                                    "SUBMITTED"
-                                ]
-                            }
-
-                    })
-                    .sort({
-                        createdAt:
-                            1
-                    })
-                    .toArray();
-
-
-            return res.json({
-
-                success:
-                    true,
-
-                registrations:
-                    registrations,
-
-                count:
-                    registrations.length
-
-            });
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Admin pending registrations error:",
-                error
-            );
-
-
-            return res.status(500).json({
-
-                success:
-                    false,
-
-                message:
-                    "Unable to load pending registrations."
-
-            });
-
-        }
-
-    }
-);
-
-
-// ============================================================
-// MODULE 18 — ADMIN: GET SINGLE REGISTRATION
-// ============================================================
-
-app.get(
-    "/api/admin/registration/:registrationId",
-    requireAdmin,
-    async (req, res) => {
-
-        try {
-
-            await connectDatabase();
-
-
-            const registrationId =
-                cleanText(
-                    req.params.registrationId
-                );
-
-
-            if (
-                !registrationId
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Registration ID is required."
-
-                });
-
-            }
-
-
-            const registration =
-                await registrationsCollection.findOne({
-
-                    registrationId:
-                        registrationId
-
-                });
-
-
-            if (
-                !registration
-            ) {
-
-                return res.status(404).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Registration not found."
-
-                });
-
-            }
-
-
-            return res.json({
-
-                success:
-                    true,
-
-                registration:
-                    registration
-
-            });
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Admin registration lookup error:",
-                error
-            );
-
-
-            return res.status(500).json({
-
-                success:
-                    false,
-
-                message:
-                    "Unable to load registration."
-
-            });
-
-        }
-
-    }
-);
-
-
-// ============================================================
-// END OF PART 3
-// ============================================================
-//
-// PART 4 WILL ADD:
-//
-// MODULE 19 — ADMIN TRANSACTION ID SEARCH
-// MODULE 20 — ADMIN EXCEL EXPORT
-// MODULE 21 — ADMIN VERIFY REGISTRATION
-// MODULE 22 — ADMIN REJECT REGISTRATION
-// MODULE 23 — PUBLIC REGISTRATION LOOKUP
-//
-// IMPORTANT:
-// Do NOT run the server yet.
-// Wait until Parts 4 and 5 are pasted.
-// ============================================================
-// ============================================================
-// MODULE 19 — ADMIN: SEARCH BY TRANSACTION ID / UTR
-// ============================================================
-//
-// Admin enters the transaction ID from GPay.
-//
-// The server searches both:
-//     transactionId
-//     utr
-//
-// Only authenticated administrators can use this endpoint.
-// ============================================================
-
-app.get(
-    "/api/admin/search-transaction",
-    requireAdmin,
-    async (req, res) => {
-
-        try {
-
-            await connectDatabase();
-
-
-            const transactionId =
-                cleanText(
-                    req.query.transactionId ||
-                    req.query.utr
-                );
-
-
-            // ----------------------------------------------------
-            // VALIDATE TRANSACTION ID
-            // ----------------------------------------------------
-
-            if (
-                !transactionId
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Transaction ID is required."
-
-                });
-
-            }
-
-
-            if (
-                !/^\d{16}$/.test(
-                    transactionId
-                )
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Transaction ID must contain exactly 16 digits."
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // SEARCH DATABASE
-            // ----------------------------------------------------
-
-            const registration =
-                await registrationsCollection.findOne({
-
-                    $or: [
-
-                        {
-                            transactionId:
-                                transactionId
-                        },
-
-                        {
-                            utr:
-                                transactionId
-                        }
-
-                    ]
-
-                });
-
-
-            // ----------------------------------------------------
-            // NOT FOUND
-            // ----------------------------------------------------
-
-            if (
-                !registration
-            ) {
-
-                return res.status(404).json({
-
-                    success:
-                        false,
-
-                    found:
-                        false,
-
-                    message:
-                        "No registration found for this Transaction ID."
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // FOUND
-            // ----------------------------------------------------
-
-            return res.json({
-
-                success:
-                    true,
-
-                found:
-                    true,
-
-                registration:
-                    registration
-
-            });
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Transaction search error:",
-                error
-            );
-
-
-            return res.status(500).json({
-
-                success:
-                    false,
-
-                message:
-                    "Unable to search transaction."
-
-            });
-
-        }
-
-    }
-);
-
-
-// ============================================================
-// MODULE 20 — ADMIN: EXPORT REGISTRATIONS TO EXCEL
-// ============================================================
-//
-// This endpoint creates:
-//
-//     SPARK2026_Registrations.xlsx
-//
-// It exports all registration records currently stored in
-// MongoDB.
-//
-// Only authenticated administrators can access it.
-// ============================================================
-
-app.get(
-    "/api/admin/export",
-    requireAdmin,
-    async (req, res) => {
-
-        try {
-
-            await connectDatabase();
-
-
-            // ----------------------------------------------------
-            // LOAD ALL REGISTRATIONS
-            // ----------------------------------------------------
-
-            const registrations =
-                await registrationsCollection
-                    .find({})
-                    .sort({
-                        createdAt:
-                            1
-                    })
-                    .toArray();
-
-
-            // ----------------------------------------------------
-            // REQUIRE XLSX PACKAGE
-            // ----------------------------------------------------
-
-            let XLSX;
-
-            try {
-
-                XLSX =
-                    require("xlsx");
-
-            }
-
-            catch (xlsxError) {
-
-                console.error(
-                    "XLSX package error:",
-                    xlsxError
-                );
-
-
-                return res.status(500).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Excel export package is not installed. Run npm install xlsx."
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // CONVERT REGISTRATION DATA
-            // INTO EXCEL-FRIENDLY ROWS
-            // ----------------------------------------------------
-
-            const rows =
-                registrations.map(
-                    (
-                        registration
-                    ) => {
-
-                        const participant =
-                            registration.participant ||
-                            {};
-
-                        const teamLeader =
-                            registration.teamLeader ||
-                            {};
-
-                        const teamMember =
-                            registration.teamMember ||
-                            {};
-
-
-                        return {
-
-                            "Registration ID":
-                                registration.registrationId ||
-                                "",
-
-                            "Event":
-                                registration.eventName ||
-                                "",
-
-                            "Event Code":
-                                registration.eventCode ||
-                                "",
-
-                            "Participation":
-                                registration.participation ||
-                                registration.teamSize ||
-                                "",
-
-                            "Team Name":
-                                registration.teamName ||
-                                "",
-
-
-                            // ------------------------------------
-                            // INDIVIDUAL PARTICIPANT
-                            // ------------------------------------
-
-                            "Participant Name":
-                                participant.fullName ||
-                                participant.name ||
-                                "",
-
-                            "Participant College":
-                                participant.college ||
-                                "",
-
-                            "Participant Department":
-                                participant.department ||
-                                "",
-
-                            "Participant Year":
-                                participant.year ||
-                                "",
-
-                            "Participant Phone":
-                                participant.phone ||
-                                "",
-
-                            "Participant Email":
-                                participant.email ||
-                                "",
-
-
-                            // ------------------------------------
-                            // TEAM LEADER
-                            // ------------------------------------
-
-                            "Team Leader Name":
-                                teamLeader.fullName ||
-                                teamLeader.name ||
-                                "",
-
-                            "Team Leader College":
-                                teamLeader.college ||
-                                "",
-
-                            "Team Leader Department":
-                                teamLeader.department ||
-                                "",
-
-                            "Team Leader Year":
-                                teamLeader.year ||
-                                "",
-
-                            "Team Leader Phone":
-                                teamLeader.phone ||
-                                "",
-
-                            "Team Leader Email":
-                                teamLeader.email ||
-                                "",
-
-
-                            // ------------------------------------
-                            // TEAM MEMBER
-                            // ------------------------------------
-
-                            "Team Member Name":
-                                teamMember.fullName ||
-                                teamMember.name ||
-                                "",
-
-                            "Team Member College":
-                                teamMember.college ||
-                                "",
-
-                            "Team Member Department":
-                                teamMember.department ||
-                                "",
-
-                            "Team Member Year":
-                                teamMember.year ||
-                                "",
-
-                            "Team Member Phone":
-                                teamMember.phone ||
-                                "",
-
-                            "Team Member Email":
-                                teamMember.email ||
-                                "",
-
-
-                            // ------------------------------------
-                            // PAYMENT
-                            // ------------------------------------
-
-                            "Payer Name":
-                                registration.payerName ||
-                                "",
-
-                            "Payer Email":
-                                registration.payerEmail ||
-                                "",
-
-                            "Amount":
-                                registration.amount ||
-                                "",
-
-                            "Transaction ID":
-                                registration.transactionId ||
-                                registration.utr ||
-                                "",
-
-                            "UTR":
-                                registration.utr ||
-                                registration.transactionId ||
-                                "",
-
-                            "Payment Status":
-                                registration.paymentStatus ||
-                                "",
-
-                            "Verification Status":
-                                registration.verificationStatus ||
-                                "",
-
-
-                            // ------------------------------------
-                            // VERIFICATION
-                            // ------------------------------------
-
-                            "Verified By":
-                                registration.verifiedBy ||
-                                "",
-
-                            "Verified At":
-                                registration.verifiedAt
-                                    ? new Date(
-                                        registration.verifiedAt
-                                    ).toLocaleString(
-                                        "en-IN"
-                                    )
-                                    : "",
-
-
-                            // ------------------------------------
-                            // REGISTRATION DATE
-                            // ------------------------------------
-
-                            "Registered At":
-                                registration.createdAt
-                                    ? new Date(
-                                        registration.createdAt
-                                    ).toLocaleString(
-                                        "en-IN"
-                                    )
-                                    : ""
-
-                        };
-
-                    }
-                );
-
-
-            // ----------------------------------------------------
-            // CREATE WORKSHEET
-            // ----------------------------------------------------
-
-            const worksheet =
-                XLSX.utils.json_to_sheet(
-                    rows
-                );
-
-
-            // ----------------------------------------------------
-            // SET COLUMN WIDTHS
-            // ----------------------------------------------------
-
-            worksheet["!cols"] = [
-
-                {
-                    wch:
-                        20
-                },
-
-                {
-                    wch:
-                        20
-                },
-
-                {
-                    wch:
-                        12
-                },
-
-                {
-                    wch:
-                        15
-                },
-
-                {
-                    wch:
-                        18
-                },
-
-                {
-                    wch:
-                        24
-                },
-
-                {
-                    wch:
-                        28
-                },
-
-                {
-                    wch:
-                        22
-                },
-
-                {
-                    wch:
-                        15
-                },
-
-                {
-                    wch:
-                        16
-                },
-
-                {
-                    wch:
-                        28
-                },
-
-                {
-                    wch:
-                        24
-                },
-
-                {
-                    wch:
-                        28
-                },
-
-                {
-                    wch:
-                        22
-                },
-
-                {
-                    wch:
-                        15
-                },
-
-                {
-                    wch:
-                        16
-                },
-
-                {
-                    wch:
-                        28
-                },
-
-                {
-                    wch:
-                        24
-                },
-
-                {
-                    wch:
-                        28
-                },
-
-                {
-                    wch:
-                        22
-                },
-
-                {
-                    wch:
-                        15
-                },
-
-                {
-                    wch:
-                        16
-                },
-
-                {
-                    wch:
-                        28
-                },
-
-                {
-                    wch:
-                        24
-                },
-
-                {
-                    wch:
-                        24
-                },
-
-                {
-                    wch:
-                        18
-                },
-
-                {
-                    wch:
-                        20
-                },
-
-                {
-                    wch:
-                        20
-                },
-
-                {
-                    wch:
-                        18
-                },
-
-                {
-                    wch:
-                        20
-                },
-
-                {
-                    wch:
-                        20
-                },
-
-                {
-                    wch:
-                        18
-                },
-
-                {
-                    wch:
-                        22
-                },
-
-                {
-                    wch:
-                        22
-                }
-
-            ];
-
-
-            // ----------------------------------------------------
-            // CREATE WORKBOOK
-            // ----------------------------------------------------
-
-            const workbook =
-                XLSX.utils.book_new();
-
-
-            XLSX.utils.book_append_sheet(
-
-                workbook,
-
-                worksheet,
-
-                "Registrations"
-
-            );
-
-
-            // ----------------------------------------------------
-            // GENERATE XLSX BUFFER
-            // ----------------------------------------------------
-
-            const excelBuffer =
-                XLSX.write(
-
-                    workbook,
-
-                    {
-
-                        type:
-                            "buffer",
-
-                        bookType:
-                            "xlsx"
-
-                    }
-
-                );
-
-
-            // ----------------------------------------------------
-            // RESPONSE HEADERS
-            // ----------------------------------------------------
-
-            res.setHeader(
-
-                "Content-Type",
-
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-
-            );
-
-
-            res.setHeader(
-
-                "Content-Disposition",
-
-                'attachment; filename="SPARK2026_Registrations.xlsx"'
-
-            );
-
-
-            res.setHeader(
-
-                "Content-Length",
-
-                excelBuffer.length
-
-            );
-
-
-            return res.send(
-                excelBuffer
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Excel export error:",
-                error
-            );
-
-
-            return res.status(500).json({
-
-                success:
-                    false,
-
-                message:
-                    "Unable to export registrations."
-
-            });
-
-        }
-
-    }
-);
-
-
-// ============================================================
-// MODULE 21 — ADMIN: VERIFY REGISTRATION
-// ============================================================
-
-app.patch(
-    "/api/admin/registration/:registrationId/verify",
-    requireAdmin,
-    async (req, res) => {
-
-        try {
-
-            await connectDatabase();
-
-
-            const registrationId =
-                cleanText(
-                    req.params.registrationId
-                );
-
-
-            if (
-                !registrationId
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Registration ID is required."
-
-                });
-
-            }
-
-
-            const existingRegistration =
-                await registrationsCollection.findOne({
-
-                    registrationId:
-                        registrationId
-
-                });
-
-
-            if (
-                !existingRegistration
-            ) {
-
-                return res.status(404).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Registration not found."
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // PREVENT DOUBLE VERIFICATION
-            // ----------------------------------------------------
-
-            if (
-                existingRegistration.verificationStatus ===
-                "VERIFIED"
-            ) {
-
-                return res.json({
-
-                    success:
-                        true,
-
-                    message:
-                        "Registration is already verified.",
-
-                    registration:
-                        existingRegistration
-
-                });
-
-            }
-
-
-            const now =
-                new Date();
-
-
-            const updatedRegistration =
-                await registrationsCollection.findOneAndUpdate(
-
-                    {
-                        registrationId:
-                            registrationId
-                    },
-
-                    {
-
-                        $set: {
-
-                            paymentStatus:
-                                "VERIFIED",
-
-                            verificationStatus:
-                                "VERIFIED",
-
-                            verifiedAt:
-                                now,
-
-                            verifiedBy:
-                                req.admin.username
-
-                        }
-
-                    },
-
-                    {
-
-                        returnDocument:
-                            "after"
-
-                    }
-
-                );
-
-
-const registration =
-    updatedRegistration;
-            if (
-                !registration
-            ) {
-
-                return res.status(404).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Registration could not be updated."
-
-                });
-
-            }
-
-
-            // ----------------------------------------------------
-            // SEND CONFIRMATION EMAIL
-            // ----------------------------------------------------
-
-            let emailSent =
-                false;
-
-
-            try {
-
-                await sendAcknowledgementEmail(
-                    registration
-                );
-
-
-                emailSent =
-                    true;
-
-            }
-
-            catch (emailError) {
-
-                console.error(
-                    "Confirmation email error:",
-                    emailError
-                );
-
-            }
-
-
-            return res.json({
-
-                success:
-                    true,
-
-                message:
-                    emailSent
-
-                        ? "Registration verified successfully and confirmation email sent."
-
-                        : "Registration verified successfully. Email could not be sent.",
-
-                emailSent:
-                    emailSent,
-
-                registration:
-                    registration
-
-            });
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Verify registration error:",
-                error
-            );
-
-
-            return res.status(500).json({
-
-                success:
-                    false,
-
-                message:
-                    "Unable to verify registration."
-
-            });
-
-        }
-
-    }
-);
-
-
-// ============================================================
-// MODULE 22 — ADMIN: REJECT REGISTRATION
-// ============================================================
-
-app.patch(
-    "/api/admin/registration/:registrationId/reject",
-    requireAdmin,
-    async (req, res) => {
-
-        try {
-
-            await connectDatabase();
-
-
-            const registrationId =
-                cleanText(
-                    req.params.registrationId
-                );
-
-
-            if (
-                !registrationId
-            ) {
-
-                return res.status(400).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Registration ID is required."
-
-                });
-
-            }
-
-
-            const existingRegistration =
-                await registrationsCollection.findOne({
-
-                    registrationId:
-                        registrationId
-
-                });
-
-
-            if (
-                !existingRegistration
-            ) {
-
-                return res.status(404).json({
-
-                    success:
-                        false,
-
-                    message:
-                        "Registration not found."
-
-                });
-
-            }
-
-
-            const updatedRegistration =
-                await registrationsCollection.findOneAndUpdate(
-
-                    {
-                        registrationId:
-                            registrationId
-                    },
-
-                    {
-
-                        $set: {
-
-                            paymentStatus:
-                                "REJECTED",
-
-                            verificationStatus:
-                                "REJECTED",
-
-                            rejectedAt:
-                                new Date(),
-
-                            rejectedBy:
-                                req.admin.username
-
-                        }
-
-                    },
-
-                    {
-
-                        returnDocument:
-                            "after"
-
-                    }
-
-                );
-
-
-const registration =
-    updatedRegistration;
-
-            return res.json({
-
-                success:
-                    true,
-
-                message:
-                    "Registration rejected successfully.",
-
-                registration:
-                    registration
-
-            });
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Reject registration error:",
-                error
-            );
-
-
-            return res.status(500).json({
-
-                success:
-                    false,
-
-                message:
-                    "Unable to reject registration."
-
-            });
-
-        }
-
-    }
-);
-
-
-// ============================================================
-// MODULE 23 — PUBLIC REGISTRATION LOOKUP
-// ============================================================
-//
-// This endpoint is intended for a participant to check the
-// status of their own registration using the registration ID.
-//
-// It does NOT expose the complete registration document.
+// MODULE 20 — REGISTRATION STATUS
 // ============================================================
 
 app.get(
@@ -4296,45 +1736,44 @@ app.get(
                 await registrationsCollection.findOne(
 
                     {
-
                         registrationId:
                             registrationId
-
                     },
 
                     {
+                        projection:
+                            {
+                                _id:
+                                    0,
 
-                        projection: {
+                                registrationId:
+                                    1,
 
-                            _id:
-                                0,
+                                eventId:
+                                    1,
 
-                            registrationId:
-                                1,
+                                eventName:
+                                    1,
 
-                            eventName:
-                                1,
+                                participation:
+                                    1,
 
-                            participation:
-                                1,
+                                teamName:
+                                    1,
 
-                            teamName:
-                                1,
+                                paymentStatus:
+                                    1,
 
-                            paymentStatus:
-                                1,
+                                verificationStatus:
+                                    1,
 
-                            verificationStatus:
-                                1,
+                                createdAt:
+                                    1,
 
-                            createdAt:
-                                1,
+                                verifiedAt:
+                                    1
 
-                            verifiedAt:
-                                1
-
-                        }
-
+                            }
                     }
 
                 );
@@ -4368,7 +1807,6 @@ app.get(
             });
 
         }
-
         catch (error) {
 
             console.error(
@@ -4394,43 +1832,2341 @@ app.get(
 
 
 // ============================================================
-// END OF PART 4
+// MODULE 21 — CREATE REGISTRATION
 // ============================================================
-//
-// PART 5 WILL CONTAIN:
-//
-// MODULE 24 — ERROR HANDLER
-// MODULE 25 — 404 HANDLER
-// MODULE 26 — VERCEL EXPORT
-// MODULE 27 — LOCAL SERVER START
-//
-// After Part 5, we'll run:
-//
-//     node --check server/server.js
-//
-// Then we'll fix the dashboard HTML/JS and CSS for:
-//
-//     🔎 Transaction ID Search
-//     📥 Export Excel
-//     ↻ Refresh
-//
+
+app.post(
+    "/api/register",
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const {
+
+                eventId,
+
+                eventName,
+
+                teamSize,
+
+                amount,
+
+                participant,
+
+                teamLeader,
+
+                teamMember,
+
+                utr,
+
+                transactionId,
+
+                payerName,
+
+                teamName
+
+            } =
+                req.body || {};
+
+
+            // ------------------------------------------------
+            // EVENT VALIDATION
+            // ------------------------------------------------
+
+            const cleanEventId =
+                cleanText(
+                    eventId
+                ).toLowerCase();
+
+
+            const event =
+                events[
+                    cleanEventId
+                ];
+
+
+            if (
+                !event
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Invalid event selected."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // EVENT NAME VALIDATION
+            // ------------------------------------------------
+
+            const cleanEventName =
+                cleanText(
+                    eventName
+                );
+
+
+            if (
+                cleanEventName &&
+                cleanEventName !==
+                    event.name
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Event information does not match."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // TEAM SIZE
+            // ------------------------------------------------
+
+            const cleanTeamSize =
+                Number(
+                    teamSize
+                );
+
+
+            if (
+                !Number.isInteger(
+                    cleanTeamSize
+                ) ||
+                cleanTeamSize !==
+                    event.participants
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        `${event.name} requires exactly ${event.participants} participant(s).`
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // AMOUNT
+            // ------------------------------------------------
+
+            const cleanAmount =
+                Number(
+                    amount
+                );
+
+
+            const expectedAmount =
+                event.participants *
+                event.feePerParticipant;
+
+
+            if (
+                !Number.isFinite(
+                    cleanAmount
+                ) ||
+                cleanAmount !==
+                    expectedAmount
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        `Registration amount must be ₹${expectedAmount}.`
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // PAYER NAME
+            // ------------------------------------------------
+
+            const cleanPayerName =
+                cleanText(
+                    payerName
+                );
+
+
+            if (
+                !cleanPayerName
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Payer name is required."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // UTR / TRANSACTION ID
+            // EXACTLY 12 DIGITS
+            // ------------------------------------------------
+
+            const cleanUTR =
+                cleanText(
+                    utr ||
+                    transactionId
+                );
+
+
+            if (
+                !cleanUTR
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "12-digit UTR / Transaction ID is required."
+
+                });
+
+            }
+
+
+            if (
+                !/^\d{12}$/.test(
+                    cleanUTR
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "UTR / Transaction ID must contain exactly 12 digits."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // DUPLICATE TRANSACTION CHECK
+            // ------------------------------------------------
+
+            const existingTransaction =
+                await registrationsCollection.findOne({
+
+                    $or:
+                        [
+
+                            {
+                                utr:
+                                    cleanUTR
+                            },
+
+                            {
+                                transactionId:
+                                    cleanUTR
+                            }
+
+                        ]
+
+                });
+
+
+            if (
+                existingTransaction
+            ) {
+
+                return res.status(409).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "This UPI Transaction ID has already been submitted."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // EVENT CAPACITY CHECK
+            // ------------------------------------------------
+
+            const currentCapacity =
+                await getEventCapacity(
+                    cleanEventId
+                );
+
+
+            if (
+                currentCapacity &&
+                currentCapacity.full
+            ) {
+
+                return res.status(409).json({
+
+                    success:
+                        false,
+
+                    message:
+                        currentCapacity.type ===
+                        "team"
+
+                            ? `${event.name} registration is full. Maximum ${event.maxTeams} teams are allowed.`
+
+                            : `${event.name} registration is full. Maximum ${event.maxParticipants} participants are allowed.`
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // PARTICIPANT DATA
+            // ------------------------------------------------
+
+            const cleanParticipant =
+                normalizeParticipant(
+                    participant
+                );
+
+
+            if (
+                !cleanParticipant
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Participant details are required."
+
+                });
+
+            }
+
+
+            if (
+                !cleanParticipant.name ||
+                !cleanParticipant.college ||
+                !cleanParticipant.department ||
+                !cleanParticipant.year ||
+                !cleanParticipant.phone ||
+                !cleanParticipant.email
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Complete participant details are required."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // TEAM LEADER
+            // ------------------------------------------------
+
+            let cleanTeamLeader =
+                null;
+
+
+            let cleanTeamMember =
+                null;
+
+
+            if (
+                event.participants >
+                1
+            ) {
+
+                cleanTeamLeader =
+                    normalizeParticipant(
+                        teamLeader
+                    );
+
+
+                cleanTeamMember =
+                    normalizeParticipant(
+                        teamMember
+                    );
+
+
+                if (
+                    !cleanTeamLeader ||
+                    !cleanTeamMember
+                ) {
+
+                    return res.status(400).json({
+
+                        success:
+                            false,
+
+                        message:
+                            "Complete team member details are required."
+
+                    });
+
+                }
+
+
+                if (
+                    !cleanTeamLeader.name ||
+                    !cleanTeamLeader.college ||
+                    !cleanTeamLeader.department ||
+                    !cleanTeamLeader.year ||
+                    !cleanTeamLeader.phone ||
+                    !cleanTeamLeader.email
+                ) {
+
+                    return res.status(400).json({
+
+                        success:
+                            false,
+
+                        message:
+                            "Complete team leader details are required."
+
+                    });
+
+                }
+
+
+                if (
+                    !cleanTeamMember.name ||
+                    !cleanTeamMember.college ||
+                    !cleanTeamMember.department ||
+                    !cleanTeamMember.year ||
+                    !cleanTeamMember.phone ||
+                    !cleanTeamMember.email
+                ) {
+
+                    return res.status(400).json({
+
+                        success:
+                            false,
+
+                        message:
+                            "Complete team member details are required."
+
+                    });
+
+                }
+
+            }
+
+
+            // ------------------------------------------------
+            // TEAM NAME
+            // ------------------------------------------------
+
+            const cleanTeamName =
+                event.participants >
+                1
+                    ? cleanText(
+                        teamName
+                    )
+                    : "";
+
+
+            if (
+                event.participants >
+                    1 &&
+                !cleanTeamName
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Team name is required."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // GENERATE SEQUENTIAL REGISTRATION ID
+            // ------------------------------------------------
+
+            let registrationId;
+
+
+            try {
+
+                registrationId =
+                    await generateRegistrationCode(
+                        event
+                    );
+
+            }
+            catch (capacityError) {
+
+                return res.status(409).json({
+
+                    success:
+                        false,
+
+                    message:
+                        capacityError.message
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // CREATE REGISTRATION DOCUMENT
+            // ------------------------------------------------
+
+            const registration =
+                {
+
+                    registrationId:
+
+                        registrationId,
+
+                    eventId:
+
+                        cleanEventId,
+
+                    eventName:
+
+                        event.name,
+
+                    eventCode:
+
+                        event.code,
+
+                    participation:
+
+                        event.participants >
+                        1
+                            ? "team"
+                            : "individual",
+
+                    teamSize:
+
+                        cleanTeamSize,
+
+                    teamName:
+
+                        cleanTeamName,
+
+                    participant:
+
+                        cleanParticipant,
+
+                    teamLeader:
+
+                        cleanTeamLeader,
+
+                    teamMember:
+
+                        cleanTeamMember,
+
+                    payerName:
+
+                        cleanPayerName,
+
+                    amount:
+
+                        cleanAmount,
+
+                    utr:
+
+                        cleanUTR,
+
+                    transactionId:
+
+                        cleanUTR,
+
+                    paymentMethod:
+
+                        "UPI",
+
+                    paymentStatus:
+
+                        "PENDING",
+
+                    verificationStatus:
+
+                        "PENDING",
+
+                    verifiedBy:
+
+                        null,
+
+                    verifiedAt:
+
+                        null,
+
+                    createdAt:
+
+                        new Date()
+
+                };
+
+
+            // ------------------------------------------------
+            // INSERT REGISTRATION
+            // ------------------------------------------------
+
+            await registrationsCollection.insertOne(
+                registration
+            );
+
+
+            // ------------------------------------------------
+            // SEND ACKNOWLEDGEMENT EMAIL
+            // ------------------------------------------------
+
+            try {
+
+                await sendRegistrationAcknowledgement(
+                    registration
+                );
+
+            }
+            catch (emailError) {
+
+                console.error(
+                    "Acknowledgement email error:",
+                    emailError
+                );
+
+            }
+
+
+            return res.status(201).json({
+
+                success:
+                    true,
+
+                message:
+                    "Registration submitted successfully.",
+
+                registrationId:
+                    registrationId,
+
+                eventName:
+                    event.name,
+
+                paymentStatus:
+                    "PENDING",
+
+                verificationStatus:
+                    "PENDING"
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Registration error:",
+                error
+            );
+
+
+            // ------------------------------------------------
+            // DUPLICATE KEY ERROR
+            // ------------------------------------------------
+
+            if (
+                error &&
+                error.code ===
+                    11000
+            ) {
+
+                return res.status(409).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "This registration or transaction already exists."
+
+                });
+
+            }
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to complete registration."
+
+            });
+
+        }
+
+    }
+);
 // ============================================================
-// ============================================================
-// MODULE 24 — ADMIN: REGISTRATION STATISTICS
-// ============================================================
-//
-// Provides the admin dashboard with a quick summary of:
-//
-//     Total registrations
-//     Pending registrations
-//     Verified registrations
-//     Rejected registrations
-//
+// MODULE 22 — ADMIN: GET PENDING REGISTRATIONS
 // ============================================================
 
 app.get(
-    "/api/admin/statistics",
-    requireAdmin,
+    "/api/admin/registrations",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const registrations =
+                await registrationsCollection
+                    .find(
+                        {
+                            verificationStatus:
+                                "PENDING"
+                        }
+                    )
+                    .sort(
+                        {
+                            createdAt:
+                                -1
+                        }
+                    )
+                    .toArray();
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                registrations:
+                    registrations
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Admin registrations error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to load registrations."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 23 — ADMIN: GET REGISTRATION DETAILS
+// ============================================================
+
+app.get(
+    "/api/admin/registrations/:registrationId",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const registrationId =
+                cleanText(
+                    req.params.registrationId
+                );
+
+
+            if (
+                !registrationId
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration ID is required."
+
+                });
+
+            }
+
+
+            const registration =
+                await registrationsCollection.findOne({
+
+                    registrationId:
+                        registrationId
+
+                });
+
+
+            if (
+                !registration
+            ) {
+
+                return res.status(404).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration not found."
+
+                });
+
+            }
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                registration:
+                    registration
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Admin registration details error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to load registration details."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 24 — ADMIN: VERIFY REGISTRATION
+// ============================================================
+
+app.patch(
+    "/api/admin/registrations/:registrationId/verify",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const registrationId =
+                cleanText(
+                    req.params.registrationId
+                );
+
+
+            if (
+                !registrationId
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration ID is required."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // GET CURRENT REGISTRATION
+            // ------------------------------------------------
+
+            const registration =
+                await registrationsCollection.findOne({
+
+                    registrationId:
+                        registrationId
+
+                });
+
+
+            if (
+                !registration
+            ) {
+
+                return res.status(404).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration not found."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // PREVENT DOUBLE VERIFICATION
+            // ------------------------------------------------
+
+            if (
+                registration.verificationStatus ===
+                "VERIFIED"
+            ) {
+
+                return res.status(409).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "This registration has already been verified."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // PREVENT VERIFYING REJECTED REGISTRATION
+            // ------------------------------------------------
+
+            if (
+                registration.verificationStatus ===
+                "REJECTED"
+            ) {
+
+                return res.status(409).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "A rejected registration cannot be verified."
+
+                });
+
+            }
+
+
+            const verifiedAt =
+                new Date();
+
+
+            const verifiedBy =
+                cleanText(
+                    req.admin &&
+                    req.admin.username
+                );
+
+
+            // ------------------------------------------------
+            // UPDATE PAYMENT + VERIFICATION STATUS
+            // ------------------------------------------------
+
+            const updateResult =
+                await registrationsCollection.updateOne(
+
+                    {
+                        registrationId:
+                            registrationId,
+
+                        verificationStatus:
+                            "PENDING"
+
+                    },
+
+                    {
+                        $set:
+                            {
+
+                                paymentStatus:
+                                    "VERIFIED",
+
+                                verificationStatus:
+                                    "VERIFIED",
+
+                                verifiedBy:
+                                    verifiedBy,
+
+                                verifiedAt:
+                                    verifiedAt
+
+                            }
+
+                    }
+
+                );
+
+
+            if (
+                updateResult.modifiedCount !==
+                1
+            ) {
+
+                return res.status(409).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration status could not be updated. Please refresh and try again."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // FETCH UPDATED REGISTRATION
+            // ------------------------------------------------
+
+            const updatedRegistration =
+                await registrationsCollection.findOne({
+
+                    registrationId:
+                        registrationId
+
+                });
+
+
+            // ------------------------------------------------
+            // SEND VERIFICATION EMAIL
+            // ------------------------------------------------
+
+            let emailSent =
+                false;
+
+
+            try {
+
+                await sendVerificationEmail(
+                    updatedRegistration
+                );
+
+                emailSent =
+                    true;
+
+            }
+            catch (emailError) {
+
+                console.error(
+                    "Verification email error:",
+                    emailError
+                );
+
+            }
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    emailSent
+
+                        ? "Registration verified successfully and confirmation email sent."
+
+                        : "Registration verified successfully. Confirmation email could not be sent.",
+
+                registration:
+                    updatedRegistration,
+
+                emailSent:
+                    emailSent
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Verify registration error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to verify registration."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 25 — ADMIN: REJECT REGISTRATION
+// ============================================================
+
+app.patch(
+    "/api/admin/registrations/:registrationId/reject",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const registrationId =
+                cleanText(
+                    req.params.registrationId
+                );
+
+
+            if (
+                !registrationId
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration ID is required."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // GET CURRENT REGISTRATION
+            // ------------------------------------------------
+
+            const registration =
+                await registrationsCollection.findOne({
+
+                    registrationId:
+                        registrationId
+
+                });
+
+
+            if (
+                !registration
+            ) {
+
+                return res.status(404).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration not found."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // PREVENT DOUBLE REJECTION
+            // ------------------------------------------------
+
+            if (
+                registration.verificationStatus ===
+                "REJECTED"
+            ) {
+
+                return res.status(409).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "This registration has already been rejected."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // PREVENT REJECTING VERIFIED REGISTRATION
+            // ------------------------------------------------
+
+            if (
+                registration.verificationStatus ===
+                "VERIFIED"
+            ) {
+
+                return res.status(409).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "A verified registration cannot be rejected."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // UPDATE REGISTRATION
+            // ------------------------------------------------
+
+            const updateResult =
+                await registrationsCollection.updateOne(
+
+                    {
+                        registrationId:
+                            registrationId,
+
+                        verificationStatus:
+                            "PENDING"
+
+                    },
+
+                    {
+                        $set:
+                            {
+
+                                paymentStatus:
+                                    "REJECTED",
+
+                                verificationStatus:
+                                    "REJECTED",
+
+                                verifiedBy:
+                                    cleanText(
+                                        req.admin &&
+                                        req.admin.username
+                                    ),
+
+                                verifiedAt:
+                                    new Date()
+
+                            }
+
+                    }
+
+                );
+
+
+            if (
+                updateResult.modifiedCount !==
+                1
+            ) {
+
+                return res.status(409).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration status could not be updated. Please refresh and try again."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // IMPORTANT:
+            // CAPACITY IS CALCULATED DYNAMICALLY.
+            //
+            // getEventCapacity() excludes REJECTED
+            // registrations, so the rejected registration
+            // automatically stops occupying a slot.
+            //
+            // DO NOT decrement the sequential registration
+            // ID counter here.
+            //
+            // Example:
+            //
+            // SPK26-IDF-01
+            // SPK26-IDF-02  ← rejected
+            // SPK26-IDF-03
+            //
+            // The next real registration remains:
+            //
+            // SPK26-IDF-04
+            //
+            // The registration ID sequence must never be
+            // reused.
+            // ------------------------------------------------
+
+
+            const updatedRegistration =
+                await registrationsCollection.findOne({
+
+                    registrationId:
+                        registrationId
+
+                });
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    "Registration rejected successfully.",
+
+                registration:
+                    updatedRegistration
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Reject registration error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to reject registration."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 26 — ADMIN: PENDING COUNT
+// ============================================================
+
+app.get(
+    "/api/admin/pending-count",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const count =
+                await registrationsCollection.countDocuments({
+
+                    verificationStatus:
+                        "PENDING"
+
+                });
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                count:
+                    count
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Pending count error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to load pending count."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 27 — ADMIN: SEARCH BY TRANSACTION ID / UTR
+// ============================================================
+
+app.get(
+    "/api/admin/search-transaction",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const transactionId =
+                cleanText(
+                    req.query &&
+                    req.query.transactionId
+                );
+
+
+            // ------------------------------------------------
+            // EXACTLY 12 DIGITS
+            // ------------------------------------------------
+
+            if (
+                !/^\d{12}$/.test(
+                    transactionId
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Transaction ID must contain exactly 12 digits."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // SEARCH UTR / TRANSACTION ID
+            // ------------------------------------------------
+
+            const registration =
+                await registrationsCollection.findOne(
+
+                    {
+
+                        $or:
+                            [
+
+                                {
+                                    utr:
+                                        transactionId
+                                },
+
+                                {
+                                    transactionId:
+                                        transactionId
+                                }
+
+                            ]
+
+                    }
+
+                );
+
+
+            if (
+                !registration
+            ) {
+
+                return res.status(404).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "No registration found for this Transaction ID."
+
+                });
+
+            }
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                registration:
+                    registration
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Transaction search error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to search Transaction ID."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 28 — ADMIN: EVENT REGISTRATION STATISTICS
+// ============================================================
+
+app.get(
+    "/api/admin/event-statistics",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const statistics =
+                await Promise.all(
+
+                    Object.keys(
+                        events
+                    ).map(
+                        async function (
+                            eventId
+                        ) {
+
+                            const event =
+                                events[
+                                    eventId
+                                ];
+
+
+                            const verifiedCount =
+                                await registrationsCollection.countDocuments({
+
+                                    eventId:
+                                        eventId,
+
+                                    verificationStatus:
+                                        "VERIFIED"
+
+                                });
+
+
+                            const pendingCount =
+                                await registrationsCollection.countDocuments({
+
+                                    eventId:
+                                        eventId,
+
+                                    verificationStatus:
+                                        "PENDING"
+
+                                });
+
+
+                            const rejectedCount =
+                                await registrationsCollection.countDocuments({
+
+                                    eventId:
+                                        eventId,
+
+                                    verificationStatus:
+                                        "REJECTED"
+
+                                });
+
+
+                            const capacity =
+                                await getEventCapacity(
+                                    eventId
+                                );
+
+
+                            return {
+
+                                eventId:
+                                    eventId,
+
+                                eventName:
+                                    event.name,
+
+                                code:
+                                    event.code,
+
+                                type:
+                                    capacity.type,
+
+                                verifiedCount:
+                                    verifiedCount,
+
+                                pendingCount:
+                                    pendingCount,
+
+                                rejectedCount:
+                                    rejectedCount,
+
+                                registeredTeams:
+                                    capacity.registeredTeams,
+
+                                registeredParticipants:
+                                    capacity.registeredParticipants,
+
+                                maxTeams:
+                                    capacity.maxTeams,
+
+                                maxParticipants:
+                                    capacity.maxParticipants,
+
+                                remainingTeams:
+                                    capacity.remainingTeams,
+
+                                remainingParticipants:
+                                    capacity.remainingParticipants,
+
+                                percentage:
+                                    capacity.percentage,
+
+                                full:
+                                    capacity.full
+
+                            };
+
+                        }
+                    )
+
+                );
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                events:
+                    statistics
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Event statistics error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to load event statistics."
+
+            });
+
+        }
+
+    }
+);
+// ============================================================
+// MODULE 29 — ADMIN: EXPORT REGISTRATIONS TO EXCEL
+// ============================================================
+
+app.get(
+    "/api/admin/export-excel",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            // ------------------------------------------------
+            // LOAD ALL REGISTRATIONS
+            // ------------------------------------------------
+
+            const registrations =
+                await registrationsCollection
+                    .find({})
+                    .sort(
+                        {
+                            createdAt:
+                                1
+                        }
+                    )
+                    .toArray();
+
+
+            // ------------------------------------------------
+            // XLSX LIBRARY
+            // ------------------------------------------------
+
+            let XLSX;
+
+
+            try {
+
+                XLSX =
+                    require(
+                        "xlsx"
+                    );
+
+            }
+            catch (xlsxError) {
+
+                console.error(
+                    "Excel library is not installed:",
+                    xlsxError
+                );
+
+
+                return res.status(500).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Excel export is not available. Please install the xlsx package."
+
+                });
+
+            }
+
+
+            // ------------------------------------------------
+            // CONVERT REGISTRATIONS TO EXCEL ROWS
+            // ------------------------------------------------
+
+            const rows =
+                registrations.map(
+                    function (
+                        registration
+                    ) {
+
+                        const participant =
+                            registration.participant ||
+                            {};
+
+                        const teamLeader =
+                            registration.teamLeader ||
+                            {};
+
+                        const teamMember =
+                            registration.teamMember ||
+                            {};
+
+
+                        return {
+
+                            "Registration ID":
+                                registration.registrationId ||
+                                "",
+
+                            "Event":
+                                registration.eventName ||
+                                "",
+
+                            "Event Code":
+                                registration.eventCode ||
+                                "",
+
+                            "Participation":
+                                registration.participation ||
+                                "",
+
+                            "Team Size":
+                                registration.teamSize ||
+                                "",
+
+                            "Team Name":
+                                registration.teamName ||
+                                "",
+
+
+                            // ------------------------------------------------
+                            // PARTICIPANT
+                            // ------------------------------------------------
+
+                            "Participant Name":
+                                participant.name ||
+                                "",
+
+                            "Participant College":
+                                participant.college ||
+                                "",
+
+                            "Participant Department":
+                                participant.department ||
+                                "",
+
+                            "Participant Year":
+                                participant.year ||
+                                "",
+
+                            "Participant Phone":
+                                participant.phone ||
+                                "",
+
+                            "Participant Email":
+                                participant.email ||
+                                "",
+
+
+                            // ------------------------------------------------
+                            // TEAM LEADER
+                            // ------------------------------------------------
+
+                            "Team Leader Name":
+                                teamLeader.name ||
+                                "",
+
+                            "Team Leader College":
+                                teamLeader.college ||
+                                "",
+
+                            "Team Leader Department":
+                                teamLeader.department ||
+                                "",
+
+                            "Team Leader Year":
+                                teamLeader.year ||
+                                "",
+
+                            "Team Leader Phone":
+                                teamLeader.phone ||
+                                "",
+
+                            "Team Leader Email":
+                                teamLeader.email ||
+                                "",
+
+
+                            // ------------------------------------------------
+                            // TEAM MEMBER
+                            // ------------------------------------------------
+
+                            "Team Member Name":
+                                teamMember.name ||
+                                "",
+
+                            "Team Member College":
+                                teamMember.college ||
+                                "",
+
+                            "Team Member Department":
+                                teamMember.department ||
+                                "",
+
+                            "Team Member Year":
+                                teamMember.year ||
+                                "",
+
+                            "Team Member Phone":
+                                teamMember.phone ||
+                                "",
+
+                            "Team Member Email":
+                                teamMember.email ||
+                                "",
+
+
+                            // ------------------------------------------------
+                            // PAYMENT
+                            // ------------------------------------------------
+
+                            "Payer Name":
+                                registration.payerName ||
+                                "",
+
+                            "Amount":
+                                registration.amount ||
+                                "",
+
+                            "UPI Transaction ID":
+                                registration.transactionId ||
+                                registration.utr ||
+                                "",
+
+                            "Payment Method":
+                                registration.paymentMethod ||
+                                "",
+
+                            "Payment Status":
+                                registration.paymentStatus ||
+                                "",
+
+                            "Verification Status":
+                                registration.verificationStatus ||
+                                "",
+
+
+                            // ------------------------------------------------
+                            // VERIFICATION
+                            // ------------------------------------------------
+
+                            "Verified By":
+                                registration.verifiedBy ||
+                                "",
+
+                            "Verified At":
+                                registration.verifiedAt
+                                    ? new Date(
+                                        registration.verifiedAt
+                                    ).toLocaleString(
+                                        "en-IN"
+                                    )
+                                    : "",
+
+
+                            // ------------------------------------------------
+                            // REGISTRATION TIME
+                            // ------------------------------------------------
+
+                            "Registered At":
+                                registration.createdAt
+                                    ? new Date(
+                                        registration.createdAt
+                                    ).toLocaleString(
+                                        "en-IN"
+                                    )
+                                    : ""
+
+                        };
+
+                    }
+                );
+
+
+            // ------------------------------------------------
+            // CREATE WORKSHEET
+            // ------------------------------------------------
+
+            const worksheet =
+                XLSX.utils.json_to_sheet(
+                    rows
+                );
+
+
+            // ------------------------------------------------
+            // COLUMN WIDTHS
+            // ------------------------------------------------
+
+            worksheet["!cols"] = [
+
+                {
+                    wch:
+                        20
+                },
+
+                {
+                    wch:
+                        20
+                },
+
+                {
+                    wch:
+                        12
+                },
+
+                {
+                    wch:
+                        15
+                },
+
+                {
+                    wch:
+                        10
+                },
+
+                {
+                    wch:
+                        25
+                },
+
+                {
+                    wch:
+                        25
+                },
+
+                {
+                    wch:
+                        30
+                },
+
+                {
+                    wch:
+                        25
+                },
+
+                {
+                    wch:
+                        18
+                },
+
+                {
+                    wch:
+                        18
+                },
+
+                {
+                    wch:
+                        30
+                },
+
+                {
+                    wch:
+                        25
+                },
+
+                {
+                    wch:
+                        30
+                },
+
+                {
+                    wch:
+                        25
+                },
+
+                {
+                    wch:
+                        18
+                },
+
+                {
+                    wch:
+                        18
+                },
+
+                {
+                    wch:
+                        30
+                },
+
+                {
+                    wch:
+                        25
+                },
+
+                {
+                    wch:
+                        30
+                },
+
+                {
+                    wch:
+                        25
+                },
+
+                {
+                    wch:
+                        18
+                },
+
+                {
+                    wch:
+                        18
+                },
+
+                {
+                    wch:
+                        30
+                },
+
+                {
+                    wch:
+                        25
+                },
+
+                {
+                    wch:
+                        25
+                },
+
+                {
+                    wch:
+                        18
+                },
+
+                {
+                    wch:
+                        22
+                },
+
+                {
+                    wch:
+                        20
+                },
+
+                {
+                    wch:
+                        22
+                },
+
+                {
+                    wch:
+                        22
+                },
+
+                {
+                    wch:
+                        22
+                }
+
+            ];
+
+
+            // ------------------------------------------------
+            // CREATE WORKBOOK
+            // ------------------------------------------------
+
+            const workbook =
+                XLSX.utils.book_new();
+
+
+            XLSX.utils.book_append_sheet(
+                workbook,
+                worksheet,
+                "Registrations"
+            );
+
+
+            // ------------------------------------------------
+            // WRITE EXCEL FILE TO BUFFER
+            // ------------------------------------------------
+
+            const excelBuffer =
+                XLSX.write(
+                    workbook,
+                    {
+
+                        type:
+                            "buffer",
+
+                        bookType:
+                            "xlsx"
+
+                    }
+                );
+
+
+            // ------------------------------------------------
+            // RESPONSE HEADERS
+            // ------------------------------------------------
+
+            const filename =
+                `SPARK2026-Registrations-${new Date()
+                    .toISOString()
+                    .slice(
+                        0,
+                        10
+                    )}.xlsx`;
+
+
+            res.setHeader(
+                "Content-Type",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            );
+
+
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename="${filename}"`
+            );
+
+
+            return res.send(
+                excelBuffer
+            );
+
+        }
+        catch (error) {
+
+            console.error(
+                "Excel export error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to export registrations."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 30 — ADMIN: GET ALL REGISTRATIONS
+// ============================================================
+
+app.get(
+    "/api/admin/all-registrations",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const registrations =
+                await registrationsCollection
+                    .find({})
+                    .sort(
+                        {
+                            createdAt:
+                                -1
+                        }
+                    )
+                    .toArray();
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                registrations:
+                    registrations
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "All registrations error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to load all registrations."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 31 — ADMIN: DASHBOARD SUMMARY
+// ============================================================
+
+app.get(
+    "/api/admin/summary",
+    adminAuth,
     async (req, res) => {
 
         try {
@@ -4446,12 +4182,7 @@ app.get(
                 await registrationsCollection.countDocuments({
 
                     verificationStatus:
-                        {
-                            $in: [
-                                "PENDING",
-                                "SUBMITTED"
-                            ]
-                        }
+                        "PENDING"
 
                 });
 
@@ -4494,11 +4225,10 @@ app.get(
             });
 
         }
-
         catch (error) {
 
             console.error(
-                "Admin statistics error:",
+                "Admin summary error:",
                 error
             );
 
@@ -4509,7 +4239,7 @@ app.get(
                     false,
 
                 message:
-                    "Unable to load registration statistics."
+                    "Unable to load dashboard summary."
 
             });
 
@@ -4520,16 +4250,11 @@ app.get(
 
 
 // ============================================================
-// MODULE 25 — ADMIN: EVENT STATISTICS
-// ============================================================
-//
-// Gives the admin dashboard the current count for each event.
-//
+// MODULE 32 — HEALTH CHECK
 // ============================================================
 
 app.get(
-    "/api/admin/event-statistics",
-    requireAdmin,
+    "/api/health",
     async (req, res) => {
 
         try {
@@ -4537,58 +4262,38 @@ app.get(
             await connectDatabase();
 
 
-            const statistics =
-                await Promise.all(
-
-                    Object.keys(
-                        events
-                    )
-                    .map(
-                        async (
-                            eventId
-                        ) => {
-
-                            const capacity =
-                                await getEventCapacity(
-                                    eventId
-                                );
-
-
-                            return capacity;
-
-                        }
-                    )
-
-                );
-
-
             return res.json({
 
                 success:
                     true,
 
-                events:
-                    statistics
+                status:
+                    "OK",
+
+                database:
+                    "CONNECTED",
+
+                timestamp:
+                    new Date().toISOString()
 
             });
 
         }
-
         catch (error) {
 
-            console.error(
-                "Admin event statistics error:",
-                error
-            );
-
-
-            return res.status(500).json({
+            return res.status(503).json({
 
                 success:
                     false,
 
+                status:
+                    "ERROR",
+
+                database:
+                    "DISCONNECTED",
+
                 message:
-                    "Unable to load event statistics."
+                    "Database connection unavailable."
 
             });
 
@@ -4599,7 +4304,722 @@ app.get(
 
 
 // ============================================================
-// MODULE 26 — 404 API HANDLER
+// MODULE 33 — ROOT API
+// ============================================================
+
+app.get(
+    "/",
+    (req, res) => {
+
+        return res.json({
+
+            success:
+                true,
+
+            application:
+                "SPARK 2026 Registration Server",
+
+            status:
+                "Running",
+
+            version:
+                "1.0.0",
+
+            endpoints:
+                {
+
+                    registration:
+                        "/api/register",
+
+                    eventCapacity:
+                        "/api/event-capacity",
+
+                    registrationStatus:
+                        "/api/registration-status/:registrationId",
+
+                    adminLogin:
+                        "/api/admin/login",
+
+                    adminSession:
+                        "/api/admin/session",
+
+                    adminRegistrations:
+                        "/api/admin/registrations",
+
+                    adminSearch:
+                        "/api/admin/search-transaction",
+
+                    adminExport:
+                        "/api/admin/export-excel",
+
+                    health:
+                        "/api/health"
+
+                }
+
+        });
+
+    }
+);
+// ============================================================
+// MODULE 34 — ADMIN: SEARCH REGISTRATION BY ID
+// ============================================================
+
+app.get(
+    "/api/admin/search-registration",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const registrationId =
+                cleanText(
+                    req.query &&
+                    req.query.registrationId
+                );
+
+
+            if (
+                !registrationId
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration ID is required."
+
+                });
+
+            }
+
+
+            const registration =
+                await registrationsCollection.findOne({
+
+                    registrationId:
+                        registrationId
+
+                });
+
+
+            if (
+                !registration
+            ) {
+
+                return res.status(404).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration not found."
+
+                });
+
+            }
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                registration:
+                    registration
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Registration ID search error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to search registration."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 35 — ADMIN: DELETE TEST REGISTRATION
+// ============================================================
+//
+// This endpoint is intentionally protected by adminAuth.
+//
+// It should only be used when cleaning up test registrations.
+// It does NOT automatically alter the sequential counter.
+//
+// Therefore, deleting:
+//
+// SPK26-IDF-01
+//
+// does NOT cause the next registration to reuse IDF-01.
+//
+// This preserves orderly, non-repeating registration IDs.
+// ============================================================
+
+app.delete(
+    "/api/admin/registrations/:registrationId",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const registrationId =
+                cleanText(
+                    req.params.registrationId
+                );
+
+
+            if (
+                !registrationId
+            ) {
+
+                return res.status(400).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration ID is required."
+
+                });
+
+            }
+
+
+            const registration =
+                await registrationsCollection.findOne({
+
+                    registrationId:
+                        registrationId
+
+                });
+
+
+            if (
+                !registration
+            ) {
+
+                return res.status(404).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration not found."
+
+                });
+
+            }
+
+
+            const deleteResult =
+                await registrationsCollection.deleteOne({
+
+                    registrationId:
+                        registrationId
+
+                });
+
+
+            if (
+                deleteResult.deletedCount !==
+                1
+            ) {
+
+                return res.status(500).json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Registration could not be deleted."
+
+                });
+
+            }
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    "Registration deleted successfully.",
+
+                registrationId:
+                    registrationId
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Delete registration error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to delete registration."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 36 — ADMIN: RESET REGISTRATION COUNTERS
+// ============================================================
+//
+// IMPORTANT:
+//
+// This endpoint should only be used AFTER testing and BEFORE
+// opening the event for real registrations.
+//
+// It resets the four event counters:
+//
+// IDF
+// CC
+// IQ
+// CS
+//
+// After reset, the next real registrations will start from:
+//
+// SPK26-IDF-01
+// SPK26-CC-01
+// SPK26-IQ-01
+// SPK26-CS-01
+//
+// This endpoint is protected by adminAuth.
+// ============================================================
+
+app.post(
+    "/api/admin/reset-registration-counters",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const eventCodes =
+                [
+                    "IDF",
+                    "CC",
+                    "IQ",
+                    "CS"
+                ];
+
+
+            await countersCollection.deleteMany({
+
+                _id:
+                    {
+                        $in:
+                            eventCodes
+                    }
+
+            });
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    "All registration counters have been reset successfully.",
+
+                counters:
+                    eventCodes
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Reset registration counters error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to reset registration counters."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 37 — ADMIN: RESET ALL TEST DATA
+// ============================================================
+//
+// DANGER:
+//
+// This endpoint deletes ALL registrations.
+//
+// Use ONLY during testing.
+// Never use this endpoint after real registrations begin.
+//
+// It also resets all four sequential registration counters.
+// ============================================================
+
+app.post(
+    "/api/admin/reset-test-data",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            // ------------------------------------------------
+            // DELETE ALL REGISTRATIONS
+            // ------------------------------------------------
+
+            const deleteResult =
+                await registrationsCollection.deleteMany(
+                    {}
+                );
+
+
+            // ------------------------------------------------
+            // RESET ALL COUNTERS
+            // ------------------------------------------------
+
+            const eventCodes =
+                [
+                    "IDF",
+                    "CC",
+                    "IQ",
+                    "CS"
+                ];
+
+
+            await countersCollection.deleteMany({
+
+                _id:
+                    {
+                        $in:
+                            eventCodes
+                    }
+
+            });
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    "All test registrations and registration counters have been reset.",
+
+                deletedRegistrations:
+                    deleteResult.deletedCount,
+
+                countersReset:
+                    eventCodes
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Reset test data error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to reset test data."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 38 — ADMIN: GET REGISTRATION COUNTERS
+// ============================================================
+
+app.get(
+    "/api/admin/registration-counters",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const eventCodes =
+                [
+                    "IDF",
+                    "CC",
+                    "IQ",
+                    "CS"
+                ];
+
+
+            const counters =
+                {};
+
+
+            for (
+                const code
+                of eventCodes
+            ) {
+
+                const counter =
+                    await countersCollection.findOne({
+
+                        _id:
+                            code
+
+                    });
+
+
+                counters[
+                    code
+                ] =
+                    counter &&
+                    Number.isInteger(
+                        counter.sequence
+                    )
+
+                        ? counter.sequence
+
+                        : 0;
+
+            }
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                counters:
+                    counters
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Registration counters error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to load registration counters."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 39 — ADMIN: GET VERIFIED REGISTRATIONS
+// ============================================================
+
+app.get(
+    "/api/admin/verified-registrations",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const registrations =
+                await registrationsCollection
+                    .find(
+                        {
+                            verificationStatus:
+                                "VERIFIED"
+                        }
+                    )
+                    .sort(
+                        {
+                            createdAt:
+                                -1
+                        }
+                    )
+                    .toArray();
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                registrations:
+                    registrations
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Verified registrations error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to load verified registrations."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 40 — ADMIN: GET REJECTED REGISTRATIONS
+// ============================================================
+
+app.get(
+    "/api/admin/rejected-registrations",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            await connectDatabase();
+
+
+            const registrations =
+                await registrationsCollection
+                    .find(
+                        {
+                            verificationStatus:
+                                "REJECTED"
+                        }
+                    )
+                    .sort(
+                        {
+                            createdAt:
+                                -1
+                        }
+                    )
+                    .toArray();
+
+
+            return res.json({
+
+                success:
+                    true,
+
+                registrations:
+                    registrations
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(
+                "Rejected registrations error:",
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success:
+                    false,
+
+                message:
+                    "Unable to load rejected registrations."
+
+            });
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// MODULE 41 — 404 API HANDLER
 // ============================================================
 
 app.use(
@@ -4618,25 +5038,23 @@ app.use(
 
     }
 );
-
-
 // ============================================================
-// MODULE 27 — GENERAL ERROR HANDLER
+// MODULE 42 — GLOBAL ERROR HANDLER
 // ============================================================
 
 app.use(
-    (
-        error,
-        req,
-        res,
-        next
-    ) => {
+    (error, req, res, next) => {
 
         console.error(
             "Unhandled server error:",
             error
         );
 
+
+        // ----------------------------------------------------
+        // If Express has already started sending the response,
+        // let Express handle the error.
+        // ----------------------------------------------------
 
         if (
             res.headersSent
@@ -4655,7 +5073,7 @@ app.use(
                 false,
 
             message:
-                "Internal server error."
+                "An unexpected server error occurred."
 
         });
 
@@ -4664,93 +5082,151 @@ app.use(
 
 
 // ============================================================
-// MODULE 28 — ROOT HEALTH RESPONSE
-// ============================================================
-
-app.get(
-    "/",
-    (req, res) => {
-
-        return res.json({
-
-            success:
-                true,
-
-            service:
-                "SPARK 2026 Registration Server",
-
-            status:
-                "ONLINE",
-
-            timestamp:
-                new Date().toISOString()
-
-        });
-
-    }
-);
-
-
-// ============================================================
-// MODULE 29 — VERCEL EXPORT
+// MODULE 43 — START SERVER
 // ============================================================
 //
-// Vercel imports this Express application.
+// The server starts only when this file is executed directly:
 //
+//     npm start
+//
+// or:
+//
+//     node server/server.js
+//
+// When the file is imported by another module/platform,
+// app.listen() will not be called.
+// ============================================================
+
+if (
+    require.main === module
+) {
+
+    connectDatabase()
+        .then(
+            () => {
+
+                app.listen(
+                    PORT,
+                    () => {
+
+                        console.log(
+                            "=========================================="
+                        );
+
+                        console.log(
+                            "🚀 SPARK 2026 REGISTRATION SERVER"
+                        );
+
+                        console.log(
+                            "=========================================="
+                        );
+
+
+                        console.log(
+                            `Server running on port: ${PORT}`
+                        );
+
+
+                        console.log(
+                            "Database: CONNECTED"
+                        );
+
+
+                        console.log(
+                            "Payment: UPI"
+                        );
+
+
+                        console.log(
+                            "UTR: EXACTLY 12 DIGITS"
+                        );
+
+
+                        console.log(
+                            "Registration IDs: SEQUENTIAL"
+                        );
+
+
+                        console.log(
+                            "IdeaForge: SPK26-IDF-01 → SPK26-IDF-30"
+                        );
+
+
+                        console.log(
+                            "Circuit Clash: SPK26-CC-01 → SPK26-CC-30"
+                        );
+
+
+                        console.log(
+                            "iQuest: SPK26-IQ-01 → SPK26-IQ-30"
+                        );
+
+
+                        console.log(
+                            "CodeSprint: SPK26-CS-01 → SPK26-CS-60"
+                        );
+
+
+                        console.log(
+                            "Admin verification: ENABLED"
+                        );
+
+
+                        console.log(
+                            "Excel export: ENABLED"
+                        );
+
+
+                        console.log(
+                            "Transaction search: ENABLED"
+                        );
+
+
+                        console.log(
+                            "Payer email: NOT REQUIRED"
+                        );
+
+
+                        console.log(
+                            "=========================================="
+                        );
+
+                    }
+                );
+
+            }
+        )
+        .catch(
+            (error) => {
+
+                console.error(
+                    "❌ Server startup failed:"
+                );
+
+                console.error(
+                    error
+                );
+
+
+                process.exit(
+                    1
+                );
+
+            }
+        );
+
+}
+
+
+// ============================================================
+// MODULE 44 — EXPORT EXPRESS APP
+// ============================================================
+//
+// Keep this as the VERY LAST line of server.js.
+//
+// Do NOT create another app.listen() or startFinalServer()
+// after this.
 // ============================================================
 
 module.exports =
     app;
-
-
-// ============================================================
-// MODULE 30 — LOCAL SERVER START
-// ============================================================
-//
-// When running:
-//
-//     node server.js
-//
-// the local server starts normally.
-//
-// On Vercel, this block is not executed as Vercel imports
-// the exported Express application.
-// ============================================================
-
-if (
-    require.main ===
-    module
-) {
-
-    app.listen(
-        PORT,
-        () => {
-
-            console.log(
-                "=========================================="
-            );
-
-            console.log(
-                "SPARK 2026 SERVER"
-            );
-
-            console.log(
-                "=========================================="
-            );
-
-            console.log(
-                `Server running on port ${PORT}`
-            );
-
-            console.log(
-                `http://localhost:${PORT}`
-            );
-
-            console.log(
-                "=========================================="
-            );
-
-        }
-    );
-
-}
