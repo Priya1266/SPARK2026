@@ -712,43 +712,80 @@ async function generateRegistrationCode(
         event.code;
 
 
-    const result =
-        await countersCollection.findOneAndUpdate(
+    let result;
 
-            {
-                _id:
-                    counterKey
-            },
+    try {
 
-            {
-                $inc:
-                    {
-                        sequence:
-                            1
-                    }
-            },
+        result =
+            await countersCollection.findOneAndUpdate(
 
-            {
-                upsert:
-                    true,
+                {
+                    _id:
+                        counterKey
+                },
 
-                returnDocument:
-                    "after"
-            }
+                {
+                    $inc:
+                        {
+                            sequence:
+                                1
+                        }
+                },
 
+                {
+                    upsert:
+                        true,
+
+                    returnDocument:
+                        "after"
+                }
+
+            );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "COUNTER UPDATE ERROR:",
+            error
         );
+
+        throw new Error(
+            "Unable to update registration counter."
+        );
+
+    }
+
+
+    // ============================================================
+    // HANDLE BOTH MONGODB RESULT FORMATS
+    // ============================================================
+
+    const counterDocument =
+        result &&
+        result.value
+            ? result.value
+            : result;
 
 
     const sequence =
-        result &&
-        result.value
-            ? result.value.sequence
+        counterDocument &&
+        Number.isInteger(
+            counterDocument.sequence
+        )
+            ? counterDocument.sequence
             : null;
 
 
     if (
-        !sequence
+        sequence === null
     ) {
+
+        console.error(
+            "INVALID COUNTER RESULT:",
+            result
+        );
 
         throw new Error(
             "Unable to generate registration ID."
@@ -756,6 +793,10 @@ async function generateRegistrationCode(
 
     }
 
+
+    // ============================================================
+    // CHECK EVENT CAPACITY
+    // ============================================================
 
     const maximum =
         event.participants > 1
@@ -767,6 +808,8 @@ async function generateRegistrationCode(
         sequence >
         maximum
     ) {
+
+        // Roll back counter
 
         await countersCollection.findOneAndUpdate(
 
@@ -793,6 +836,10 @@ async function generateRegistrationCode(
     }
 
 
+    // ============================================================
+    // FORMAT REGISTRATION NUMBER
+    // ============================================================
+
     const paddedSequence =
         String(
             sequence
@@ -802,13 +849,19 @@ async function generateRegistrationCode(
         );
 
 
-    return (
-        `SPK26-${event.code}-${paddedSequence}`
+    const registrationId =
+        `SPK26-${event.code}-${paddedSequence}`;
+
+
+    console.log(
+        "REGISTRATION ID GENERATED:",
+        registrationId
     );
 
+
+    return registrationId;
+
 }
-
-
 // ============================================================
 // MODULE 8A — DECREMENT REGISTRATION COUNTER
 // ============================================================
