@@ -762,36 +762,21 @@ async function loadEventCapacity() {
                     </div>
 
 
-                    <p class="capacity-text">
+<p class="capacity-text">
 
-                        ${
-                            currentEvent.remainingTeams
-                        }
+    ${
+        currentEvent.remainingTeams
+    }
 
-                        ${
-                            currentEvent.remainingTeams === 1
-                                ? "team"
-                                : "teams"
-                        }
+    ${
+        currentEvent.remainingTeams === 1
+            ? "team"
+            : "teams"
+    }
 
-                        remaining
+    remaining
 
-                        ·
-
-                        ${
-                            currentEvent.registeredParticipants
-                        }
-
-                        /
-
-                        ${
-                            currentEvent.maxParticipants
-                        }
-
-                        participants registered
-
-                    </p>
-
+</p>
                 </div>
 
             `;
