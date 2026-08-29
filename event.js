@@ -382,7 +382,7 @@ const events = {
 
             "Mr. Mohan Kumar",
 
-            "Ms. Shanana B"
+            "Ms. Shahana B"
 
         ],
 
