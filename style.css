@@ -3633,6 +3633,20 @@ span:nth-child(3) {
 
     font-size: 14px;
     line-height: 1.5;
+
+    animation: announcementFlash 1.4s ease-in-out infinite;
+}
+
+@keyframes announcementFlash {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.45;
+        transform: scale(1.015);
+    }
 }
 
 .ideaforge-text strong {
