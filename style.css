@@ -3577,198 +3577,308 @@ span:nth-child(3) {
         font-size: 14px;
     }
 }
-/* =========================================
-   IDEAFORGE 2026 FLASHING ANNOUNCEMENT
-========================================= */
+/* =========================================================
+   IDEAFORGE 2026 — FLASH NEWS TICKER
+========================================================= */
 
-.ideaforge-announcement {
+.ideaforge-news {
     width: 100%;
+    height: 58px;
+
+    display: flex;
+    align-items: stretch;
+
     position: relative;
     z-index: 50;
 
-    background: linear-gradient(
-        90deg,
-        #0d2b5c,
-        #174a8b,
-        #0d2b5c
-    );
+    background: #0d2b5c;
 
     color: #ffffff;
 
     border-top: 1px solid rgba(255,255,255,0.15);
     border-bottom: 1px solid rgba(255,255,255,0.15);
 
-    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
 
     overflow: hidden;
 }
 
 
-/* Main announcement layout */
+/* =========================================================
+   BREAKING NEWS LABEL
+========================================================= */
 
-.ideaforge-content {
-    max-width: 1400px;
-    min-height: 65px;
+.news-label {
 
-    margin: 0 auto;
-    padding: 12px 25px;
+    flex-shrink: 0;
+
+    min-width: 155px;
+
+    padding: 0 22px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    gap: 18px;
+    gap: 9px;
 
-    text-align: center;
+    background: #d71920;
+
+    color: #ffffff;
+
+    font-size: 13px;
+    font-weight: 900;
+
+    letter-spacing: 0.8px;
+
+    position: relative;
+
+    z-index: 5;
+
+    box-shadow: 6px 0 15px rgba(0,0,0,0.18);
 }
 
 
-/* Rocket */
+/* LIVE blinking dot */
 
-.ideaforge-icon {
-    font-size: 25px;
+.news-live-dot {
 
-    animation: rocketAttention 0.8s ease-in-out infinite !important;
+    width: 9px;
+    height: 9px;
+
+    border-radius: 50%;
+
+    background: #ffffff;
+
+    box-shadow: 0 0 0 0 rgba(255,255,255,0.7);
+
+    animation: newsLivePulse 1s infinite;
 }
 
 
-/* =========================================
-   FLASHING MESSAGE
-========================================= */
-
-.ideaforge-text {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-
-    gap: 8px 16px;
-
-    font-size: 14px;
-    line-height: 1.5;
-
-    /* VERY CLEAR FLASH */
-    animation: ideaForgeFlash 1.2s steps(1, end) infinite !important;
-}
-
-
-/* Actual flashing */
-
-@keyframes ideaForgeFlash {
+@keyframes newsLivePulse {
 
     0% {
         opacity: 1;
-    }
-
-    45% {
-        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(255,255,255,0.7);
     }
 
     50% {
-        opacity: 0;
-    }
-
-    65% {
-        opacity: 0;
-    }
-
-    70% {
-        opacity: 1;
+        opacity: 0.35;
+        box-shadow: 0 0 0 6px rgba(255,255,255,0);
     }
 
     100% {
         opacity: 1;
+        box-shadow: 0 0 0 0 rgba(255,255,255,0);
     }
 
 }
 
 
-/* IdeaForge title */
+/* =========================================================
+   MOVING NEWS AREA
+========================================================= */
 
-.ideaforge-text strong {
-    font-size: 16px;
-    letter-spacing: 0.8px;
+.news-window {
+
+    flex: 1;
+
+    min-width: 0;
+
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+
+    position: relative;
 }
 
 
-/* Dates */
+/* Moving track */
 
-.ideaforge-text b {
-    font-weight: 800;
-    color: #ffffff;
-}
+.news-track {
 
+    display: flex;
+    align-items: center;
 
-/* Right-side tag */
-
-.ideaforge-tag {
-    padding: 7px 13px;
-
-    border-radius: 20px;
-
-    background: rgba(255,255,255,0.13);
-
-    border: 1px solid rgba(255,255,255,0.2);
-
-    font-size: 12px;
-    font-weight: 800;
-
-    letter-spacing: 0.6px;
+    width: max-content;
 
     white-space: nowrap;
+
+    gap: 22px;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    animation: newsTicker 32s linear infinite;
 }
 
 
-/* Rocket animation */
+/* Continuous movement */
 
-@keyframes rocketAttention {
+@keyframes newsTicker {
+
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+
+}
+
+
+/* =========================================================
+   NEWS CONTENT
+========================================================= */
+
+.news-icon {
+
+    font-size: 21px;
+
+    display: inline-block;
+
+    animation: newsRocket 1.5s ease-in-out infinite;
+}
+
+
+@keyframes newsRocket {
 
     0%, 100% {
-        transform: translateY(0) rotate(0deg);
+        transform: translateY(0);
     }
 
     50% {
-        transform: translateY(-4px) rotate(-8deg);
+        transform: translateY(-3px);
     }
 
 }
 
 
-/* =========================================
+.news-track strong {
+
+    font-size: 15px;
+
+    letter-spacing: 0.5px;
+}
+
+
+.news-track b {
+
+    font-weight: 900;
+
+    color: #ffffff;
+
+}
+
+
+.news-separator {
+
+    font-size: 20px;
+
+    opacity: 0.45;
+}
+
+
+/* =========================================================
+   FINAL TAG
+========================================================= */
+
+.news-tag {
+
+    padding: 6px 14px;
+
+    border-radius: 18px;
+
+    background: rgba(255,255,255,0.12);
+
+    border: 1px solid rgba(255,255,255,0.22);
+
+    font-size: 12px !important;
+
+    letter-spacing: 0.6px;
+
+}
+
+
+/* =========================================================
+   HOVER — PAUSE NEWS
+========================================================= */
+
+.news-window:hover .news-track {
+
+    animation-play-state: paused;
+
+}
+
+
+/* =========================================================
    MOBILE
-========================================= */
+========================================================= */
 
 @media (max-width: 768px) {
 
-    .ideaforge-content {
-        min-height: auto;
+    .ideaforge-news {
 
-        padding: 14px 16px;
+        height: 52px;
 
-        flex-direction: column;
-
-        gap: 7px;
     }
 
-    .ideaforge-icon {
-        font-size: 22px;
+
+    .news-label {
+
+        min-width: 105px;
+
+        padding: 0 10px;
+
+        font-size: 10px;
+
+        gap: 6px;
+
     }
 
-    .ideaforge-text {
-        flex-direction: column;
 
-        gap: 3px;
+    .news-live-dot {
+
+        width: 7px;
+        height: 7px;
+
+    }
+
+
+    .news-track {
+
+        gap: 15px;
 
         font-size: 12px;
+
+        animation-duration: 24s;
+
     }
 
-    .ideaforge-text strong {
-        font-size: 15px;
+
+    .news-track strong {
+
+        font-size: 13px;
+
     }
 
-    .ideaforge-tag {
-        margin-top: 4px;
-        font-size: 11px;
+
+    .news-tag {
+
+        font-size: 10px !important;
+
+        padding: 5px 10px;
+
+    }
+
+
+    .news-icon {
+
+        font-size: 17px;
+
     }
 
 }
