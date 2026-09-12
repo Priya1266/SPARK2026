@@ -3577,3 +3577,132 @@ span:nth-child(3) {
         font-size: 14px;
     }
 }
+/* ================================
+   IDEAFORGE ANNOUNCEMENT
+================================ */
+
+.ideaforge-announcement {
+    width: 100%;
+    position: relative;
+    z-index: 50;
+
+    background: linear-gradient(
+        90deg,
+        #0d2b5c,
+        #174a8b,
+        #0d2b5c
+    );
+
+    color: #ffffff;
+
+    border-top: 1px solid rgba(255,255,255,0.15);
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+
+    overflow: hidden;
+}
+
+.ideaforge-content {
+    max-width: 1400px;
+    min-height: 65px;
+
+    margin: 0 auto;
+    padding: 12px 25px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+
+    text-align: center;
+}
+
+.ideaforge-icon {
+    font-size: 25px;
+
+    animation: ideaForgePulse 1.5s ease-in-out infinite;
+}
+
+.ideaforge-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.ideaforge-text strong {
+    font-size: 16px;
+    letter-spacing: 0.8px;
+}
+
+.ideaforge-text b {
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.ideaforge-tag {
+    padding: 7px 13px;
+
+    border-radius: 20px;
+
+    background: rgba(255,255,255,0.13);
+    border: 1px solid rgba(255,255,255,0.2);
+
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+
+    white-space: nowrap;
+}
+
+
+/* Attention animation */
+
+@keyframes ideaForgePulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.15);
+    }
+}
+
+
+/* Mobile */
+
+@media (max-width: 768px) {
+
+    .ideaforge-content {
+        min-height: auto;
+        padding: 14px 16px;
+
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .ideaforge-icon {
+        font-size: 22px;
+    }
+
+    .ideaforge-text {
+        flex-direction: column;
+        gap: 3px;
+
+        font-size: 12px;
+    }
+
+    .ideaforge-text strong {
+        font-size: 15px;
+    }
+
+    .ideaforge-tag {
+        margin-top: 4px;
+        font-size: 11px;
+    }
+}
