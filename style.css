@@ -3577,9 +3577,9 @@ span:nth-child(3) {
         font-size: 14px;
     }
 }
-/* ================================
-   IDEAFORGE ANNOUNCEMENT
-================================ */
+/* =========================================
+   IDEAFORGE 2026 FLASHING ANNOUNCEMENT
+========================================= */
 
 .ideaforge-announcement {
     width: 100%;
@@ -3598,13 +3598,13 @@ span:nth-child(3) {
     border-top: 1px solid rgba(255,255,255,0.15);
     border-bottom: 1px solid rgba(255,255,255,0.15);
 
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
 
     overflow: hidden;
 }
 
 
-/* Announcement content */
+/* Main announcement layout */
 
 .ideaforge-content {
     max-width: 1400px;
@@ -3616,6 +3616,7 @@ span:nth-child(3) {
     display: flex;
     align-items: center;
     justify-content: center;
+
     gap: 18px;
 
     text-align: center;
@@ -3627,11 +3628,13 @@ span:nth-child(3) {
 .ideaforge-icon {
     font-size: 25px;
 
-    animation: ideaForgePulse 1.2s ease-in-out infinite;
+    animation: rocketAttention 0.8s ease-in-out infinite !important;
 }
 
 
-/* Flashing announcement text */
+/* =========================================
+   FLASHING MESSAGE
+========================================= */
 
 .ideaforge-text {
     display: flex;
@@ -3644,20 +3647,37 @@ span:nth-child(3) {
     font-size: 14px;
     line-height: 1.5;
 
-    animation: announcementFlash 1s ease-in-out infinite;
+    /* VERY CLEAR FLASH */
+    animation: ideaForgeFlash 1.2s steps(1, end) infinite !important;
 }
 
 
-/* Strong flash effect */
+/* Actual flashing */
 
-@keyframes announcementFlash {
+@keyframes ideaForgeFlash {
 
-    0%, 40%, 100% {
+    0% {
         opacity: 1;
     }
 
-    50%, 60% {
-        opacity: 0.15;
+    45% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    65% {
+        opacity: 0;
+    }
+
+    70% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 1;
     }
 
 }
@@ -3671,7 +3691,7 @@ span:nth-child(3) {
 }
 
 
-/* Important dates */
+/* Dates */
 
 .ideaforge-text b {
     font-weight: 800;
@@ -3679,7 +3699,7 @@ span:nth-child(3) {
 }
 
 
-/* Tag */
+/* Right-side tag */
 
 .ideaforge-tag {
     padding: 7px 13px;
@@ -3701,22 +3721,22 @@ span:nth-child(3) {
 
 /* Rocket animation */
 
-@keyframes ideaForgePulse {
+@keyframes rocketAttention {
 
     0%, 100% {
-        transform: scale(1);
+        transform: translateY(0) rotate(0deg);
     }
 
     50% {
-        transform: scale(1.18);
+        transform: translateY(-4px) rotate(-8deg);
     }
 
 }
 
 
-/* ================================
+/* =========================================
    MOBILE
-================================ */
+========================================= */
 
 @media (max-width: 768px) {
 
@@ -3730,34 +3750,25 @@ span:nth-child(3) {
         gap: 7px;
     }
 
-
     .ideaforge-icon {
         font-size: 22px;
     }
 
-
     .ideaforge-text {
-
         flex-direction: column;
 
         gap: 3px;
 
         font-size: 12px;
-
     }
-
 
     .ideaforge-text strong {
         font-size: 15px;
     }
 
-
     .ideaforge-tag {
-
         margin-top: 4px;
-
         font-size: 11px;
-
     }
 
 }
