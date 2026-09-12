@@ -3938,3 +3938,40 @@ span:nth-child(3) {
     }
 
 }
+/* =========================================================
+   SPARK UPDATE — FORCE TICKER ANIMATION
+========================================================= */
+
+.ideaforge-news .news-track {
+    display: flex;
+    width: max-content;
+    white-space: nowrap;
+
+    animation-name: sparkUpdateTicker !important;
+    animation-duration: 28s !important;
+    animation-timing-function: linear !important;
+    animation-iteration-count: infinite !important;
+    animation-play-state: running !important;
+}
+
+
+/* Keep ticker moving even when mouse is over it */
+
+.ideaforge-news .news-window:hover .news-track {
+    animation-play-state: running !important;
+}
+
+
+/* Actual movement */
+
+@keyframes sparkUpdateTicker {
+
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+
+}
