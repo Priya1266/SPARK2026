@@ -21,6 +21,11 @@ const app = express();
 
 const PORT =
     Number(process.env.PORT) || 3000;
+// ============================================================
+// TEMPORARY REGISTRATION CLOSURE
+// ============================================================
+
+const REGISTRATION_CLOSED = true;
 
 
 // ============================================================
@@ -2685,25 +2690,86 @@ app.get(
             await connectDatabase();
 
 
-            const capacities =
-                await Promise.all(
+const capacities =
+    await Promise.all(
 
-                    Object.keys(
-                        events
-                    ).map(
-                        async function (
-                            eventId
-                        ) {
+        Object.keys(
+            events
+        ).map(
+            async function (
+                eventId
+            ) {
 
-                            return await getEventCapacity(
-                                eventId
-                            );
+                const capacity =
+                    await getEventCapacity(
+                        eventId
+                    );
 
-                        }
-                    )
+                // ------------------------------------------------
+                // TEMPORARY REGISTRATION CLOSURE
+                // Show every event as completely full publicly.
+                // Actual MongoDB registration data is NOT changed.
+                // ------------------------------------------------
 
-                );
+                if (
+                    REGISTRATION_CLOSED &&
+                    capacity
+                ) {
 
+                    if (
+                        capacity.type === "team"
+                    ) {
+
+                        return {
+                            ...capacity,
+
+                            registeredTeams:
+                                capacity.maxTeams,
+
+                            registeredParticipants:
+                                capacity.maxParticipants,
+
+                            remainingTeams:
+                                0,
+
+                            remainingParticipants:
+                                0,
+
+                            percentage:
+                                100,
+
+                            full:
+                                true
+                        };
+
+                    }
+
+
+                    return {
+                        ...capacity,
+
+                        registeredParticipants:
+                            capacity.maxParticipants,
+
+                        remainingParticipants:
+                            0,
+
+                        percentage:
+                            100,
+
+                        full:
+                            true
+                    };
+
+                }
+
+
+                return capacity;
+
+            }
+        )
+
+    );
 
             return res.json({
 
@@ -2882,7 +2948,22 @@ app.get(
 app.post(
     "/api/register",
     async (req, res) => {
+ // ------------------------------------------------
+        // TEMPORARY REGISTRATION CLOSURE
+        // ------------------------------------------------
 
+        if (REGISTRATION_CLOSED) {
+
+            return res.status(403).json({
+
+                success: false,
+
+                message:
+                    "Registration is currently closed."
+
+            });
+
+        }
         try {
 
             await connectDatabase();
