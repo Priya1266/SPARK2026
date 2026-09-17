@@ -25,7 +25,7 @@ const PORT =
 // TEMPORARY REGISTRATION CLOSURE
 // ============================================================
 
-const REGISTRATION_CLOSED = true;
+const REGISTRATION_CLOSED = false;
 
 
 // ============================================================
