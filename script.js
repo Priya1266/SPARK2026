@@ -650,16 +650,15 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
 
-    /*
-       SPARK 2026 starts on
-       22 September 2026 at 09:00 AM.
-    */
+/*
+   SPARK 2026 starts on
+   24 September 2026 at 12:00 AM.
+*/
 
-    const eventStart =
-        new Date(
-            "September 22, 2026 09:00:00"
-        ).getTime();
-
+const eventStart =
+    new Date(
+        "September 24, 2026 00:00:00"
+    ).getTime();
 
 
     function updateCountdown() {
