@@ -232,7 +232,6 @@ async function connectDatabase() {
                 // IdeaForge     -> IDF
                 // Circuit Clash -> CC
                 // iQuest        -> IQ
-                // CodeSprint    -> CS
                 //
                 // This guarantees sequential IDs such as:
                 //
@@ -384,102 +383,73 @@ async function connectDatabase() {
 // ============================================================
 // MODULE 5 — EVENT CONFIGURATION
 // ============================================================
-
-const events = {
-
+const EVENTS = {
     ideaforge: {
+        name: "iDeaForge",
+        participants: 2,
 
-        name:
-            "iDeaForge",
+        // Unlimited registrations
+        maxTeams: null,
+        maxParticipants: null,
 
-        participants:
-            2,
+        // Fees
+        internalFeePerPerson: 150,
+        externalFeePerPerson: 250,
+        internalTotalFee: 300,
+        externalTotalFee: 500,
 
-        maxTeams:
-            30,
+        participation: "internal-external",
 
-        maxParticipants:
-            60,
+        internalDate: "24 September 2026",
+        externalDate: "25 September 2026",
+        time: "9:30 AM – 12:15 PM",
 
-        feePerParticipant:
-            200,
-
-        code:
-            "IDF"
-
+        code: "IDF"
     },
-
 
     circuitclash: {
+        name: "Circuit Clash",
+        participants: 2,
 
-        name:
-            "Circuit Clash",
+        // Unlimited registrations
+        maxTeams: null,
+        maxParticipants: null,
 
-        participants:
-            2,
+        // Internal only
+        internalFeePerPerson: 150,
+        internalTotalFee: 300,
 
-        maxTeams:
-            30,
+        participation: "internal",
 
-        maxParticipants:
-            60,
+        date: "24 September 2026",
+        time: "1:00 PM – 3:15 PM",
 
-        feePerParticipant:
-            200,
-
-        code:
-            "CC"
-
+        code: "CC"
     },
-
 
     iqquest: {
+        name: "iQuest",
+        participants: 2,
 
-        name:
-            "iQuest",
+        // Unlimited registrations
+        maxTeams: null,
+        maxParticipants: null,
 
-        participants:
-            2,
+        // Fees
+        internalFeePerPerson: 150,
+        externalFeePerPerson: 250,
+        internalTotalFee: 300,
+        externalTotalFee: 500,
 
-        maxTeams:
-            30,
+        participation: "internal-external",
 
-        maxParticipants:
-            60,
+        internalDate: "24 September 2026",
+        externalDate: "25 September 2026",
+        time: "9:30 AM – 12:15 PM",
 
-        feePerParticipant:
-            200,
-
-        code:
-            "IQ"
-
-    },
-
-
-    codesprint: {
-
-        name:
-            "CodeSprint",
-
-        participants:
-            1,
-
-        maxTeams:
-            null,
-
-        maxParticipants:
-            60,
-
-        feePerParticipant:
-            200,
-
-        code:
-            "CS"
-
+        code: "IQ"
     }
-
 };
-
 
 // ============================================================
 // MODULE 6 — PAYMENT CONFIGURATION
@@ -517,179 +487,46 @@ function cleanText(value) {
     ).trim();
 
 }
-
-// ============================================================
-// MODULE 7A — EVENT CAPACITY HELPERS
-// ============================================================
-
 async function getEventCapacity(eventId) {
 
-    const event =
-        events[eventId];
-
+    const event = EVENTS[eventId];
 
     if (!event) {
-
         return null;
-
     }
 
-
-    const totalRegistrations =
+    const registeredTeams =
         await registrationsCollection.countDocuments({
-
-            eventId:
-                eventId,
-
-            verificationStatus:
-                {
-                    $ne:
-                        "REJECTED"
-                }
-
+            eventId: eventId,
+            verificationStatus: {
+                $ne: "REJECTED"
+            }
         });
 
-
-    const isTeamEvent =
-        event.participants > 1;
-
-
-    if (isTeamEvent) {
-
-        const registeredTeams =
-            totalRegistrations;
-
-
-        const registeredParticipants =
-            registeredTeams *
-            event.participants;
-
-
-        const remainingTeams =
-            Math.max(
-                0,
-                event.maxTeams -
-                registeredTeams
-            );
-
-
-        const remainingParticipants =
-            Math.max(
-                0,
-                event.maxParticipants -
-                registeredParticipants
-            );
-
-
-        return {
-
-            eventId:
-                eventId,
-
-            eventName:
-                event.name,
-
-            type:
-                "team",
-
-            registeredTeams:
-                registeredTeams,
-
-            registeredParticipants:
-                registeredParticipants,
-
-            maxTeams:
-                event.maxTeams,
-
-            maxParticipants:
-                event.maxParticipants,
-
-            remainingTeams:
-                remainingTeams,
-
-            remainingParticipants:
-                remainingParticipants,
-
-            percentage:
-                Math.min(
-                    100,
-                    Math.round(
-                        (
-                            registeredTeams /
-                            event.maxTeams
-                        ) * 100
-                    )
-                ),
-
-            full:
-                registeredTeams >=
-                event.maxTeams
-
-        };
-
-    }
-
-
     const registeredParticipants =
-        totalRegistrations;
-
-
-    const remainingParticipants =
-        Math.max(
-            0,
-            event.maxParticipants -
-            registeredParticipants
-        );
-
+        registeredTeams * event.participants;
 
     return {
+        eventId,
+        eventName: event.name,
 
-        eventId:
-            eventId,
+        type: "team",
 
-        eventName:
-            event.name,
+        registeredTeams,
+        registeredParticipants,
 
-        type:
-            "individual",
+        maxTeams: null,
+        maxParticipants: null,
 
-        registeredTeams:
-            null,
+        remainingTeams: null,
+        remainingParticipants: null,
 
-        registeredParticipants:
-            registeredParticipants,
+        percentage: null,
 
-        maxTeams:
-            null,
-
-        maxParticipants:
-            event.maxParticipants,
-
-        remainingTeams:
-            null,
-
-        remainingParticipants:
-            remainingParticipants,
-
-        percentage:
-            Math.min(
-                100,
-                Math.round(
-                    (
-                        registeredParticipants /
-                        event.maxParticipants
-                    ) * 100
-                )
-            ),
-
-        full:
-            registeredParticipants >=
-            event.maxParticipants
-
+        full: false,
+        unlimited: true
     };
-
 }
-
 
 // ============================================================
 // MODULE 8 — SEQUENTIAL REGISTRATION ID
@@ -797,46 +634,6 @@ async function generateRegistrationCode(
     }
 
 
-    // ============================================================
-    // CHECK EVENT CAPACITY
-    // ============================================================
-
-    const maximum =
-        event.participants > 1
-            ? event.maxTeams
-            : event.maxParticipants;
-
-
-    if (
-        sequence >
-        maximum
-    ) {
-
-        // Roll back counter
-
-        await countersCollection.findOneAndUpdate(
-
-            {
-                _id:
-                    counterKey
-            },
-
-            {
-                $inc:
-                    {
-                        sequence:
-                            -1
-                    }
-            }
-
-        );
-
-
-        throw new Error(
-            `${event.name} registration capacity has been reached.`
-        );
-
-    }
 
 
     // ============================================================
@@ -1501,9 +1298,17 @@ async function sendVerificationEmail(
         );
 
 
-    const isTeamEvent =
-        registration.participation !==
-            "individual";
+const participationLabel =
+    cleanText(
+        registration.participationLabel ||
+        (
+            registration.participationType === "external"
+                ? "External"
+                : "Internal"
+        )
+    );
+
+const isTeamEvent = true;
 
 
     const recipient =
@@ -2068,11 +1873,7 @@ async function sendVerificationEmail(
                         </td>
 
                         <td style="${valueStyle}">
-                            ${
-                                isTeamEvent
-                                    ? "Team"
-                                    : "Individual"
-                            }
+${participationLabel || "Internal"}
                         </td>
 
                     </tr>
@@ -2329,11 +2130,7 @@ async function sendVerificationEmail(
             "",
             `Registration ID: ${registrationId}`,
             `Event: ${eventName}`,
-            `Participation: ${
-                isTeamEvent
-                    ? "Team"
-                    : "Individual"
-            }`,
+`Participation: ${participationLabel || "Internal"}`,
             `Amount Paid: ${amount}`,
             "",
             participantText,
@@ -2676,7 +2473,6 @@ app.get(
     }
 );
 
-
 // ============================================================
 // MODULE 19 — EVENT CAPACITY API
 // ============================================================
@@ -2689,96 +2485,25 @@ app.get(
 
             await connectDatabase();
 
+            const capacities =
+                await Promise.all(
+                    Object.keys(EVENTS).map(
+                        async function (eventId) {
 
-const capacities =
-    await Promise.all(
+                            const capacity =
+                                await getEventCapacity(
+                                    eventId
+                                );
 
-        Object.keys(
-            events
-        ).map(
-            async function (
-                eventId
-            ) {
+                            return capacity;
 
-                const capacity =
-                    await getEventCapacity(
-                        eventId
-                    );
-
-                // ------------------------------------------------
-                // TEMPORARY REGISTRATION CLOSURE
-                // Show every event as completely full publicly.
-                // Actual MongoDB registration data is NOT changed.
-                // ------------------------------------------------
-
-                if (
-                    REGISTRATION_CLOSED &&
-                    capacity
-                ) {
-
-                    if (
-                        capacity.type === "team"
-                    ) {
-
-                        return {
-                            ...capacity,
-
-                            registeredTeams:
-                                capacity.maxTeams,
-
-                            registeredParticipants:
-                                capacity.maxParticipants,
-
-                            remainingTeams:
-                                0,
-
-                            remainingParticipants:
-                                0,
-
-                            percentage:
-                                100,
-
-                            full:
-                                true
-                        };
-
-                    }
-
-
-                    return {
-                        ...capacity,
-
-                        registeredParticipants:
-                            capacity.maxParticipants,
-
-                        remainingParticipants:
-                            0,
-
-                        percentage:
-                            100,
-
-                        full:
-                            true
-                    };
-
-                }
-
-
-                return capacity;
-
-            }
-        )
-
-    );
+                        }
+                    )
+                );
 
             return res.json({
-
-                success:
-                    true,
-
-                events:
-                    capacities
-
+                success: true,
+                events: capacities
             });
 
         }
@@ -2789,23 +2514,16 @@ const capacities =
                 error
             );
 
-
             return res.status(500).json({
-
-                success:
-                    false,
-
+                success: false,
                 message:
                     "Unable to load event capacity."
-
             });
 
         }
 
     }
 );
-
-
 // ============================================================
 // MODULE 20 — REGISTRATION STATUS
 // ============================================================
@@ -2865,11 +2583,20 @@ app.get(
                                 eventName:
                                     1,
 
-                                participation:
-                                    1,
+participation:
+    1,
 
-                                teamName:
-                                    1,
+participationType:
+    1,
+
+participationLabel:
+    1,
+
+teamSize:
+    1,
+
+teamName:
+    1,
 
                                 paymentStatus:
                                     1,
@@ -2975,6 +2702,9 @@ app.post(
 
                 eventName,
 
+participationType,
+
+participationLabel,
                 teamSize,
 
                 amount,
@@ -3007,11 +2737,10 @@ app.post(
                 ).toLowerCase();
 
 
-            const event =
-                events[
-                    cleanEventId
-                ];
-
+const event =
+    EVENTS[
+        cleanEventId
+    ];
 
             if (
                 !event
@@ -3100,30 +2829,69 @@ app.post(
                 );
 
 
-            const expectedAmount =
-                event.participants *
-                event.feePerParticipant;
+// ------------------------------------------------
+// PARTICIPATION TYPE
+// ------------------------------------------------
+
+const cleanParticipationType =
+    cleanText(
+        participationType
+    ).toLowerCase();
+
+const allowedParticipationTypes =
+    event.participation === "internal-external"
+        ? ["internal", "external"]
+        : ["internal"];
+
+if (
+    !allowedParticipationTypes.includes(
+        cleanParticipationType
+    )
+) {
+
+    return res.status(400).json({
+
+        success: false,
+
+        message:
+            "Invalid participation type for this event."
+
+    });
+
+}
 
 
-            if (
-                !Number.isFinite(
-                    cleanAmount
-                ) ||
-                cleanAmount !==
-                    expectedAmount
-            ) {
+// ------------------------------------------------
+// REGISTRATION FEE
+// ------------------------------------------------
 
-                return res.status(400).json({
+const expectedFeePerPerson =
+    cleanParticipationType === "external"
+        ? event.externalFeePerPerson
+        : event.internalFeePerPerson;
 
-                    success:
-                        false,
 
-                    message:
-                        `Registration amount must be ₹${expectedAmount}.`
+const expectedAmount =
+    expectedFeePerPerson *
+    event.participants;
 
-                });
 
-            }
+if (
+    !Number.isFinite(cleanAmount) ||
+    cleanAmount !== expectedAmount
+) {
+
+    return res.status(400).json({
+
+        success: false,
+
+        message:
+            `Registration amount must be ₹${expectedAmount}.`
+
+    });
+
+}
+
 
 
             // ------------------------------------------------
@@ -3237,39 +3005,6 @@ app.post(
 
                     message:
                         "This UPI Transaction ID has already been submitted."
-
-                });
-
-            }
-
-
-            // ------------------------------------------------
-            // EVENT CAPACITY CHECK
-            // ------------------------------------------------
-
-            const currentCapacity =
-                await getEventCapacity(
-                    cleanEventId
-                );
-
-
-            if (
-                currentCapacity &&
-                currentCapacity.full
-            ) {
-
-                return res.status(409).json({
-
-                    success:
-                        false,
-
-                    message:
-                        currentCapacity.type ===
-                        "team"
-
-                            ? `${event.name} registration is full. Maximum ${event.maxTeams} teams are allowed.`
-
-                            : `${event.name} registration is full. Maximum ${event.maxParticipants} participants are allowed.`
 
                 });
 
@@ -3525,16 +3260,22 @@ if (
 
                         event.code,
 
-                    participation:
+participation:
+    "team",
 
-                        event.participants >
-                        1
-                            ? "team"
-                            : "individual",
+participationType:
+    cleanParticipationType,
 
-                    teamSize:
+participationLabel:
+    cleanParticipationType === "external"
+        ? "External"
+        : "Internal",
 
-                        cleanTeamSize,
+teamSize:
+    cleanTeamSize,
+
+feePerPerson:
+    expectedFeePerPerson,
 
                     teamName:
 
@@ -4563,21 +4304,14 @@ app.get(
             await connectDatabase();
 
 
-            const statistics =
-                await Promise.all(
-
-                    Object.keys(
-                        events
-                    ).map(
-                        async function (
-                            eventId
-                        ) {
-
-                            const event =
-                                events[
-                                    eventId
-                                ];
-
+const statistics =
+    await Promise.all(
+        Object.keys(EVENTS).map(
+            async function (eventId) {
+const event =
+    EVENTS[
+        eventId
+    ];
 
                             const verifiedCount =
                                 await registrationsCollection.countDocuments({
@@ -5785,14 +5519,12 @@ app.post(
             await connectDatabase();
 
 
-            const eventCodes =
-                [
-                    "IDF",
-                    "CC",
-                    "IQ",
-                    "CS"
-                ];
-
+const eventCodes =
+    [
+        "IDF",
+        "CC",
+        "IQ"
+    ];
 
             await countersCollection.deleteMany({
 
@@ -5881,14 +5613,12 @@ app.post(
             // RESET ALL COUNTERS
             // ------------------------------------------------
 
-            const eventCodes =
-                [
-                    "IDF",
-                    "CC",
-                    "IQ",
-                    "CS"
-                ];
-
+const eventCodes =
+    [
+        "IDF",
+        "CC",
+        "IQ"
+    ];
 
             await countersCollection.deleteMany({
 
@@ -5956,13 +5686,12 @@ app.get(
             await connectDatabase();
 
 
-            const eventCodes =
-                [
-                    "IDF",
-                    "CC",
-                    "IQ",
-                    "CS"
-                ];
+const eventCodes =
+    [
+        "IDF",
+        "CC",
+        "IQ"
+    ];
 
 
             const counters =
@@ -6306,11 +6035,6 @@ if (
 
                         console.log(
                             "iQuest: SPK26-IQ-01 → SPK26-IQ-30"
-                        );
-
-
-                        console.log(
-                            "CodeSprint: SPK26-CS-01 → SPK26-CS-60"
                         );
 
 
