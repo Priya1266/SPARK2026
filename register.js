@@ -16,7 +16,7 @@
       ↓
    QR + UPI ID
       ↓
-   Payer Name + 16 Digit UTR
+   Payer Name + 12 Digit UTR
       ↓
    Submit Payment Details
       ↓
@@ -41,8 +41,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const API_BASE_URL = "";
 
-    const PRICE_PER_PERSON = 200;
-
     const UPI_ID = "9940464883@ptaxis";
 
 
@@ -57,101 +55,46 @@ document.addEventListener("DOMContentLoaded", function () {
         params.get("event");
 
 
-    /* ============================================================
-       MODULE 3 — EVENT CONFIGURATION
-       ============================================================ */
-
     const registrationEvents = {
+    ideaforge: {
+        name: "iDeaForge",
+        participation: "internal-external",
+        participantCount: 2,
+        internalFeePerPerson: 150,
+        externalFeePerPerson: 250,
+        internalTotalFee: 300,
+        externalTotalFee: 500,
+        internalDate: "24 September 2026",
+        externalDate: "25 September 2026",
+        time: "9:30 AM – 12:15 PM",
+        venue: "Sathyabama Institute of Science and Technology"
+    },
 
-        ideaforge: {
+    circuitclash: {
+        name: "Circuit Clash",
+        participation: "internal",
+        participantCount: 2,
+        internalFeePerPerson: 150,
+        internalTotalFee: 300,
+        date: "24 September 2026",
+        time: "1:00 PM – 3:15 PM",
+        venue: "Sathyabama Institute of Science and Technology"
+    },
 
-            name: "iDeaForge",
-
-            participation: "team",
-
-            participantCount: 2,
-
-            date: "22 September 2026",
-
-            time: "10:00 AM – 12:30 PM",
-
-            venue:
-                "Sathyabama Institute of Science and Technology",
-
-            feePerPerson: 200,
-
-            totalFee: 400
-
-        },
-
-
-        circuitclash: {
-
-            name: "Circuit Clash",
-
-            participation: "team",
-
-            participantCount: 2,
-
-            date: "22 September 2026",
-
-            time: "1:00 PM – 3:00 PM",
-
-            venue:
-                "Sathyabama Institute of Science and Technology",
-
-            feePerPerson: 200,
-
-            totalFee: 400
-
-        },
-
-
-        iqquest: {
-
-            name: "iQuest",
-
-            participation: "team",
-
-            participantCount: 2,
-
-            date: "23 September 2026",
-
-            time: "1:00 PM – 3:00 PM",
-
-            venue:
-                "Sathyabama Institute of Science and Technology",
-
-            feePerPerson: 200,
-
-            totalFee: 400
-
-        },
-
-
-        codesprint: {
-
-            name: "CodeSprint",
-
-            participation: "individual",
-
-            participantCount: 1,
-
-            date: "23 September 2026",
-
-            time: "10:00 AM – 12:30 PM",
-
-            venue:
-                "Sathyabama Institute of Science and Technology",
-
-            feePerPerson: 200,
-
-            totalFee: 200
-
-        }
-
-    };
-
+    iqquest: {
+        name: "iQuest",
+        participation: "internal-external",
+        participantCount: 2,
+        internalFeePerPerson: 150,
+        externalFeePerPerson: 250,
+        internalTotalFee: 300,
+        externalTotalFee: 500,
+        internalDate: "24 September 2026",
+        externalDate: "25 September 2026",
+        time: "9:30 AM – 12:15 PM",
+        venue: "Sathyabama Institute of Science and Technology"
+    }
+};
 
     /* ============================================================
        MODULE 4 — CHECK EVENT
@@ -225,20 +168,6 @@ document.addEventListener("DOMContentLoaded", function () {
             "continueParticipation"
         );
 
-    const teamSizeBox =
-        document.getElementById("teamSizeBox");
-
-    const teamCount =
-        document.getElementById("teamCount");
-
-    const teamTotal =
-        document.getElementById("teamTotal");
-
-    const decreaseTeam =
-        document.getElementById("decreaseTeam");
-
-    const increaseTeam =
-        document.getElementById("increaseTeam");
 
 
     // ------------------------------------------------------------
@@ -525,615 +454,440 @@ document.addEventListener("DOMContentLoaded", function () {
        MODULE 6 — STATE
        ============================================================ */
 
-    let selectedParticipation =
-        currentEvent.participation;
+let selectedParticipation = null;
 
-    let participantCount =
-        currentEvent.participantCount;
+let participantCount = 2;
+
+let selectedFeePerPerson = 0;
+
+let selectedTotalAmount = 0;
 
     let registrationData =
         null;
 
 
-    /* ============================================================
-       MODULE 7 — EVENT INFORMATION
-       ============================================================ */
+ /* ============================================================
+   MODULE 7 — EVENT INFORMATION
+   ============================================================ */
 
-    if (eventTitle) {
+if (eventTitle) {
 
-        eventTitle.textContent =
-            currentEvent.name;
-
-    }
-
-
-    if (eventSubtitle) {
-
-        eventSubtitle.textContent =
-            "Complete your registration below";
-
-    }
+    eventTitle.textContent =
+        currentEvent.name;
+}
 
 
-    if (eventDate) {
+if (eventSubtitle) {
+
+    eventSubtitle.textContent =
+        "Complete your registration below";
+}
+
+
+if (eventDate) {
+
+    if (
+        currentEvent.participation ===
+        "internal-external"
+    ) {
+
+        eventDate.textContent =
+            "24 September 2026 (Internal) | 25 September 2026 (External)";
+
+    } else {
 
         eventDate.textContent =
             currentEvent.date;
-
     }
+}
 
 
-    if (eventTime) {
+if (eventTime) {
 
-        eventTime.textContent =
-            currentEvent.time;
+    eventTime.textContent =
+        currentEvent.time;
+}
 
-    }
 
+if (eventVenue) {
 
-    if (eventVenue) {
+    eventVenue.textContent =
+        currentEvent.venue;
+}
 
-        eventVenue.textContent =
-            currentEvent.venue;
 
-    }
+if (eventFee) {
 
-
-    if (eventFee) {
-
-        eventFee.textContent =
-            `₹${currentEvent.feePerPerson} / Participant`;
-
-    }
-
-
-    if (paymentUpiId) {
-
-        paymentUpiId.textContent =
-            UPI_ID;
-
-    }
-
-
-    /* ============================================================
-       MODULE 8 — PARTICIPATION UI
-       ============================================================ */
-
-    function updateParticipationUI() {
-
-        const isTeam =
-            selectedParticipation ===
-            "team";
-
-
-        participantCount =
-            Number(
-                currentEvent.participantCount
-            );
-
-
-        if (teamSizeBox) {
-
-            teamSizeBox.hidden =
-                !isTeam;
-
-        }
-
-
-        if (teamCount) {
-
-            teamCount.textContent =
-                participantCount;
-
-        }
-
-
-        if (teamTotal) {
-
-            teamTotal.textContent =
-                `₹${participantCount * PRICE_PER_PERSON}`;
-
-        }
-
-
-        if (teamNameBox) {
-
-            teamNameBox.hidden =
-                !isTeam;
-
-        }
-
-
-        if (!isTeam && teamNameInput) {
-
-            teamNameInput.value =
-                "";
-
-        }
-
-
-        if (selectedType) {
-
-            selectedType.textContent =
-                isTeam
-                    ? "Team"
-                    : "Individual";
-
-        }
-
-
-        if (selectedCount) {
-
-            selectedCount.textContent =
-                participantCount;
-
-        }
-
-
-        if (selectedTotal) {
-
-            selectedTotal.textContent =
-                `₹${participantCount * PRICE_PER_PERSON}`;
-
-        }
-
-
-        if (participationMessage) {
-
-            const message =
-                participationMessage.querySelector(
-                    "p"
-                );
-
-
-            if (message) {
-
-                message.textContent =
-                    isTeam
-
-                        ? "This event requires exactly 2 participants per team."
-
-                        : "This event allows individual participation only.";
-
-            }
-
-        }
-
-
-        participationCards.forEach(
-            function (card) {
-
-                const type =
-                    String(
-                        card.dataset.participation || ""
-                    )
-                    .trim()
-                    .toLowerCase();
-
-
-                card.classList.remove(
-                    "selected",
-                    "active"
-                );
-
-
-                if (
-                    type ===
-                    selectedParticipation
-                ) {
-
-                    card.classList.add(
-                        "selected",
-                        "active"
-                    );
-
-                    card.hidden =
-                        false;
-
-                }
-
-                else {
-
-                    card.hidden =
-                        true;
-
-                }
-
-            }
-        );
-
-    }
-
-
-    /* ============================================================
-       PARTICIPATION CARD CLICK
-       ============================================================ */
-
-    participationCards.forEach(
-        function (card) {
-
-            card.addEventListener(
-                "click",
-                function () {
-
-                    const type =
-                        String(
-                            card.dataset.participation || ""
-                        )
-                        .trim()
-                        .toLowerCase();
-
-
-                    if (
-                        type !==
-                        currentEvent.participation
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    selectedParticipation =
-                        type;
-
-
-                    updateParticipationUI();
-
-                }
-            );
-
-        }
-    );
-
-
-    /* ============================================================
-       TEAM +/- BUTTONS
-       ============================================================ */
-
-    if (decreaseTeam) {
-
-        decreaseTeam.addEventListener(
-            "click",
-            function (event) {
-
-                event.preventDefault();
-
-                updateParticipationUI();
-
-            }
-        );
-
-    }
-
-
-    if (increaseTeam) {
-
-        increaseTeam.addEventListener(
-            "click",
-            function (event) {
-
-                event.preventDefault();
-
-                updateParticipationUI();
-
-            }
-        );
-
-    }
-
-
-    updateParticipationUI();
-
-
-    /* ============================================================
-       MODULE 9 — PARTICIPANT FORMS
-       ============================================================ */
-
-    function generateParticipantForms() {
-
-        if (!participantForms) {
-
-            return;
-
-        }
-
-
-        participantForms.innerHTML =
-            "";
-
-
-        for (
-            let i = 1;
-            i <= participantCount;
-            i++
-        ) {
-
-            createParticipantForm(i);
-
-        }
-
-    }
-
-
-    function createParticipantForm(
-        number
+    if (
+        currentEvent.participation ===
+        "internal-external"
     ) {
 
-        const wrapper =
-            document.createElement(
-                "div"
-            );
+        eventFee.textContent =
+            "Internal ₹150 / Participant | External ₹250 / Participant";
 
+    } else {
 
-        wrapper.className =
-            "participant-card";
-
-
-        wrapper.dataset.participant =
-            number;
-
-
-        let roleTitle;
-        let roleBadge;
-        let roleDescription;
-
-
-        if (
-            selectedParticipation ===
-            "team"
-        ) {
-
-            if (
-                number === 1
-            ) {
-
-                roleTitle =
-                    "Team Leader";
-
-                roleBadge =
-                    "TEAM LEADER";
-
-                roleDescription =
-                    "Enter the details of the team leader.";
-
-            }
-
-            else {
-
-                roleTitle =
-                    "Team Member";
-
-                roleBadge =
-                    "TEAM MEMBER";
-
-                roleDescription =
-                    "Enter the details of the team member.";
-
-            }
-
-        }
-
-        else {
-
-            roleTitle =
-                "Participant";
-
-            roleBadge =
-                "PARTICIPANT";
-
-            roleDescription =
-                "Enter your participant information.";
-
-        }
-
-
-        wrapper.innerHTML = `
-
-            <div class="participant-card-header">
-
-                <div class="participant-number">
-                    ${String(number).padStart(2, "0")}
-                </div>
-
-                <div class="participant-role">
-
-                    <span class="role-badge">
-                        ${roleBadge}
-                    </span>
-
-                    <h3>
-                        ${roleTitle}
-                    </h3>
-
-                    <p>
-                        ${roleDescription}
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="participant-form-grid">
-
-
-                <div class="participant-field full">
-
-                    <label
-                        for="participantName${number}"
-                    >
-                        Full Name
-                        <span>*</span>
-                    </label>
-
-                    <input
-                        type="text"
-                        id="participantName${number}"
-                        placeholder="Enter full name"
-                        autocomplete="name"
-                    >
-
-                    <small
-                        class="field-error"
-                        id="participantName${number}Error"
-                    ></small>
-
-                </div>
-
-
-                <div class="participant-field full">
-
-                    <label
-                        for="participantCollege${number}"
-                    >
-                        College / Institution
-                        <span>*</span>
-                    </label>
-
-                    <input
-                        type="text"
-                        id="participantCollege${number}"
-                        placeholder="Enter college / institution"
-                    >
-
-                    <small
-                        class="field-error"
-                        id="participantCollege${number}Error"
-                    ></small>
-
-                </div>
-
-
-                <div class="participant-field">
-
-                    <label
-                        for="participantDepartment${number}"
-                    >
-                        Department
-                        <span>*</span>
-                    </label>
-
-                    <input
-                        type="text"
-                        id="participantDepartment${number}"
-                        placeholder="e.g. ECE"
-                    >
-
-                    <small
-                        class="field-error"
-                        id="participantDepartment${number}Error"
-                    ></small>
-
-                </div>
-
-
-                <div class="participant-field">
-
-                    <label
-                        for="participantYear${number}"
-                    >
-                        Year
-                        <span>*</span>
-                    </label>
-
-                    <select
-                        id="participantYear${number}"
-                    >
-
-                        <option value="">
-                            Select year
-                        </option>
-
-                        <option value="1st Year">
-                            1st Year
-                        </option>
-
-                        <option value="2nd Year">
-                            2nd Year
-                        </option>
-
-                        <option value="3rd Year">
-                            3rd Year
-                        </option>
-
-                        <option value="4th Year">
-                            4th Year
-                        </option>
-
-                        <option value="5th Year">
-                            5th Year
-                        </option>
-
-                    </select>
-
-                    <small
-                        class="field-error"
-                        id="participantYear${number}Error"
-                    ></small>
-
-                </div>
-
-
-                <div class="participant-field">
-
-                    <label
-                        for="participantPhone${number}"
-                    >
-                        Phone Number
-                        <span>*</span>
-                    </label>
-
-                    <input
-                        type="tel"
-                        id="participantPhone${number}"
-                        placeholder="10-digit mobile number"
-                        maxlength="10"
-                        inputmode="numeric"
-                    >
-
-                    <small
-                        class="field-error"
-                        id="participantPhone${number}Error"
-                    ></small>
-
-                </div>
-
-
-                <div class="participant-field">
-
-                    <label
-                        for="participantEmail${number}"
-                    >
-                        Email
-                        <span>*</span>
-                    </label>
-
-                    <input
-                        type="email"
-                        id="participantEmail${number}"
-                        placeholder="Enter email address"
-                        autocomplete="email"
-                    >
-
-                    <small
-                        class="field-error"
-                        id="participantEmail${number}Error"
-                    ></small>
-
-                </div>
-
-
-            </div>
-
-        `;
-
-
-        participantForms.appendChild(
-            wrapper
-        );
-
+        eventFee.textContent =
+            "Internal ₹150 / Participant";
     }
+}
+
+
+if (paymentUpiId) {
+
+    paymentUpiId.textContent =
+        UPI_ID;
+}
+
+/* MODULE 8 — PARTICIPATION UI */
+
+function getAllowedParticipationTypes() {
+    if (currentEvent.participation === "internal-external") {
+        return ["internal", "external"];
+    }
+
+    return ["internal"];
+}
+
+function getSelectedFeePerPerson() {
+    if (selectedParticipation === "external") {
+        return currentEvent.externalFeePerPerson;
+    }
+
+    return currentEvent.internalFeePerPerson;
+}
+
+function getSelectedDate() {
+    if (selectedParticipation === "external") {
+        return currentEvent.externalDate;
+    }
+
+    return currentEvent.internalDate || currentEvent.date;
+}
+
+function updateParticipationUI() {
+    const allowedTypes = getAllowedParticipationTypes();
+
+    // Exactly 2 participants for every event
+    participantCount = 2;
+
+    // Make sure the selected participation type is valid
+    if (!selectedParticipation || !allowedTypes.includes(selectedParticipation)) {
+        selectedParticipation = allowedTypes[0];
+    }
+
+    // Calculate fee
+    selectedFeePerPerson = getSelectedFeePerPerson();
+    selectedTotalAmount = selectedFeePerPerson * participantCount;
+
+    // Team name is required for all events
+    if (teamNameBox) {
+        teamNameBox.hidden = false;
+    }
+
+    // Update selected summary
+    if (selectedType) {
+        selectedType.textContent =
+            selectedParticipation === "external"
+                ? "External Team"
+                : "Internal Team";
+    }
+
+    if (selectedCount) {
+        selectedCount.textContent = "2";
+    }
+
+    if (selectedTotal) {
+        selectedTotal.textContent = `₹${selectedTotalAmount}`;
+    }
+
+    // Participation message
+    if (participationMessage) {
+        if (currentEvent.participation === "internal-external") {
+            participationMessage.textContent =
+                "Select Internal or External. Both options require exactly 2 participants. " +
+                "Internal teams pay ₹300 (₹150/person); External teams pay ₹500 (₹250/person). " +
+                "Internal and External participants cannot be mixed.";
+        } else {
+            participationMessage.textContent =
+                "Circuit Clash is open to Internal participants only. Exactly 2 participants per team. " +
+                "Registration fee: ₹300 per team (₹150/person).";
+        }
+    }
+
+    // Show / hide participation cards
+    if (participationCards && participationCards.length) {
+        participationCards.forEach(card => {
+            const type = card.dataset.participation;
+
+            if (allowedTypes.includes(type)) {
+                card.hidden = false;
+            } else {
+                card.hidden = true;
+            }
+
+            card.classList.toggle(
+                "selected",
+                type === selectedParticipation
+            );
+        });
+    }
+}
+
+
+// Participation card click
+if (participationCards && participationCards.length) {
+    participationCards.forEach(card => {
+        card.addEventListener("click", () => {
+            const type = card.dataset.participation;
+            const allowedTypes = getAllowedParticipationTypes();
+
+            if (!allowedTypes.includes(type)) {
+                return;
+            }
+
+            selectedParticipation = type;
+
+            updateParticipationUI();
+        });
+    });
+}
+
+
+// Initialize participation UI
+updateParticipationUI();
+  /* ============================================================
+   MODULE 9 — PARTICIPANT FORMS
+   ============================================================ */
+
+function generateParticipantForms() {
+
+    if (!participantForms) {
+        return;
+    }
+
+    participantForms.innerHTML = "";
+
+    participantCount = 2;
+
+    for (
+        let i = 1;
+        i <= participantCount;
+        i++
+    ) {
+        createParticipantForm(i);
+    }
+}
+
+
+function createParticipantForm(number) {
+
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.className =
+        "participant-card";
+
+    wrapper.dataset.participant =
+        number;
+
+    const roleTitle =
+        number === 1
+            ? "Team Leader"
+            : "Team Member";
+
+    const roleBadge =
+        number === 1
+            ? "TEAM LEADER"
+            : "TEAM MEMBER";
+
+    const roleDescription =
+        number === 1
+            ? "Enter the details of the team leader."
+            : "Enter the details of the team member.";
+
+    wrapper.innerHTML = `
+
+        <div class="participant-card-header">
+
+            <div class="participant-number">
+                ${String(number).padStart(2, "0")}
+            </div>
+
+            <div class="participant-role">
+
+                <span class="role-badge">
+                    ${roleBadge}
+                </span>
+
+                <h3>
+                    ${roleTitle}
+                </h3>
+
+                <p>
+                    ${roleDescription}
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="participant-form-grid">
+
+            <div class="participant-field full">
+
+                <label for="participantName${number}">
+                    Full Name
+                    <span>*</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="participantName${number}"
+                    placeholder="Enter full name"
+                    autocomplete="name"
+                >
+
+                <small
+                    class="field-error"
+                    id="participantName${number}Error"
+                ></small>
+
+            </div>
+
+
+            <div class="participant-field full">
+
+                <label for="participantCollege${number}">
+                    College / Institution
+                    <span>*</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="participantCollege${number}"
+                    placeholder="Enter college / institution"
+                >
+
+                <small
+                    class="field-error"
+                    id="participantCollege${number}Error"
+                ></small>
+
+            </div>
+
+
+            <div class="participant-field">
+
+                <label for="participantDepartment${number}">
+                    Department
+                    <span>*</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="participantDepartment${number}"
+                    placeholder="e.g. ECE"
+                >
+
+                <small
+                    class="field-error"
+                    id="participantDepartment${number}Error"
+                ></small>
+
+            </div>
+
+
+            <div class="participant-field">
+
+                <label for="participantYear${number}">
+                    Year
+                    <span>*</span>
+                </label>
+
+                <select id="participantYear${number}">
+
+                    <option value="">
+                        Select year
+                    </option>
+
+                    <option value="1st Year">
+                        1st Year
+                    </option>
+
+                    <option value="2nd Year">
+                        2nd Year
+                    </option>
+
+                    <option value="3rd Year">
+                        3rd Year
+                    </option>
+
+                    <option value="4th Year">
+                        4th Year
+                    </option>
+
+                </select>
+
+                <small
+                    class="field-error"
+                    id="participantYear${number}Error"
+                ></small>
+
+            </div>
+
+
+            <div class="participant-field">
+
+                <label for="participantPhone${number}">
+                    Phone Number
+                    <span>*</span>
+                </label>
+
+                <input
+                    type="tel"
+                    id="participantPhone${number}"
+                    placeholder="10-digit mobile number"
+                    inputmode="numeric"
+                    maxlength="10"
+                >
+
+                <small
+                    class="field-error"
+                    id="participantPhone${number}Error"
+                ></small>
+
+            </div>
+
+
+            <div class="participant-field">
+
+                <label for="participantEmail${number}">
+                    Email Address
+                    <span>*</span>
+                </label>
+
+                <input
+                    type="email"
+                    id="participantEmail${number}"
+                    placeholder="Enter email address"
+                    autocomplete="email"
+                >
+
+                <small
+                    class="field-error"
+                    id="participantEmail${number}Error"
+                ></small>
+
+            </div>
+
+        </div>
+    `;
+
+    participantForms.appendChild(wrapper);
+}
 
 
     /* ============================================================
@@ -1418,64 +1172,67 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    /* ============================================================
-       MODULE 12 — CONTINUE TO PARTICIPANTS
-       ============================================================ */
+   /* ============================================================
+   MODULE 12 — CONTINUE TO PARTICIPANTS
+   ============================================================ */
 
-    if (continueParticipation) {
+if (continueParticipation) {
 
-        continueParticipation.addEventListener(
-            "click",
-            function (event) {
+    continueParticipation.addEventListener(
+        "click",
+        function (event) {
 
-                event.preventDefault();
+            event.preventDefault();
 
+            const allowedTypes =
+                getAllowedParticipationTypes();
 
+            if (
+                !selectedParticipation ||
+                !allowedTypes.includes(
+                    selectedParticipation
+                )
+            ) {
                 selectedParticipation =
-                    currentEvent.participation;
-
-
-                participantCount =
-                    currentEvent.participantCount;
-
-
-                updateParticipationUI();
-
-
-                if (participationSection) {
-
-                    participationSection.hidden =
-                        true;
-
-                }
-
-
-                if (participantSection) {
-
-                    participantSection.hidden =
-                        false;
-
-                }
-
-
-                generateParticipantForms();
-
-
-                participantSection?.scrollIntoView({
-
-                    behavior:
-                        "smooth",
-
-                    block:
-                        "start"
-
-                });
-
+                    allowedTypes[0];
             }
-        );
 
-    }
+            participantCount = 2;
 
+            selectedFeePerPerson =
+                getSelectedFeePerPerson();
+
+            selectedTotalAmount =
+                selectedFeePerPerson *
+                participantCount;
+
+            updateParticipationUI();
+
+
+            if (participationSection) {
+                participationSection.hidden =
+                    true;
+            }
+
+
+            if (participantSection) {
+                participantSection.hidden =
+                    false;
+            }
+
+
+            generateParticipantForms();
+
+
+            participantSection?.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+
+        }
+    );
+
+}
 
     /* ============================================================
        MODULE 13 — BACK TO PARTICIPATION
@@ -1606,392 +1363,336 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
+/* ============================================================
+   MODULE 16 — SHOW REVIEW
+   ============================================================ */
 
-    /* ============================================================
-       MODULE 16 — SHOW REVIEW
-       ============================================================ */
+function showReview(data) {
 
-    function showReview(
-        data
-    ) {
+    if (reviewEventName) {
 
-        if (reviewEventName) {
-
-            reviewEventName.textContent =
-                data.eventName;
-
-        }
-
-
-        if (reviewEventDate) {
-
-            reviewEventDate.textContent =
-                currentEvent.date;
-
-        }
-
-
-        if (reviewEventTime) {
-
-            reviewEventTime.textContent =
-                currentEvent.time;
-
-        }
-
-
-        if (reviewEventVenue) {
-
-            reviewEventVenue.textContent =
-                currentEvent.venue;
-
-        }
-
-
-        if (reviewParticipation) {
-
-            reviewParticipation.textContent =
-                data.participation ===
-                "team"
-
-                    ? "Team"
-
-                    : "Individual";
-
-        }
-
-
-        if (reviewParticipantCount) {
-
-            reviewParticipantCount.textContent =
-                data.participantCount;
-
-        }
-
-
-        if (reviewFeePerParticipant) {
-
-            reviewFeePerParticipant.textContent =
-                `₹${data.feePerPerson}`;
-
-        }
-
-
-        if (reviewTotalPeople) {
-
-            reviewTotalPeople.textContent =
-                data.participantCount;
-
-        }
-
-
-        if (reviewTotalAmount) {
-
-            reviewTotalAmount.textContent =
-                `₹${data.totalAmount}`;
-
-        }
-
-
-        if (reviewGrandTotal) {
-
-            reviewGrandTotal.textContent =
-                `₹${data.totalAmount}`;
-
-        }
-
-
-        /* --------------------------------------------------------
-           TEAM NAME
-           -------------------------------------------------------- */
-
-        if (
-            data.participation ===
-            "team"
-        ) {
-
-            if (reviewTeamNameBox) {
-
-                reviewTeamNameBox.hidden =
-                    false;
-
-            }
-
-
-            if (reviewTeamName) {
-
-                reviewTeamName.textContent =
-                    data.teamName;
-
-            }
-
-        }
-
-        else {
-
-            if (reviewTeamNameBox) {
-
-                reviewTeamNameBox.hidden =
-                    true;
-
-            }
-
-        }
-
-
-        /* --------------------------------------------------------
-           PARTICIPANTS
-           -------------------------------------------------------- */
-
-        if (reviewParticipants) {
-
-            reviewParticipants.innerHTML =
-                "";
-
-
-            data.participants.forEach(
-                function (
-                    participant,
-                    index
-                ) {
-
-                    const card =
-                        document.createElement(
-                            "div"
-                        );
-
-
-                    card.className =
-                        "review-participant-card";
-
-
-                    let role;
-
-
-                    if (
-                        data.participation ===
-                        "team"
-                    ) {
-
-                        role =
-                            index === 0
-                                ? "Team Leader"
-                                : "Team Member";
-
-                    }
-
-                    else {
-
-                        role =
-                            "Participant";
-
-                    }
-
-
-                    card.innerHTML = `
-
-                        <div>
-
-                            <span>
-                                ${role}
-                            </span>
-
-                            <h4>
-                                ${escapeHTML(
-                                    participant.name
-                                )}
-                            </h4>
-
-                        </div>
-
-                        <div>
-
-                            <p>
-                                ${escapeHTML(
-                                    participant.college
-                                )}
-                            </p>
-
-                            <p>
-                                ${escapeHTML(
-                                    participant.department
-                                )}
-                            </p>
-
-                            <p>
-                                ${escapeHTML(
-                                    participant.year
-                                )}
-                            </p>
-
-                            <p>
-                                ${escapeHTML(
-                                    participant.phone
-                                )}
-                            </p>
-
-                            <p>
-                                ${escapeHTML(
-                                    participant.email
-                                )}
-                            </p>
-
-                        </div>
-
-                    `;
-
-
-                    reviewParticipants.appendChild(
-                        card
-                    );
-
-                }
-            );
-
-        }
-
+        reviewEventName.textContent =
+            data.eventName;
     }
 
 
-    /* ============================================================
-       MODULE 17 — CONTINUE TO REVIEW
-       ============================================================ */
+    if (reviewEventDate) {
 
-    if (continueToReview) {
-
-        continueToReview.addEventListener(
-            "click",
-            function (event) {
-
-                event.preventDefault();
+        reviewEventDate.textContent =
+            data.date;
+    }
 
 
-                const participants =
-                    collectParticipants();
+    if (reviewEventTime) {
+
+        reviewEventTime.textContent =
+            data.time;
+    }
 
 
-                if (
-                    !validateParticipants(
-                        participants
-                    )
-                ) {
+    if (reviewEventVenue) {
 
-                    alert(
-                        "Please complete all participant details correctly."
-                    );
-
-                    return;
-
-                }
+        reviewEventVenue.textContent =
+            data.venue;
+    }
 
 
-                let teamName =
-                    "";
+    if (reviewParticipation) {
+
+        reviewParticipation.textContent =
+            data.participationLabel;
+    }
 
 
-                if (
-                    selectedParticipation ===
-                    "team"
-                ) {
+    if (reviewParticipantCount) {
 
-                    teamName =
-                        teamNameInput
-                            ? teamNameInput.value.trim()
-                            : "";
+        reviewParticipantCount.textContent =
+            data.participantCount;
+    }
 
 
-                    if (!teamName) {
+    if (reviewFeePerParticipant) {
 
-                        if (teamNameError) {
-
-                            teamNameError.textContent =
-                                "Team name is required.";
-
-                        }
+        reviewFeePerParticipant.textContent =
+            `₹${data.feePerPerson}`;
+    }
 
 
-                        alert(
-                            "Please enter your team name."
-                        );
+    if (reviewTotalPeople) {
+
+        reviewTotalPeople.textContent =
+            data.participantCount;
+    }
 
 
-                        teamNameInput?.focus();
+    if (reviewTotalAmount) {
+
+        reviewTotalAmount.textContent =
+            `₹${data.totalAmount}`;
+    }
 
 
-                        return;
+    if (reviewGrandTotal) {
 
-                    }
-
-
-                    if (teamNameError) {
-
-                        teamNameError.textContent =
-                            "";
-
-                    }
-
-                }
+        reviewGrandTotal.textContent =
+            `₹${data.totalAmount}`;
+    }
 
 
-                registrationData = {
+    /* --------------------------------------------------------
+       TEAM NAME
+       -------------------------------------------------------- */
 
-                    eventId:
-                        selectedEventId,
+    if (reviewTeamNameBox) {
 
-                    eventName:
-                        currentEvent.name,
-
-                    participation:
-                        selectedParticipation,
-
-                    participantCount:
-                        participantCount,
-
-                    participants:
-                        participants,
-
-                    teamName:
-                        teamName,
-
-                    feePerPerson:
-                        PRICE_PER_PERSON,
-
-                    totalAmount:
-                        participantCount *
-                        PRICE_PER_PERSON
-
-                };
+        reviewTeamNameBox.hidden =
+            false;
+    }
 
 
-                saveRegistration();
+    if (reviewTeamName) {
+
+        reviewTeamName.textContent =
+            data.teamName;
+    }
 
 
-                showReview(
-                    registrationData
+    /* --------------------------------------------------------
+       PARTICIPANTS
+       -------------------------------------------------------- */
+
+    if (reviewParticipants) {
+
+        reviewParticipants.innerHTML =
+            "";
+
+        data.participants.forEach(
+            function (participant, index) {
+
+                const card =
+                    document.createElement("div");
+
+                card.className =
+                    "review-participant-card";
+
+
+                const role =
+                    index === 0
+                        ? "Team Leader"
+                        : "Team Member";
+
+
+                card.innerHTML = `
+
+                    <div>
+
+                        <span>
+                            ${role}
+                        </span>
+
+                        <h4>
+                            ${escapeHTML(
+                                participant.name
+                            )}
+                        </h4>
+
+                    </div>
+
+
+                    <div>
+
+                        <p>
+                            ${escapeHTML(
+                                participant.college
+                            )}
+                        </p>
+
+                        <p>
+                            ${escapeHTML(
+                                participant.department
+                            )}
+                        </p>
+
+                        <p>
+                            ${escapeHTML(
+                                participant.year
+                            )}
+                        </p>
+
+                        <p>
+                            ${escapeHTML(
+                                participant.phone
+                            )}
+                        </p>
+
+                        <p>
+                            ${escapeHTML(
+                                participant.email
+                            )}
+                        </p>
+
+                    </div>
+
+                `;
+
+
+                reviewParticipants.appendChild(
+                    card
                 );
-
-
-                participantSection.hidden =
-                    true;
-
-
-                reviewSection.hidden =
-                    false;
-
-
-                reviewSection.scrollIntoView({
-
-                    behavior:
-                        "smooth",
-
-                    block:
-                        "start"
-
-                });
 
             }
         );
 
     }
+
+}
+
+ /* ============================================================
+   MODULE 17 — CONTINUE TO REVIEW
+   ============================================================ */
+
+if (continueToReview) {
+
+    continueToReview.addEventListener(
+        "click",
+        function (event) {
+
+            event.preventDefault();
+
+
+            const participants =
+                collectParticipants();
+
+
+            if (
+                !validateParticipants(
+                    participants
+                )
+            ) {
+
+                alert(
+                    "Please complete all participant details correctly."
+                );
+
+                return;
+            }
+
+
+            const teamName =
+                teamNameInput
+                    ? teamNameInput.value.trim()
+                    : "";
+
+
+            if (!teamName) {
+
+                if (teamNameError) {
+
+                    teamNameError.textContent =
+                        "Team name is required.";
+                }
+
+
+                alert(
+                    "Please enter your team name."
+                );
+
+
+                teamNameInput?.focus();
+
+                return;
+            }
+
+
+            if (teamNameError) {
+
+                teamNameError.textContent =
+                    "";
+            }
+
+
+            selectedFeePerPerson =
+                getSelectedFeePerPerson();
+
+
+            selectedTotalAmount =
+                selectedFeePerPerson *
+                participantCount;
+
+
+            registrationData = {
+
+                eventId:
+                    selectedEventId,
+
+                eventName:
+                    currentEvent.name,
+
+                participation:
+                    selectedParticipation,
+
+                participationLabel:
+                    selectedParticipation === "external"
+                        ? "External"
+                        : "Internal",
+
+                participantCount:
+                    2,
+
+                participants:
+                    participants,
+
+                teamName:
+                    teamName,
+
+                feePerPerson:
+                    selectedFeePerPerson,
+
+                totalAmount:
+                    selectedTotalAmount,
+
+                date:
+                    getSelectedDate(),
+
+                time:
+                    currentEvent.time,
+
+                venue:
+                    currentEvent.venue
+
+            };
+
+
+            saveRegistration();
+
+
+            showReview(
+                registrationData
+            );
+
+
+            participantSection.hidden =
+                true;
+
+
+            reviewSection.hidden =
+                false;
+
+
+            reviewSection.scrollIntoView({
+
+                behavior:
+                    "smooth",
+
+                block:
+                    "start"
+
+            });
+
+        }
+    );
+
+}
 
 
     /* ============================================================
@@ -2032,107 +1733,73 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* ============================================================
-       MODULE 19 — UPDATE PAYMENT SUMMARY
+   MODULE 19 — UPDATE PAYMENT SUMMARY
 
-       IMPORTANT:
-       This ONLY updates the EXISTING HTML.
+   Updates the existing payment section.
+   ============================================================ */
 
-       It does NOT create another Scan & Pay section.
-       ============================================================ */
+function updatePaymentInformation(data) {
 
-    function updatePaymentInformation(
-        data
-    ) {
+    if (paymentEventName) {
 
-        if (paymentEventName) {
-
-            paymentEventName.textContent =
-                data.eventName;
-
-        }
-
-
-        if (paymentParticipation) {
-
-            paymentParticipation.textContent =
-                data.participation ===
-                "team"
-
-                    ? "Team — 2 Participants"
-
-                    : "Individual — 1 Participant";
-
-        }
-
-
-        if (paymentParticipantCount) {
-
-            paymentParticipantCount.textContent =
-                data.participantCount;
-
-        }
-
-
-        if (paymentAmount) {
-
-            paymentAmount.textContent =
-                `₹${data.feePerPerson}`;
-
-        }
-
-
-        if (paymentTotal) {
-
-            paymentTotal.textContent =
-                `₹${data.totalAmount}`;
-
-        }
-
-
-        if (paymentUpiId) {
-
-            paymentUpiId.textContent =
-                UPI_ID;
-
-        }
-
-
-        if (
-            data.participation ===
-            "team"
-        ) {
-
-            if (paymentTeamRow) {
-
-                paymentTeamRow.hidden =
-                    false;
-
-            }
-
-
-            if (paymentTeamName) {
-
-                paymentTeamName.textContent =
-                    data.teamName;
-
-            }
-
-        }
-
-        else {
-
-            if (paymentTeamRow) {
-
-                paymentTeamRow.hidden =
-                    true;
-
-            }
-
-        }
-
+        paymentEventName.textContent =
+            data.eventName;
     }
 
 
+    if (paymentParticipation) {
+
+        paymentParticipation.textContent =
+            `${data.participationLabel} — Team of 2`;
+    }
+
+
+    if (paymentParticipantCount) {
+
+        paymentParticipantCount.textContent =
+            data.participantCount;
+    }
+
+
+    if (paymentAmount) {
+
+        paymentAmount.textContent =
+            `₹${data.feePerPerson}`;
+    }
+
+
+    if (paymentTotal) {
+
+        paymentTotal.textContent =
+            `₹${data.totalAmount}`;
+    }
+
+
+    if (paymentUpiId) {
+
+        paymentUpiId.textContent =
+            UPI_ID;
+    }
+
+
+    /* --------------------------------------------------------
+       TEAM NAME
+       -------------------------------------------------------- */
+
+    if (paymentTeamRow) {
+
+        paymentTeamRow.hidden =
+            false;
+    }
+
+
+    if (paymentTeamName) {
+
+        paymentTeamName.textContent =
+            data.teamName;
+    }
+
+}
     /* ============================================================
        MODULE 20 — CONTINUE TO PAYMENT
        ============================================================ */
@@ -2450,106 +2117,70 @@ document.addEventListener("DOMContentLoaded", function () {
                     "Submitting...";
 
 
-                /* ------------------------------------------------
-                   PARTICIPANT DATA
-                   ------------------------------------------------ */
+let participant = null;
 
-                let participant =
-                    null;
+let teamLeader =
+    registrationData.participants[0];
 
-                let teamLeader =
-                    null;
-
-                let teamMember =
-                    null;
-
-
-                if (
-                    registrationData.participation ===
-                    "individual"
-                ) {
-
-                    participant =
-                        registrationData
-                            .participants[0];
-
-                }
-
-                else {
-
-                    teamLeader =
-                        registrationData
-                            .participants[0];
-
-                    teamMember =
-                        registrationData
-                            .participants[1];
-
-                }
+let teamMember =
+    registrationData.participants[1];
 
 
                 /* ------------------------------------------------
                    REQUEST DATA
                    ------------------------------------------------ */
 
-                const requestData = {
+const requestData = {
 
-                    eventId:
-                        registrationData.eventId,
+    eventId:
+        registrationData.eventId,
 
-                    eventName:
-                        registrationData.eventName,
+    eventName:
+        registrationData.eventName,
 
-                    /*
-                     * IMPORTANT FIX:
-                     *
-                     * The server expects teamSize to be a NUMBER.
-                     *
-                     * OLD:
-                     * teamSize: registrationData.participation
-                     *
-                     * That sent:
-                     * "team" / "individual"
-                     *
-                     * CORRECT:
-                     * Send 2 for team events
-                     * Send 1 for individual events
-                     */
+    participationType:
+        registrationData.participation,
 
-                    teamSize:
-                        Number(
-                            registrationData.participantCount
-                        ),
+    participationLabel:
+        registrationData.participationLabel,
 
-                    amount:
-                        registrationData.totalAmount,
+    teamSize:
+        2,
 
-                    teamName:
-                        registrationData.teamName || "",
+    participantCount:
+        2,
 
-                    participant:
-                        participant,
+    amount:
+        registrationData.totalAmount,
 
-                    teamLeader:
-                        teamLeader,
+    feePerPerson:
+        registrationData.feePerPerson,
 
-                    teamMember:
-                        teamMember,
+    teamName:
+        registrationData.teamName || "",
 
-                    payerName:
-                        paymentValidation.payerName,
+    participant:
+        null,
 
-                    utr:
-                        paymentValidation.utr,
+    teamLeader:
+        teamLeader,
 
-                    transactionId:
-                        paymentValidation.utr,
+    teamMember:
+        teamMember,
 
-                    paymentMethod:
-                        "UPI"
+    payerName:
+        paymentValidation.payerName,
 
-                };
+    utr:
+        paymentValidation.utr,
 
+    transactionId:
+        paymentValidation.utr,
+
+    paymentMethod:
+        "UPI"
+
+};
 
                 console.log(
                     "=========================================="
@@ -2857,39 +2488,22 @@ document.addEventListener("DOMContentLoaded", function () {
         /* --------------------------------------------------------
            TEAM
            -------------------------------------------------------- */
+/* --------------------------------------------------------
+   TEAM
+   -------------------------------------------------------- */
 
-        if (
-            data.participation ===
-            "team"
-        ) {
+if (successTeamRow) {
 
-            if (successTeamRow) {
-
-                successTeamRow.hidden =
-                    false;
-
-            }
+    successTeamRow.hidden =
+        false;
+}
 
 
-            if (successTeamName) {
+if (successTeamName) {
 
-                successTeamName.textContent =
-                    data.teamName;
-
-            }
-
-        }
-
-        else {
-
-            if (successTeamRow) {
-
-                successTeamRow.hidden =
-                    true;
-
-            }
-
-        }
+    successTeamName.textContent =
+        data.teamName || "—";
+}
 
 
         /* --------------------------------------------------------

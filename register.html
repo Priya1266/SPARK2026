@@ -185,9 +185,9 @@
                             Registration Fee
                         </small>
 
-                        <strong id="eventFee">
-                            ₹200 / Participant
-                        </strong>
+                        <div class="event-fee" id="eventFee">
+    Internal ₹150 / Participant | External ₹250 / Participant
+</div>
 
                     </div>
 
@@ -334,7 +334,7 @@
                 </h2>
 
                 <p id="participationInstruction">
-                    Select your participation type to continue.
+                    Select whether your team is registering as Internal or External.
                 </p>
 
             </div>
@@ -348,123 +348,84 @@
             <div class="participation-options">
 
 
-                <!-- =========================================
-                     INDIVIDUAL
-                     ========================================= -->
+ <!-- INTERNAL PARTICIPANT -->
+<div class="participation-card"
+     data-participation="internal">
 
-                <button
-                    type="button"
-                    class="participation-card"
-                    data-participation="individual"
-                >
+    <div class="participation-card-icon">
+        <span>🏫</span>
+    </div>
 
-                    <!-- Selection indicator -->
+    <div class="participation-card-content">
 
-                    <div class="selection-check">
-                        ✓
-                    </div>
+        <h3>Internal Participant</h3>
 
+        <p>
+            For students of Sathyabama Institute of Science and Technology.
+        </p>
 
-                    <!-- Icon -->
+        <div class="participation-card-meta">
 
-                    <div class="participation-icon">
-                        👤
-                    </div>
+            <span>
+                <span>👥</span>
+                Exactly 2 Participants
+            </span>
 
+            <span>
+                <span>👥</span>
+                ₹150 / Person
+            </span>
 
-                    <!-- Content -->
+            <span>
+                <span>💰</span>
+                ₹300 / Team
+            </span>
 
-                    <div class="participation-card-content">
+        </div>
 
-                        <h3>
-                            Individual
-                        </h3>
+    </div>
 
-                        <p>
-                            Participate individually
-                            in the event.
-                        </p>
-
-                    </div>
-
-
-                    <!-- Bottom information -->
-
-                    <div class="participation-bottom">
-
-                        <span>
-                            1 Participant
-                        </span>
-
-                        <strong>
-                            ₹200
-                        </strong>
-
-                    </div>
-
-                </button>
+</div>
 
 
+<!-- EXTERNAL PARTICIPANT -->
+<div class="participation-card"
+     data-participation="external">
 
-                <!-- =========================================
-                     TEAM
-                     ========================================= -->
+    <div class="participation-card-icon">
+        <span>🌐</span>
+    </div>
 
-                <button
-                    type="button"
-                    class="participation-card"
-                    data-participation="team"
-                >
+    <div class="participation-card-content">
 
-                    <!-- Selection indicator -->
+        <h3>External Participant</h3>
 
-                    <div class="selection-check">
-                        ✓
-                    </div>
+        <p>
+            For participants from colleges or institutions other than Sathyabama.
+        </p>
 
+        <div class="participation-card-meta">
 
-                    <!-- Icon -->
+            <span>
+                <span>👥</span>
+                Exactly 2 Participants
+            </span>
 
-                    <div class="participation-icon">
-                        👥
-                    </div>
+            <span>
+                <span>₹</span>
+                ₹250 / Person
+            </span>
 
+            <span>
+                <span>💰</span>
+                ₹500 / Team
+            </span>
 
-                    <!-- Content -->
+        </div>
 
-                    <div class="participation-card-content">
+    </div>
 
-                        <h3>
-                            Team
-                        </h3>
-
-                        <p>
-                            Participate with exactly
-                            2 participants.
-                        </p>
-
-                    </div>
-
-
-                    <!-- Bottom information -->
-
-                    <div class="participation-bottom">
-
-                        <span>
-                            2 Participants
-                        </span>
-
-                        <strong>
-                            ₹400
-                        </strong>
-
-                    </div>
-
-                </button>
-
-
-            </div>
-
+</div>
 
 
             <!-- =============================================
@@ -480,9 +441,11 @@
                     ℹ️
                 </span>
 
-                <p>
-                    Select an option to continue.
-                </p>
+<p>
+    Select whether your team is registering as Internal or External.
+    Both options require exactly 2 participants. Internal and External participants
+    cannot be mixed in the same team.
+</p>
 
             </div>
 
@@ -557,7 +520,6 @@
             <div
                 id="teamNameBox"
                 class="team-name-box"
-                hidden
             >
 
                 <div class="team-name-header">
@@ -895,7 +857,6 @@
                 <div
                     class="review-overview-item"
                     id="reviewTeamNameBox"
-                    hidden
                 >
 
                     <span>
@@ -935,7 +896,7 @@
                     </span>
 
                     <strong id="reviewFeePerParticipant">
-                        ₹200
+                        ₹150
                     </strong>
 
                 </div>
@@ -1035,10 +996,9 @@
                         Registration Total
                     </span>
 
-                    <small>
-                        Based on the selected event
-                        and participant count.
-                    </small>
+<small>
+    Based on the selected event and participant type.
+</small>
 
                 </div>
 
@@ -1226,7 +1186,7 @@
                     </span>
 
                     <strong id="paymentAmount">
-                        ₹200
+                        ₹150
                     </strong>
 
                 </div>
@@ -1242,7 +1202,7 @@
                     </span>
 
                     <strong id="paymentTotal">
-                        ₹0
+                        ₹300
                     </strong>
 
                 </div>
@@ -1293,12 +1253,6 @@
                     >
 
                 </div>
-
-
-
-
-
-
 
                 <!-- PAYMENT INSTRUCTION -->
 
@@ -1658,6 +1612,18 @@
                     </strong>
 
                 </div>
+<div
+    class="success-detail-item"
+    id="successTeamRow"
+>
+    <span>
+        Team Name
+    </span>
+
+    <strong id="successTeamName">
+        —
+    </strong>
+</div>
 
 
 

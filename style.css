@@ -1350,41 +1350,6 @@ span:nth-child(3) {
 
 
 /* ============================================================
-   ROBOVISIONÄR
-   ============================================================ */
-
-.ec-robovisionar {
-
-    border-top:
-        5px solid var(--robo-blue);
-
-    background:
-        linear-gradient(
-            180deg,
-            var(--robo-light),
-            white 45%
-        );
-}
-
-
-.ec-robovisionar .ec-list li::before {
-
-    color: var(--gold);
-}
-
-
-.ec-robovisionar .btn-primary {
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--robo-blue),
-            var(--navy)
-        );
-}
-
-
-/* ============================================================
    MODULE 10 — FOOTER
    ============================================================ */
 

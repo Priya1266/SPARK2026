@@ -45,24 +45,23 @@ const events = {
         about:
             "Participants are required to present an innovative idea based on a recent engineering or technology theme. The competition focuses on transforming creative ideas into impactful solutions through effective presentation.",
 
-        participation:
-            "Team — Exactly 2 participants per team",
+            participation:
+        "Internal / External — Exactly 2 participants per team",
 
-        fee:
-            "₹200 / Participant",
+    fee:
+        "Internal ₹150 / Participant | External ₹250 / Participant",
 
-        totalFee:
-            "₹400 / Team",
+    totalFee:
+        "Internal ₹300 / Team | External ₹500 / Team",
 
-        venue:
-            "Sathyabama Institute of Science & Technology",
+    venue:
+        "Sathyabama Institute of Science & Technology",
 
-        date:
-            "22 September 2026",
+    date:
+        "24 September 2026 (Internal) | 25 September 2026 (External)",
 
-        time:
-            "10:00 AM – 12:30 PM",
-
+    time:
+        "9:30 AM – 12:15 PM",
         facultyCoordinators: [
 
             "Dr. Bhuvaneswari A J",
@@ -112,22 +111,29 @@ const events = {
 
         ],
 
-        rules: [
+rules: [
 
-            "Team size: Exactly 2 participants per team.",
+    "Team size: Exactly 2 participants per team.",
 
-            "Both team members must register for the event.",
+    "Both team members must register for the event.",
 
-            "Each participant must pay a registration fee of ₹200.",
+    "Internal teams: ₹150 per participant (₹300 per team).",
 
-            "Participants must present an innovative idea based on a recent engineering or technology theme.",
+    "External teams: ₹250 per participant (₹500 per team).",
 
-            "Original ideas only.",
+    "Internal and external participants cannot be mixed in the same team.",
 
-            "Judges' decision is final."
+    "Internal participants will compete on 24 September 2026.",
 
-        ]
+    "External participants will compete on 25 September 2026.",
 
+    "Participants must present an innovative idea based on a recent engineering or technology theme.",
+
+    "Original ideas only.",
+
+    "Judges' decision is final."
+
+]
     },
 
 
@@ -146,23 +152,23 @@ const events = {
         about:
             "Participants will identify, analyze, and troubleshoot electronic circuit faults through practical problem-solving tasks.",
 
-        participation:
-            "Team — Exactly 2 participants per team",
+       participation:
+    "Internal — Exactly 2 participants per team",
 
-        fee:
-            "₹200 / Participant",
+fee:
+    "₹150 / Participant",
 
-        totalFee:
-            "₹400 / Team",
+totalFee:
+    "₹300 / Team",
 
-        venue:
-            "Sathyabama Institute of Science & Technology",
+venue:
+    "Sathyabama Institute of Science & Technology",
 
-        date:
-            "22 September 2026",
+date:
+    "24 September 2026",
 
-        time:
-            "1:00 PM – 3:00 PM",
+time:
+    "1:00 PM – 3:15 PM",
 
         facultyCoordinators: [
 
@@ -209,23 +215,25 @@ const events = {
 
         ],
 
-        rules: [
+rules: [
 
-            "Team size: Exactly 2 participants per team.",
+    "Team size: Exactly 2 participants per team.",
 
-            "Both team members must register for the event.",
+    "Both team members must register for the event.",
 
-            "Each participant must pay a registration fee of ₹200.",
+    "Internal participants only.",
 
-            "Teams must work together throughout the challenge.",
+    "Registration fee is ₹150 per participant (₹300 per team).",
 
-            "Participants will identify, analyze, and troubleshoot electronic circuit faults.",
+    "Teams must work together throughout the challenge.",
 
-            "Fault detection and troubleshooting will be evaluated.",
+    "Participants will identify, analyze, and troubleshoot electronic circuit faults.",
 
-            "Judges' decision is final."
+    "Fault detection and troubleshooting will be evaluated.",
 
-        ]
+    "Judges' decision is final."
+
+]
 
     },
 
@@ -245,23 +253,23 @@ const events = {
         about:
             "A technical quiz challenge testing participants' knowledge of emerging technologies, engineering concepts, and current technological developments.",
 
-        participation:
-            "Team — Exactly 2 participants per team",
+      participation:
+    "Internal / External — Exactly 2 participants per team",
 
-        fee:
-            "₹200 / Participant",
+fee:
+    "Internal ₹150 / Participant | External ₹250 / Participant",
 
-        totalFee:
-            "₹400 / Team",
+totalFee:
+    "Internal ₹300 / Team | External ₹500 / Team",
 
-        venue:
-            "Sathyabama Institute of Science & Technology",
+venue:
+    "Sathyabama Institute of Science & Technology",
 
-        date:
-            "23 September 2026",
+date:
+    "24 September 2026 (Internal) | 25 September 2026 (External)",
 
-        time:
-            "1:00 PM – 3:00 PM",
+time:
+    "9:30 AM – 12:15 PM",
 
         facultyCoordinators: [
 
@@ -314,120 +322,34 @@ const events = {
 
         ],
 
-        rules: [
+rules: [
 
-            "Team size: Exactly 2 participants per team.",
+    "Team size: Exactly 2 participants per team.",
 
-            "Both team members must register for the event.",
+    "Both team members must register for the event.",
 
-            "Each participant must pay a registration fee of ₹200.",
+    "Internal teams: ₹150 per participant (₹300 per team).",
 
-            "Teams must participate together throughout all rounds.",
+    "External teams: ₹250 per participant (₹500 per team).",
 
-            "The quiz will cover emerging technologies and engineering concepts."
+    "Internal and external participants cannot be mixed in the same team.",
 
-        ]
+    "Internal participants will compete on 24 September 2026.",
 
-    },
+    "External participants will compete on 25 September 2026.",
 
+    "Teams must participate together throughout all rounds.",
 
-    // ========================================================
-    // CODESPRINT
-    // ========================================================
+    "The quiz will cover emerging technologies and engineering concepts."
 
-    codesprint: {
-
-        title:
-            "CodeSprint",
-
-        subtitle:
-            "Programming Challenge",
-
-        about:
-            "Solve programming problems with speed, accuracy, and optimized logic.",
-
-        participation:
-            "Individual — One participant per registration",
-
-        fee:
-            "₹200 / Participant",
-
-        totalFee:
-            "₹200",
-
-        venue:
-            "Sathyabama Institute of Science & Technology",
-
-        date:
-            "23 September 2026",
-
-        time:
-            "10:00 AM – 12:30 PM",
-
-        facultyCoordinators: [
-
-            "Ms. Bhuvaneswari S",
-
-            "Dr. Soniya S"
-
-        ],
-
-        studentOrganisers: [
-
-            "Ms. Nanthana K T",
-
-            "Ms. Reshma V",
-
-            "Ms. Divyadarshini",
-
-            "Mr. Mohan Kumar",
-
-            "Ms. Shahana B"
-
-        ],
-
-        focusTitle:
-            "Programming Areas",
-
-        focusAreas: [
-
-            "C Programming",
-
-            "Java",
-
-            "Python",
-
-            "Data Structures"
-
-        ],
-
-        rules: [
-
-            "Individual participation only.",
-
-            "One participant per registration.",
-
-            "Registration fee is ₹200 per participant.",
-
-            "Participants may be tested in C Programming.",
-
-            "Participants may be tested in Java.",
-
-            "Participants may be tested in Python.",
-
-            "Participants may be tested in Data Structures."
-
-        ]
+]
 
     }
-
 };
-
 
 // ============================================================
 // CHECK EVENT
 // ============================================================
-
 if (
     !eventId ||
     !Object.prototype.hasOwnProperty.call(
@@ -508,6 +430,8 @@ const registerBtn =
 
 // ============================================================
 // EVENT CAPACITY / REGISTRATION PROGRESS
+// Public capacity display disabled.
+// Registration is not limited to 30 teams.
 // ============================================================
 
 // IMPORTANT:
@@ -1166,7 +1090,7 @@ if (coordinatorElement) {
 
 // Run after the page elements have been prepared.
 
-loadEventCapacity();
+//loadEventCapacity();
 
 
 // ============================================================
