@@ -1200,21 +1200,21 @@ span:nth-child(3) {
 }
 
 
-/* ============================================================
-   MODULE 9 — EVENTS
-   ============================================================ */
-
 .events-grid {
 
     display: grid;
 
     grid-template-columns:
-        repeat(2, 1fr);
+        minmax(0, 600px);
+
+    justify-content: center;
 
     gap: 32px;
+
+    width: 100%;
+
+    margin: 0 auto;
 }
-
-
 .event-card {
 
     position: relative;
@@ -1651,6 +1651,14 @@ span:nth-child(3) {
 
     gap: 26px;
 }
+.subevents-grid .subevent-card:last-child {
+
+    grid-column: 1 / -1;
+
+    width: calc(50% - 13px);
+
+    justify-self: center;
+}
 
 
 .subevent-card {
@@ -2080,6 +2088,12 @@ span:nth-child(3) {
 
         grid-template-columns: 1fr;
     }
+    .subevents-grid .subevent-card:last-child {
+
+    grid-column: auto;
+
+    width: 100%;
+}
 
 
     .organisers-grid {
