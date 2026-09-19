@@ -3978,3 +3978,34 @@ span:nth-child(3) {
         font-size: 12px;
     }
 }
+/* =====================================================
+   IDEAFORGE SUBMISSION ACTIONS
+   ===================================================== */
+
+.ideaforge-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.ideaforge-actions .btn {
+    flex: 1;
+    min-width: 220px;
+    text-align: center;
+    text-decoration: none;
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+
+    .ideaforge-actions {
+        flex-direction: column;
+    }
+
+    .ideaforge-actions .btn {
+        width: 100%;
+        min-width: 0;
+    }
+}
