@@ -43,7 +43,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const UPI_ID = "9940464883@ptaxis";
 
+// ============================================================
+// REGISTRATION CLOSURE
+// ============================================================
 
+const CLOSED_PARTICIPATION = {
+    ideaforge: {
+        internal: true,
+        external: false
+    },
+
+    circuitclash: {
+        internal: true
+    },
+
+    iqquest: {
+        internal: true,
+        external: false
+    }
+};
     /* ============================================================
        MODULE 2 — GET EVENT FROM URL
        ============================================================ */
@@ -540,122 +558,448 @@ if (paymentUpiId) {
         UPI_ID;
 }
 
-/* MODULE 8 — PARTICIPATION UI */
+/* ============================================================
+   MODULE 8 — PARTICIPATION UI
+   ============================================================ */
 
-function getAllowedParticipationTypes() {
-    if (currentEvent.participation === "internal-external") {
-        return ["internal", "external"];
-    }
+function getClosedParticipationTypes() {
 
-    return ["internal"];
+    return CLOSED_PARTICIPATION[
+        selectedEventId
+    ] || {};
+
 }
 
+
+function getAllowedParticipationTypes() {
+
+    const closedTypes =
+        getClosedParticipationTypes();
+
+    let allowedTypes = [];
+
+    if (
+        currentEvent.participation ===
+        "internal-external"
+    ) {
+
+        allowedTypes = [
+            "internal",
+            "external"
+        ];
+
+    } else {
+
+        allowedTypes = [
+            "internal"
+        ];
+
+    }
+
+    return allowedTypes.filter(
+        function (type) {
+
+            return closedTypes[type] !== true;
+
+        }
+    );
+
+}
+
+
 function getSelectedFeePerPerson() {
-    if (selectedParticipation === "external") {
+
+    if (
+        selectedParticipation ===
+        "external"
+    ) {
+
         return currentEvent.externalFeePerPerson;
+
     }
 
     return currentEvent.internalFeePerPerson;
+
 }
+
 
 function getSelectedDate() {
-    if (selectedParticipation === "external") {
+
+    if (
+        selectedParticipation ===
+        "external"
+    ) {
+
         return currentEvent.externalDate;
+
     }
 
-    return currentEvent.internalDate || currentEvent.date;
+    return currentEvent.internalDate ||
+        currentEvent.date;
+
 }
+
 
 function updateParticipationUI() {
-    const allowedTypes = getAllowedParticipationTypes();
 
-    // Exactly 2 participants for every event
+    const allowedTypes =
+        getAllowedParticipationTypes();
+
+    const closedTypes =
+        getClosedParticipationTypes();
+
+    // Exactly 2 participants
     participantCount = 2;
 
-    // Make sure the selected participation type is valid
-    if (!selectedParticipation || !allowedTypes.includes(selectedParticipation)) {
-        selectedParticipation = allowedTypes[0];
-    }
 
-    // Calculate fee
-    selectedFeePerPerson = getSelectedFeePerPerson();
-    selectedTotalAmount = selectedFeePerPerson * participantCount;
+    // --------------------------------------------------------
+    // NO PARTICIPATION TYPE AVAILABLE
+    // --------------------------------------------------------
 
-    // Team name is required for all events
-    if (teamNameBox) {
-        teamNameBox.hidden = false;
-    }
+    if (allowedTypes.length === 0) {
 
-    // Update selected summary
-    if (selectedType) {
-        selectedType.textContent =
-            selectedParticipation === "external"
-                ? "External Team"
-                : "Internal Team";
-    }
+        selectedParticipation = null;
 
-    if (selectedCount) {
-        selectedCount.textContent = "2";
-    }
+        selectedFeePerPerson = 0;
 
-    if (selectedTotal) {
-        selectedTotal.textContent = `₹${selectedTotalAmount}`;
-    }
+        selectedTotalAmount = 0;
 
-    // Participation message
-    if (participationMessage) {
-        if (currentEvent.participation === "internal-external") {
-            participationMessage.textContent =
-                "Select Internal or External. Both options require exactly 2 participants. " +
-                "Internal teams pay ₹300 (₹150/person); External teams pay ₹500 (₹250/person). " +
-                "Internal and External participants cannot be mixed.";
-        } else {
-            participationMessage.textContent =
-                "Circuit Clash is open to Internal participants only. Exactly 2 participants per team. " +
-                "Registration fee: ₹300 per team (₹150/person).";
+        if (selectedType) {
+
+            selectedType.textContent =
+                "Registrations Closed";
+
         }
+
+        if (selectedCount) {
+
+            selectedCount.textContent =
+                "—";
+
+        }
+
+        if (selectedTotal) {
+
+            selectedTotal.textContent =
+                "—";
+
+        }
+
+        if (participationMessage) {
+
+            participationMessage.textContent =
+                "Registrations are currently closed for this event.";
+
+        }
+
+        if (continueParticipation) {
+
+            continueParticipation.disabled =
+                true;
+
+            continueParticipation.textContent =
+                "Registrations Closed";
+
+        }
+
+        if (teamNameBox) {
+
+            teamNameBox.hidden =
+                true;
+
+        }
+
     }
 
-    // Show / hide participation cards
-    if (participationCards && participationCards.length) {
-        participationCards.forEach(card => {
-            const type = card.dataset.participation;
+    else {
 
-            if (allowedTypes.includes(type)) {
-                card.hidden = false;
-            } else {
-                card.hidden = true;
+        // ----------------------------------------------------
+        // SELECT FIRST AVAILABLE TYPE
+        // ----------------------------------------------------
+
+        if (
+            !selectedParticipation ||
+            !allowedTypes.includes(
+                selectedParticipation
+            )
+        ) {
+
+            selectedParticipation =
+                allowedTypes[0];
+
+        }
+
+
+        // ----------------------------------------------------
+        // CALCULATE FEE
+        // ----------------------------------------------------
+
+        selectedFeePerPerson =
+            getSelectedFeePerPerson();
+
+        selectedTotalAmount =
+            selectedFeePerPerson *
+            participantCount;
+
+
+        // ----------------------------------------------------
+        // TEAM NAME
+        // ----------------------------------------------------
+
+        if (teamNameBox) {
+
+            teamNameBox.hidden =
+                false;
+
+        }
+
+
+        // ----------------------------------------------------
+        // SELECTED SUMMARY
+        // ----------------------------------------------------
+
+        if (selectedType) {
+
+            selectedType.textContent =
+                selectedParticipation === "external"
+                    ? "External Team"
+                    : "Internal Team";
+
+        }
+
+        if (selectedCount) {
+
+            selectedCount.textContent =
+                "2";
+
+        }
+
+        if (selectedTotal) {
+
+            selectedTotal.textContent =
+                `₹${selectedTotalAmount}`;
+
+        }
+
+
+        // ----------------------------------------------------
+        // PARTICIPATION MESSAGE
+        // ----------------------------------------------------
+
+        if (participationMessage) {
+
+            if (
+                currentEvent.participation ===
+                "internal-external"
+            ) {
+
+                participationMessage.textContent =
+                    "External registration is currently open. " +
+                    "Internal registration is closed. " +
+                    "External teams require exactly 2 participants " +
+                    "and pay ₹500 per team (₹250/person). " +
+                    "Internal and External participants cannot be mixed.";
+
             }
 
-            card.classList.toggle(
-                "selected",
-                type === selectedParticipation
+            else {
+
+                participationMessage.textContent =
+                    "Internal registration is currently closed " +
+                    "for Circuit Clash.";
+
+            }
+
+        }
+
+
+        // ----------------------------------------------------
+        // CONTINUE BUTTON
+        // ----------------------------------------------------
+
+        if (continueParticipation) {
+
+            continueParticipation.disabled =
+                false;
+
+            continueParticipation.textContent =
+                "Continue →";
+
+        }
+
+    }
+
+
+    // --------------------------------------------------------
+    // SHOW / HIDE PARTICIPATION CARDS
+    // --------------------------------------------------------
+
+    if (
+        participationCards &&
+        participationCards.length
+    ) {
+
+        participationCards.forEach(
+            function (card) {
+
+                const type =
+                    card.dataset.participation;
+
+                const isClosed =
+                    closedTypes[type] === true;
+
+                const isAllowed =
+                    allowedTypes.includes(type);
+
+
+                // Closed participation is hidden
+                if (
+                    isClosed ||
+                    !isAllowed
+                ) {
+
+                    card.hidden =
+                        true;
+
+                }
+
+                else {
+
+                    card.hidden =
+                        false;
+
+                }
+
+
+                card.classList.toggle(
+                    "selected",
+                    type === selectedParticipation
+                );
+
+            }
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // EVENT DATE / FEE
+    // --------------------------------------------------------
+
+    if (eventDate) {
+
+        if (
+            selectedParticipation ===
+            "external"
+        ) {
+
+            eventDate.textContent =
+                currentEvent.externalDate;
+
+        }
+
+        else if (
+            currentEvent.participation ===
+            "internal-external"
+        ) {
+
+            eventDate.textContent =
+                "External registration open | Internal registration closed";
+
+        }
+
+        else {
+
+            eventDate.textContent =
+                "Registrations Closed";
+
+        }
+
+    }
+
+
+    if (eventFee) {
+
+        if (
+            selectedParticipation ===
+            "external"
+        ) {
+
+            eventFee.textContent =
+                "External ₹250 / Participant";
+
+        }
+
+        else if (
+            currentEvent.participation ===
+            "internal-external"
+        ) {
+
+            eventFee.textContent =
+                "External ₹250 / Participant | Internal Closed";
+
+        }
+
+        else {
+
+            eventFee.textContent =
+                "Internal registration closed";
+
+        }
+
+    }
+
+}
+
+
+// ------------------------------------------------------------
+// PARTICIPATION CARD CLICK
+// ------------------------------------------------------------
+
+if (
+    participationCards &&
+    participationCards.length
+) {
+
+    participationCards.forEach(
+        function (card) {
+
+            card.addEventListener(
+                "click",
+                function () {
+
+                    const type =
+                        card.dataset.participation;
+
+                    const allowedTypes =
+                        getAllowedParticipationTypes();
+
+                    if (
+                        !allowedTypes.includes(type)
+                    ) {
+
+                        return;
+
+                    }
+
+                    selectedParticipation =
+                        type;
+
+                    updateParticipationUI();
+
+                }
             );
-        });
-    }
+
+        }
+    );
+
 }
 
 
-// Participation card click
-if (participationCards && participationCards.length) {
-    participationCards.forEach(card => {
-        card.addEventListener("click", () => {
-            const type = card.dataset.participation;
-            const allowedTypes = getAllowedParticipationTypes();
+// ------------------------------------------------------------
+// INITIALIZE PARTICIPATION UI
+// ------------------------------------------------------------
 
-            if (!allowedTypes.includes(type)) {
-                return;
-            }
-
-            selectedParticipation = type;
-
-            updateParticipationUI();
-        });
-    });
-}
-
-
-// Initialize participation UI
 updateParticipationUI();
   /* ============================================================
    MODULE 9 — PARTICIPANT FORMS
@@ -1184,21 +1528,44 @@ if (continueParticipation) {
 
             event.preventDefault();
 
-            const allowedTypes =
-                getAllowedParticipationTypes();
+const allowedTypes =
+    getAllowedParticipationTypes();
 
-            if (
-                !selectedParticipation ||
-                !allowedTypes.includes(
-                    selectedParticipation
-                )
-            ) {
-                selectedParticipation =
-                    allowedTypes[0];
-            }
 
-            participantCount = 2;
+// ------------------------------------------------
+// BLOCK CLOSED REGISTRATION
+// ------------------------------------------------
 
+if (allowedTypes.length === 0) {
+
+    alert(
+        "Registrations are currently closed for this event."
+    );
+
+    updateParticipationUI();
+
+    return;
+
+}
+
+
+// ------------------------------------------------
+// ENSURE VALID PARTICIPATION TYPE
+// ------------------------------------------------
+
+if (
+    !selectedParticipation ||
+    !allowedTypes.includes(
+        selectedParticipation
+    )
+) {
+
+    selectedParticipation =
+        allowedTypes[0];
+
+}
+
+participantCount = 2;
             selectedFeePerPerson =
                 getSelectedFeePerPerson();
 

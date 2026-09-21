@@ -22,12 +22,29 @@ const app = express();
 const PORT =
     Number(process.env.PORT) || 3000;
 // ============================================================
-// TEMPORARY REGISTRATION CLOSURE
+// REGISTRATION CLOSURE
 // ============================================================
 
 const REGISTRATION_CLOSED = false;
 
+// Participation-specific registration closures
+const CLOSED_PARTICIPATION = {
 
+    ideaforge: {
+        internal: true,
+        external: false
+    },
+
+    circuitclash: {
+        internal: true
+    },
+
+    iqquest: {
+        internal: true,
+        external: false
+    }
+
+};
 // ============================================================
 // MODULE 1 — MIDDLEWARE
 // ============================================================
@@ -2675,22 +2692,6 @@ teamName:
 app.post(
     "/api/register",
     async (req, res) => {
- // ------------------------------------------------
-        // TEMPORARY REGISTRATION CLOSURE
-        // ------------------------------------------------
-
-        if (REGISTRATION_CLOSED) {
-
-            return res.status(403).json({
-
-                success: false,
-
-                message:
-                    "Registration is currently closed."
-
-            });
-
-        }
         try {
 
             await connectDatabase();
@@ -2837,7 +2838,34 @@ const cleanParticipationType =
     cleanText(
         participationType
     ).toLowerCase();
+// ------------------------------------------------
+// PARTICIPATION-SPECIFIC REGISTRATION CLOSURE
+// ------------------------------------------------
 
+const participationClosure =
+    CLOSED_PARTICIPATION[
+        cleanEventId
+    ];
+
+if (
+    participationClosure &&
+    participationClosure[
+        cleanParticipationType
+    ] === true
+) {
+
+    return res.status(403).json({
+
+        success: false,
+
+        message:
+            cleanParticipationType === "internal"
+                ? "Internal registration is closed for this event."
+                : "Registration is closed for this participation type."
+
+    });
+
+}
 const allowedParticipationTypes =
     event.participation === "internal-external"
         ? ["internal", "external"]
