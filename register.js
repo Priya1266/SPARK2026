@@ -43,14 +43,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const UPI_ID = "9940464883@ptaxis";
 
-// ============================================================
-// REGISTRATION CLOSURE
-// ============================================================
-
 const CLOSED_PARTICIPATION = {
     ideaforge: {
         internal: true,
-        external: false
+        external: true
     },
 
     circuitclash: {
@@ -59,7 +55,7 @@ const CLOSED_PARTICIPATION = {
 
     iqquest: {
         internal: true,
-        external: false
+        external: true
     }
 };
     /* ============================================================
@@ -882,76 +878,67 @@ function updateParticipationUI() {
     }
 
 
-    // --------------------------------------------------------
-    // EVENT DATE / FEE
-    // --------------------------------------------------------
+// --------------------------------------------------------
+// EVENT DATE / FEE
+// --------------------------------------------------------
 
-    if (eventDate) {
+if (eventDate) {
 
-        if (
-            selectedParticipation ===
-            "external"
-        ) {
+    if (allowedTypes.length === 0) {
 
-            eventDate.textContent =
-                currentEvent.externalDate;
-
-        }
-
-        else if (
-            currentEvent.participation ===
-            "internal-external"
-        ) {
-
-            eventDate.textContent =
-                "External registration open | Internal registration closed";
-
-        }
-
-        else {
-
-            eventDate.textContent =
-                "Registrations Closed";
-
-        }
+        eventDate.textContent =
+            "Registrations Closed";
 
     }
 
+    else if (
+        selectedParticipation ===
+        "external"
+    ) {
 
-    if (eventFee) {
+        eventDate.textContent =
+            currentEvent.externalDate;
 
-        if (
-            selectedParticipation ===
-            "external"
-        ) {
+    }
 
-            eventFee.textContent =
-                "External ₹250 / Participant";
+    else {
 
-        }
-
-        else if (
-            currentEvent.participation ===
-            "internal-external"
-        ) {
-
-            eventFee.textContent =
-                "External ₹250 / Participant | Internal Closed";
-
-        }
-
-        else {
-
-            eventFee.textContent =
-                "Internal registration closed";
-
-        }
+        eventDate.textContent =
+            currentEvent.internalDate ||
+            currentEvent.date;
 
     }
 
 }
 
 
+if (eventFee) {
+
+    if (allowedTypes.length === 0) {
+
+        eventFee.textContent =
+            "Registrations Closed";
+
+    }
+
+    else if (
+        selectedParticipation ===
+        "external"
+    ) {
+
+        eventFee.textContent =
+            "External ₹250 / Participant";
+
+    }
+
+    else {
+
+        eventFee.textContent =
+            "Internal ₹150 / Participant";
+
+    }
+
+}}
 // ------------------------------------------------------------
 // PARTICIPATION CARD CLICK
 // ------------------------------------------------------------

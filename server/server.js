@@ -29,10 +29,9 @@ const REGISTRATION_CLOSED = false;
 
 // Participation-specific registration closures
 const CLOSED_PARTICIPATION = {
-
     ideaforge: {
         internal: true,
-        external: false
+        external: true
     },
 
     circuitclash: {
@@ -41,9 +40,8 @@ const CLOSED_PARTICIPATION = {
 
     iqquest: {
         internal: true,
-        external: false
+        external: true
     }
-
 };
 // ============================================================
 // MODULE 1 — MIDDLEWARE
